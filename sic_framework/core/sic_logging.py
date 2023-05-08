@@ -1,6 +1,7 @@
 import io
 import logging
 
+from . import utils
 from .message_python2 import SICMessage
 from .sic_redis import SICRedis
 
@@ -111,7 +112,7 @@ def get_sic_logger(redis, name, log_level, log_messages_channel):
     debug_stream = SICLogStream(redis, log_messages_channel)
     handler_redis = logging.StreamHandler(debug_stream)
 
-    log_format = SICLogFormatter('[%(name)s]: %(levelname)s: %(message)s')
+    log_format = SICLogFormatter('[%(name)s {ip}]: %(levelname)s: %(message)s'.format(ip=utils.get_ip_adress()))
     handler_redis.setFormatter(log_format)
 
     handler_terminal = logging.StreamHandler()
