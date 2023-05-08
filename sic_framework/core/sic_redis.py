@@ -191,7 +191,7 @@ class SICRedis:
         done.wait(timeout)
 
         if not done.is_set():
-            raise TimeoutError("Waiting for reply {} to request timed out".format(request.get_message_name()))
+            raise TimeoutError("Waiting for reply to {} to request timed out".format(request.get_message_name()))
 
         # cleanup by unsubscribing and stopping the subscriber thread
         self.unregister_callback(callback_thread)
