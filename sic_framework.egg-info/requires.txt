@@ -1,4 +1,0 @@
-numpy
-redis
-Pillow
-six

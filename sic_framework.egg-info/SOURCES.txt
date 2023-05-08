@@ -1,7 +1,0 @@
-setup.py
-sic_framework/__init__.py
-sic_framework.egg-info/PKG-INFO
-sic_framework.egg-info/SOURCES.txt
-sic_framework.egg-info/dependency_links.txt
-sic_framework.egg-info/requires.txt
-sic_framework.egg-info/top_level.txt
