@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Webserver</title>
+</head>
+<body>
+
+	<button id="start-btn">Start the dialogflow service</button>
+	<div class="dialogflow server">
+		<p id="dialogflow">{{ dialogflow }}</p>
+	</div>
+	<script>
+
+		var start_btn = document.getElementById('start-btn');
+
+		// when a start button is clicked, html will render dynamic dialogflow transcripts
+		start_btn.addEventListener('click', function() {
+			setInterval(() => {
+				fetch("/dialogflow")
+				.then(response => response.text())
+				.then(data => document.getElementById("dialogflow").innerHTML = data)
+				.catch(error => console.log(error));
+			}, 500);
+		});
+
+
+	</script>
+
+</body>
+</html>
+
+

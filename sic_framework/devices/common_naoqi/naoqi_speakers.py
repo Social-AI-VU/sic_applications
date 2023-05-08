@@ -1,0 +1,71 @@
+import argparse
+
+import six
+from sic_framework.core.actuator_python2 import SICActuator
+from sic_framework.core.component_manager_python2 import SICComponentManager
+from sic_framework.core.message_python2 import SICRequest, SICConfMessage, SICMessage
+
+if not six.PY3:
+    from naoqi import ALProxy
+    import qi
+
+
+# @dataclass
+class NaoqiTextToSpeechRequest(SICRequest):
+    def __init__(self, text):
+        super(NaoqiTextToSpeechRequest, self).__init__()
+        self.text = text
+
+
+
+
+
+# @dataclass
+class NaoqiTextToSpeechConf(SICConfMessage):
+    def __init__(self, ip='127.0.0.1', port=9559, lang=None, pitch_shift=None):
+        """ params can be found at http://doc.aldebaran.com/2-8/naoqi/audio/altexttospeech-api.html#ALTextToSpeechProxy::setParameter__ssCR.floatCR
+        """
+        SICConfMessage.__init__(self)
+        self.ip = ip
+        self.port = port
+        self.lang = lang
+        self.pitch_shift = pitch_shift
+        # TODO: see if we need to add the rest of the speech params
+
+
+class NaoqiTextToSpeechActuator(SICActuator):
+    def __init__(self, *args, **kwargs):
+        super(NaoqiTextToSpeechActuator, self).__init__(*args, **kwargs)
+
+        self.session = qi.Session()
+        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+
+        self.tts = self.session.service('ALTextToSpeech')
+        self.atts = self.session.service('ALAnimatedSpeech')
+        self.language = self.session.service('ALDialog')
+        self.audio_player = self.session.service('ALAudioPlayer')
+
+    @staticmethod
+    def get_conf():
+        return NaoqiTextToSpeechConf()
+
+    @staticmethod
+    def get_inputs():
+        return [NaoqiTextToSpeechRequest]
+
+    @staticmethod
+    def get_output():
+        return SICMessage
+
+    def execute(self, message):
+        self.tts.say(message.text)
+
+        return SICMessage()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('robot_name')
+    args = parser.parse_args()
+
+    SICComponentManager(NaoqiTextToSpeechActuator, args.robot_name)

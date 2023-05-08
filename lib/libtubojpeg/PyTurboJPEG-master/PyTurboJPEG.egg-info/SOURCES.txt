@@ -1,0 +1,8 @@
+README.md
+setup.py
+turbojpeg.py
+PyTurboJPEG.egg-info/PKG-INFO
+PyTurboJPEG.egg-info/SOURCES.txt
+PyTurboJPEG.egg-info/dependency_links.txt
+PyTurboJPEG.egg-info/requires.txt
+PyTurboJPEG.egg-info/top_level.txt
