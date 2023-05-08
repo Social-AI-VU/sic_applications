@@ -8,7 +8,7 @@ from sic_framework.core.sensor_python2 import SICSensor
 from sic_framework.core.utils import isinstance_pickle
 from . import utils
 from .component_manager_python2 import SICStartComponentRequest, SICNotStartedMessage
-from .message_python2 import SICMessage, SICRequest, SICStopRequest
+from .message_python2 import SICMessage, SICRequest, SICStopRequest, SICPingRequest
 from .sic_logging import SIC_LOG_SUBSCRIBER
 from .sic_redis import SICRedis
 
@@ -31,6 +31,12 @@ class SICConnector(object):
         :param conf: Optional SICConfMessage to set component parameters.
         """
         self._redis = SICRedis()
+
+        # default ip adress is local ip adress (the actual inet, not localhost or 127.0.0.1)
+
+        if ip in ["localhost", "127.0.0.1"]:
+            ip = utils.get_ip_adress()
+
         self._ip = ip
 
         self._callback_threads = []
@@ -39,7 +45,7 @@ class SICConnector(object):
         self._log_level = log_level
         self._conf = conf
 
-        # TODO logging singleton
+        # Subscribe to the log channel to display to the user
         SIC_LOG_SUBSCRIBER.subscribe_to_log_channel_once()
 
         self.output_channel = self.component_class.get_output_channel(self._ip)
@@ -48,9 +54,20 @@ class SICConnector(object):
         self.input_channel = "user:{}".format(self._ip)
         self._redis.request(self._request_reply_channel, ConnectRequest(self.input_channel))
 
-        # Not strictly necessary if we assume the component is already started manually
-        # and channel names are deterministic
-        self._start_component()
+        # if we cannot ping the component, request it to be started
+        if not self._ping():
+            self._start_component()
+
+
+    def _ping(self):
+        try:
+            self.request(SICPingRequest(), timeout=.1)
+            return True
+
+        except TimeoutError:
+            return False
+
+
 
     @property
     def component_class(self):
@@ -125,7 +142,7 @@ class SICConnector(object):
         request = ConnectRequest(component.output_channel)
         self._redis.request(self._request_reply_channel, request)
 
-    def request(self, request: SICRequest, timeout=100, block=True):
+    def request(self, request: SICRequest, timeout=100.0, block=True):
         """
         Request data from a device. Waits until the reply is received. If the reply takes longer than
         `timeout` seconds to arrive, a TimeoutError is raised. If block is set to false, the reply is
