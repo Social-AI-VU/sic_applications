@@ -264,6 +264,16 @@ class SICControlRequest(SICRequest):
     Superclass for all requests that are related to component control
     """
 
+class SICPingRequest(SICControlRequest):
+    """
+    A request for a ping to check if alive.
+    """
+
+class SICPongMessage(SICControlMessage):
+    """
+    A pong to reply to a ping request.;
+    """
+
 
 class SICSuccessMessage(SICControlMessage):
     """

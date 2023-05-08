@@ -6,7 +6,7 @@ import sic_framework.core.sic_logging
 from sic_framework.core.utils import isinstance_pickle
 from . import sic_logging, utils
 from .message_python2 import SICConfMessage, SICRequest, SICMessage, SICSuccessMessage, \
-    SICControlRequest
+    SICControlRequest, SICPingRequest, SICPongMessage
 from .sic_redis import SICRedis
 
 
@@ -54,15 +54,15 @@ class SICComponent:
 
         self.logger = self._get_logger(log_level)
 
-    def _get_logger(self, request):
+    def _get_logger(self, log_level):
         """
         Create a logger for the component to use to send messages to the user during its lifetime.
-        :param request: The SICStartServiceRequest
+        :param log_level: The logging verbosity level, such as sic_logging.SIC_DEBUG_FRAMEWORK.
         :return: Logger
         """
         # create logger for the component
         name = self.get_component_name()
-        return sic_logging.get_sic_logger(self._redis, name, request.log_level, sic_framework.core.sic_logging.get_log_channel())
+        return sic_logging.get_sic_logger(self._redis, name, log_level, sic_framework.core.sic_logging.get_log_channel())
 
     def _start(self):
         """
@@ -99,6 +99,11 @@ class SICComponent:
         :param request: 
         :return: 
         """
+
+        self.logger.debug_framework_verbose("Handling request {}".format(request.get_message_name()))
+
+        if isinstance_pickle(request, SICPingRequest):
+            return SICPongMessage()
 
         # if isinstance_pickle(request, SICStopRequest):
         #     self._stop_event.set()
