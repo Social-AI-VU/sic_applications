@@ -2,13 +2,10 @@ import time
 
 import cv2
 
-import tqdm
-
 from sic_framework.core import utils_cv2
-from sic_framework.devices.nao import Nao
-
-from sic_framework import SICApplication, BoundingBoxesMessage
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, CompressedImageMessage
+from sic_framework.core.message_python2 import BoundingBoxesMessage, CompressedImageMessage
+from sic_framework.devices.desktop.desktop_camera import DesktopCamera
+from sic_framework.services.face_detection.face_detection_service import FaceDetection
 from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognition
 
 """ 
@@ -34,14 +31,19 @@ def on_image(image_message: CompressedImageMessage):
   cv2.waitKey(1)
 
 
-nao = Nao(ip="192.168.0.1")
+# nao = Nao(ip="192.168.0.1")
+# camera = nao.top_camera
 
-nao.top_camera.register_callback(on_image)
+
+camera = DesktopCamera()
 
 
-face_recognition = DNNFaceRecognition(ip='localhost')
+camera.register_callback(on_image)
 
-face_recognition.connect(nao.top_camera)
+
+face_recognition = FaceDetection(ip='localhost')
+
+face_recognition.connect(camera)
 
 face_recognition.register_callback(on_detected_faces)
 

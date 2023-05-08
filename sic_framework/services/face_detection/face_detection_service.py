@@ -2,7 +2,10 @@ import cv2
 import numpy as np
 
 from numpy import array
+
+from sic_framework.core import sic_logging
 from sic_framework.core.component_manager_python2 import SICComponentManager
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import CompressedImageMessage, SICMessage, BoundingBox, BoundingBoxesMessage
 from sic_framework.core.service_python2 import SICService
 
@@ -44,6 +47,9 @@ class FaceDetectionService(SICService):
 
         return BoundingBoxesMessage(faces)
 
+class FaceDetection(SICConnector):
+    component_class = FaceDetectionService
 
 if __name__ == '__main__':
-    SICComponentManager([FaceDetectionService], "local")
+    c = FaceDetectionService()
+    c._start()

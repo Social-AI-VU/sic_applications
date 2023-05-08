@@ -230,6 +230,7 @@ class SICComponent:
     def stop(self, *args):
         self.logger.debug('Trying to exit {} gracefully...'.format(self.get_component_name()))
         try:
+            # TODO unregister all listeners
             self._redis.close()
             self._stop_event.set()
             self.logger.debug('Graceful exit was successful')

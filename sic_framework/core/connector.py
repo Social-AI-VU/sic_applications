@@ -21,6 +21,9 @@ class ComponentNotStartedError(Exception):
 class SICConnector(object):
     __metaclass__ = ABCMeta
 
+    # define how long an "instant" reply should take at most
+    _PING_TIMEOUT = .2
+
     def __init__(self, ip="localhost", log_level=logging.INFO, conf=None):
         """
         A proxy that enables communication with a component that has been started. We can send messages to, and receive
@@ -52,7 +55,7 @@ class SICConnector(object):
 
         # subscribe the component to a channel that the user is able send a message on if needed 
         self.input_channel = "user:{}".format(self._ip)
-        self._redis.request(self._request_reply_channel, ConnectRequest(self.input_channel))
+        self.request(ConnectRequest(self.input_channel), timeout=self._PING_TIMEOUT)
 
         # if we cannot ping the component, request it to be started
         if not self._ping():
@@ -61,7 +64,7 @@ class SICConnector(object):
 
     def _ping(self):
         try:
-            self.request(SICPingRequest(), timeout=.1)
+            self.request(SICPingRequest(), timeout=self._PING_TIMEOUT)
             return True
 
         except TimeoutError:
@@ -165,8 +168,8 @@ class SICConnector(object):
         """
         Stop the component and disconnect the callback.
         """
-        self._redis.send_message(self._request_reply_channel, SICStopRequest())
-
+        # self._redis.send_message(self._request_reply_channel, SICStopRequest())
+        print("Cleanup")
         for ct in self._callback_threads:
             self._redis.unregister_callback(ct)
 
@@ -174,13 +177,14 @@ class SICConnector(object):
 
     # TODO: maybe put this in constructor to do a graceful exit on crash?
     # register cleanup to disconnect redis if an exception occurs anywhere during exection
+    # TODO FIX cannot register multiple exepthooks
     # sys.excepthook = self.cleanup_after_except
-    #
+    # #
     # def cleanup_after_except(self, *args):
     #     self.stop()
     #     # call original except hook after stopping
     #     sys.__excepthook__(*args)
 
     # TODO: maybe also helps for a graceful exit?
-    # def __del__(self):
-    #     self.stop()
+    def __del__(self):
+        self.stop()

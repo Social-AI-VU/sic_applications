@@ -123,4 +123,5 @@ class DNNFaceRecognition(SICConnector):
 
 
 if __name__ == '__main__':
-    SICComponentManager([DNNFaceRecognitionService], "local")
+    DNNFaceRecognitionService()
+    # SICComponentManager([DNNFaceRecognitionService])
