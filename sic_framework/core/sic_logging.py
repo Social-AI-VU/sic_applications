@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import io
 import logging
 
@@ -44,7 +46,7 @@ class SICLogSubscriber(object):
             self.started = True
 
 
-    def _handle_log_message(self, message: SICLogMessage):
+    def _handle_log_message(self, message):
         """
         Handle a message sent on a debug stream. Currently its just printed to the terminal.
         :param message: SICLogMessage
