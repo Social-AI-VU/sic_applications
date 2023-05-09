@@ -6,10 +6,10 @@ def draw_on_image(bbox, img, color=(0, 255, 0)):
     cv2.rectangle(img, (bbox.x, bbox.y), (bbox.x + bbox.w, bbox.y + bbox.h), color, 2)
 
     label = ""
-    if bbox.identifier:
+    if bbox.identifier is not None:
         label += "id: {} ".format(bbox.identifier)
 
-    if bbox.confidence:
+    if bbox.confidence is not None:
         label += "conf: {}".format(bbox.confidence)
 
     if len(label):
