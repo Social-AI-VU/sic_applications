@@ -25,17 +25,6 @@ class SICStartComponentRequest(SICRequest):
         self.conf = conf  # SICConfMessage
 
 
-class SICStartedComponentInformation(SICMessage):
-    """
-    A reply to the SICStartServiceRequest, most importantly communicating the output channel that the component
-    is publishing its output data to.
-    """
-    component_is_singleton = False
-
-    def __init__(self, output_channel):
-        self.output_channel = output_channel  # str
-
-
 class SICNotStartedMessage(SICMessage):
     def __init__(self, message):
         self.message = message
@@ -94,7 +83,7 @@ class SICComponentManager(object):
 
     def _sync_time(self):
         """
-        WORK IN PROGRESS
+        WORK IN PROGRESS: Does not work!
         clock on devices is often not correct, so we need to correct for this
         """
         # Check if the time of this device is off, because that would interfere with sensor fusion across devices
@@ -107,7 +96,7 @@ class SICComponentManager(object):
             raise ValueError("The time on this device differs by {} seconds from the redis server (max: {}s)".format(
                 time_diff_seconds, self.MAX_REDIS_SERVER_TIME_DIFFERENCE))
 
-    def _handle_request(self, channel, request):
+    def _handle_request(self, request):
         """
         Start a component on this device as requested by a user. A thread is started to run the component, and component
         threads are restarted/reused when a user re-requests the component. Separated such that SICSingletonFactory can
@@ -151,13 +140,10 @@ class SICComponentManager(object):
 
         component_class = self.component_classes[request.component_name] # SICComponent
 
-        output_channel = component_class.get_output_channel(self.ip)
-
         try:
             stop_event = threading.Event()
             ready_event = threading.Event()
-            component = component_class(output_channel=output_channel,
-                                        stop_event=stop_event,
+            component = component_class(stop_event=stop_event,
                                         ready_event=ready_event,
                                         log_level=request.log_level,
                                         conf=request.conf,
@@ -178,8 +164,8 @@ class SICComponentManager(object):
             # restart/reuse them for each user
             self.active_components.append(component)
 
-            # inform the user their component has started and what the output channel is
-            reply = SICStartedComponentInformation(output_channel)
+            # inform the user their component has started
+            reply = SICSuccessMessage()
 
             return reply
 
