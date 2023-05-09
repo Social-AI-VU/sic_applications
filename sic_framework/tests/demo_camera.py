@@ -4,6 +4,7 @@ import cv2
 
 from sic_framework.core import utils_cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage, CompressedImageMessage
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCamera
 from sic_framework.devices.desktop.desktop_camera import DesktopCamera
 from sic_framework.services.face_detection.face_detection_service import FaceDetection
 from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognition
@@ -25,23 +26,23 @@ def on_image(image_message: CompressedImageMessage):
   image = image_message.image
 
   for face in faces:
+    print(face.identifier)
     utils_cv2.draw_on_image(face, image)
 
-  cv2.imshow('', image)
+  cv2.imshow('', image[:,:,::-1])
   cv2.waitKey(1)
 
 
-# nao = Nao(ip="192.168.0.1")
-# camera = nao.top_camera
+camera = TopNaoCamera(ip="192.168.0.236")
 
 
-camera = DesktopCamera()
+# camera = DesktopCamera()
 
 
 camera.register_callback(on_image)
 
 
-face_recognition = FaceDetection(ip='localhost')
+face_recognition = DNNFaceRecognition(ip='localhost')
 
 face_recognition.connect(camera)
 

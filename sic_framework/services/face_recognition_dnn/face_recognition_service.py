@@ -105,7 +105,7 @@ class DNNFaceRecognitionService(SICService):
 
 
                 else:
-                    self.logger.info("Recognized face", id)
+                    self.logger.info("Recognized face {}".format(id))
 
             # update kNN classifier
             self.ids.append(id)
@@ -123,5 +123,6 @@ class DNNFaceRecognition(SICConnector):
 
 
 if __name__ == '__main__':
-    DNNFaceRecognitionService()
+    c = DNNFaceRecognitionService()
+    c._start()
     # SICComponentManager([DNNFaceRecognitionService])
