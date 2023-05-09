@@ -33,17 +33,12 @@ class Nao(SICDevice):
         return self._get_connector(NaoqiTextToSpeechActuator)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_name', required=True, type=str,
-                        help="Provide a name for the robot to use as identifier")
-    args = parser.parse_args()
-
     s = [
         TopNaoCameraSensor,
         BottomNaoCameraSensor,
         NaoqiMicrophoneSensor,
     ]
-    sensors = SICSensorManager(s, args.robot_name)
+    sensors = SICSensorManager(s)
 
     s = [
         NaoMotionActuator,
@@ -54,16 +49,11 @@ if __name__ == '__main__':
         NaoMotionReplayAction,
     ]
 
-    actions = SICComponentManager(s, args.robot_name)
+    actions = SICComponentManager(s)
     try:
         actions.serve()
     except KeyboardInterrupt:
         sensors.shutdown()
         actions.shutdown()
 
-"""
-Robot exports
 
-export DB_PASS=changemeplease
-export DB_IP=192.168.0.FOO
-"""

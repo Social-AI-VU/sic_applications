@@ -1,7 +1,6 @@
 import logging
 import time
 from abc import ABCMeta
-from dataclasses import dataclass
 
 from sic_framework.core.component_python2 import ConnectRequest
 from sic_framework.core.sensor_python2 import SICSensor
@@ -17,7 +16,6 @@ class ComponentNotStartedError(Exception):
     pass
 
 
-@dataclass
 class SICConnector(object):
     __metaclass__ = ABCMeta
 
@@ -90,7 +88,7 @@ class SICConnector(object):
         :param device_id: The id of the device we wat to start a component on
 
         """
-        print("Requesting", self.component_class, "from device", self._ip)
+        print("Component not already alive, requesting", self.component_class.get_component_name(), "from manager ", self._ip)
 
         if issubclass(self.component_class, SICSensor) and self._conf:
             print("Warning: setting configuration for SICSensors only works the first time connecting (sensor "
@@ -130,10 +128,11 @@ class SICConnector(object):
         # possible solution: do redis.time, and use a custom get time functions that is aware of the offset
         return time.time()
 
-    def connect(self, component: 'SICConnector'):
+    def connect(self, component):
         """
         Connect the output of a component to the input of this component.
         :param component: The component connector providing the input to this component
+        :type component: SICConnector
         :return:
         """
 
@@ -143,12 +142,13 @@ class SICConnector(object):
         request = ConnectRequest(component.output_channel)
         self._redis.request(self._request_reply_channel, request)
 
-    def request(self, request: SICRequest, timeout=100.0, block=True):
+    def request(self, request, timeout=100.0, block=True):
         """
         Request data from a device. Waits until the reply is received. If the reply takes longer than
         `timeout` seconds to arrive, a TimeoutError is raised. If block is set to false, the reply is
         ignored and the function returns immediately.
         :param request: The request to the device
+        :type request: SICRequest
         :param timeout: A timeout in case the action takes too long. Only works when blocking=True.
         :param block: If false, immediately returns None after sending the request.
         :return: the SICMessage reply from the device, or none if blocking=False

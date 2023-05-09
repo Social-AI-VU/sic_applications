@@ -26,7 +26,7 @@ shift "$(( OPTIND - 1 ))"
 
 echo "Installing robot on ip $host";
 
-cd ../..; # cd to docker/sic/
+cd ../..; # cd to sic/
 
 rsync -avzP --exclude sic_framework/services . nao@$host:~/sic;
 

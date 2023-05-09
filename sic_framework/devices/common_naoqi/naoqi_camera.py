@@ -1,8 +1,8 @@
 import argparse
-from sic_framework import SICComponentManager, SICService, SICMessage, SICConfMessage, utils
+from sic_framework import SICComponentManager, SICService, utils
 
 from sic_framework.core.connector import SICConnector
-from sic_framework.core.message_python2 import CompressedImageMessage
+from sic_framework.core.message_python2 import CompressedImageMessage, SICConfMessage, SICMessage
 from sic_framework.core.sensor_python2 import SICSensor
 
 if utils.PYTHON_VERSION_IS_2:
@@ -16,7 +16,7 @@ if utils.PYTHON_VERSION_IS_2:
 
 
 class NaoqiCameraConf(SICConfMessage):
-    def __init__(self, ip='127.0.0.1', port=9559, cam_id=0, res_id=2, fps=30):
+    def __init__(self, naoqi_ip='127.0.0.1', port=9559, cam_id=0, res_id=2, fps=30):
         """ params can be found at http://doc.aldebaran.com/2-8/family/nao_technical/video_naov6.html#naov6-video
 
         Resolution ID:
@@ -26,7 +26,7 @@ class NaoqiCameraConf(SICConfMessage):
         4  -  2560x1920px
         """
         SICConfMessage.__init__(self)
-        self.ip = ip
+        self.naoqi_ip = naoqi_ip
         self.port = port
         self.cam_id = cam_id
         self.res_id = res_id
@@ -39,7 +39,7 @@ class BaseNaoqiCameraSensor(SICSensor):
         super(BaseNaoqiCameraSensor, self).__init__(*args, **kwargs)
 
         self.s = qi.Session()
-        self.s.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.s.connect('tcp://{}:{}'.format(self.params.naoqi_ip, self.params.port))
 
         self.video_service = self.s.service("ALVideoDevice")
         self.video_service.setParameter(0, 35, 1)  # TODO: do we want to change this? Is this brightness?
@@ -125,9 +125,9 @@ class StereoImageMessage(SICMessage):
 
 
 class NaoStereoCameraConf(NaoqiCameraConf):
-    def __init__(self, calib_params=None, ip='127.0.0.1', port=9559, cam_id=0, res_id=2, color_id=11, fps=30,
+    def __init__(self, calib_params=None, naoqi_ip='127.0.0.1', port=9559, cam_id=0, res_id=2, color_id=11, fps=30,
                  convert_bw=True, use_calib=True):
-        super(NaoStereoCameraConf, self).__init__(ip, port, cam_id, res_id, color_id, fps)  # TODO: correct?
+        super(NaoStereoCameraConf, self).__init__(naoqi_ip, port, cam_id, res_id, color_id, fps)  # TODO: correct?
 
         if calib_params is None:
             calib_params = {}
@@ -210,10 +210,7 @@ class DepthPepperCamera(SICConnector):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_name', required=True, type=str,
-                        help="Provide a name for the robot to use as identifier")
-    args = parser.parse_args()
+    c = TopNaoCameraSensor(conf = NaoqiCameraConf(cam_id=0, res_id=3))
+    c._start()
 
-    SICComponentManager([TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor],
-                        args.robot_name)
+    # SICComponentManager([TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor])
