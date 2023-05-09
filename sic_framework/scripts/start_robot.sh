@@ -24,6 +24,7 @@ shift "$(( OPTIND - 1 ))"
 : ${host:?Missing robot ip adress -h}
 : ${name:?Missing robot name -n}
 : ${redis_host:?Missing redis db ip -b}
+# TODO redis_host=$(hostname -I) as it is always localhost
 
 ###############################################
 # Start SIC!                                  #
