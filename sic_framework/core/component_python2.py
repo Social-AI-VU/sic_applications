@@ -46,9 +46,6 @@ class SICComponent:
         # Redis initialization
         self._redis = SICRedis(client_name=self.get_component_name())
 
-        # register a request handler to handle control requests, e.g. ConnectRequest
-        self._redis.register_request_handler(self.get_request_reply_channel(self._ip), self._handle_request)
-
         # load config if set by user
         self.set_config(conf)
 
@@ -79,6 +76,9 @@ class SICComponent:
         Start the service. Should be called by overriding functions to communicate the service
         has started successfully.
         """
+        # register a request handler to handle control requests, e.g. ConnectRequest
+        self._redis.register_request_handler(self.get_request_reply_channel(self._ip), self._handle_request)
+
         # communicate the service is set up and listening to its inputs
         self._ready_event.set()
 
