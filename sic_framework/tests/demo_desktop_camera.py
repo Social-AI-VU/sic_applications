@@ -1,7 +1,6 @@
 import time
 
 import cv2
-
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.desktop.desktop_camera import DesktopCamera
 
@@ -16,8 +15,5 @@ def on_image(image_message: CompressedImageMessage):
   cv2.waitKey(1)
 
 camera = DesktopCamera()
-
 camera.register_callback(on_image)
-
-
 time.sleep(100)

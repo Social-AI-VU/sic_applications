@@ -1,19 +1,12 @@
 import time
-
-import cv2
-
 from sic_framework.core import utils_cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage, CompressedImageMessage
 from sic_framework.devices.desktop.desktop_camera import DesktopCamera
 from sic_framework.services.face_detection.face_detection_service import FaceDetection
-from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognition
 
 """ 
 This demo should display a camera image from a NAO robot on your laptop.
 """
-
-
-
 
 faces = []
 def on_detected_faces(boundingboxes: BoundingBoxesMessage):
@@ -36,17 +29,10 @@ def on_image(image_message: CompressedImageMessage):
 
 
 camera = DesktopCamera()
-
-
 camera.register_callback(on_image)
 
-
 face_recognition = FaceDetection(ip='localhost')
-
 face_recognition.connect(camera)
-
 face_recognition.register_callback(on_detected_faces)
-
-
 
 time.sleep(100)
