@@ -1,6 +1,6 @@
 import argparse
 
-from sic_framework.core.component_manager_python2 import SICComponentManager, SICSensorManager
+from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
 from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         DepthPepperCameraSensor,
         NaoqiMicrophoneSensor,
     ]
-    sensors = SICSensorManager(s, args.robot_name)
+    sensors = SICComponentManager(s, args.robot_name)
 
     s = [
         NaoMotionActuator,

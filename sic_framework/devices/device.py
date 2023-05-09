@@ -46,7 +46,7 @@ class SICDevice(object):
                 raise TimeoutError("Could not connect to {} on device {}.".format(component_connector.get_component_name(), self.ip))
         return self.connectors[component_connector]
 
-    """
+    """ja t
     example property:
     
     @property

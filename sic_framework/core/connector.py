@@ -51,14 +51,12 @@ class SICConnector(object):
 
         self.output_channel = self.component_class.get_output_channel(self._ip)
 
-        # subscribe the component to a channel that the user is able send a message on if needed 
-        self.input_channel = "user:{}".format(self._ip)
-
         # if we cannot ping the component, request it to be started from the ComponentManager
         if not self._ping():
             self._start_component()
 
-    def _start(self):
+        # subscribe the component to a channel that the user is able send a message on if needed
+        self.input_channel = "user:{}".format(self._ip)
         self.request(ConnectRequest(self.input_channel), timeout=self._PING_TIMEOUT)
 
     def _ping(self):
@@ -99,6 +97,7 @@ class SICConnector(object):
             log_level=self._log_level,
             conf=self._conf)
 
+        print(component_request.component_name)
         # factory returns a SICStartedComponentInformation
         component_info = self._redis.request(self._ip, component_request,
                                              timeout=self.component_class.COMPONENT_STARTUP_TIMEOUT)

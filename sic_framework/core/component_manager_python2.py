@@ -68,16 +68,21 @@ class SICComponentManager(object):
         # self._sync_time()
 
         self.ready_event.set()
+        self.serve()
 
     def serve(self):
         """
         Listen for requests until this component manager is signaled to stop running.
         """
         # wait for the signal to stop, loop is necessary for ctrl-c to work on python2
-        while True:
-            self.stop_event.wait(timeout=.1)
-            if self.stop_event.is_set():
-                break
+        try:
+            while True:
+                self.stop_event.wait(timeout=.1)
+                if self.stop_event.is_set():
+                    break
+        except KeyboardInterrupt:
+            pass
+
         self.shutdown()
         print("Stopped component manager.")
 
@@ -148,6 +153,8 @@ class SICComponentManager(object):
                                         log_level=request.log_level,
                                         conf=request.conf,
                                         )
+            self.active_components.append(component)
+
             thread = threading.Thread(target=component._start)
             thread.name = component_class.get_component_name()
             thread.start()
@@ -159,10 +166,6 @@ class SICComponentManager(object):
                 self.logger.error(
                     "Component {} refused to start within {} seconds!".format(component.get_component_name, component.COMPONENT_STARTUP_TIMEOUT))
                 # Todo do something!
-
-            # store the thread for this user under their ID, so we can keep track of all the threads and
-            # restart/reuse them for each user
-            self.active_components.append(component)
 
             # inform the user their component has started
             reply = SICSuccessMessage()
@@ -178,34 +181,8 @@ class SICComponentManager(object):
         try:
             self.redis.close()
             for component in self.active_components:
-                component._stop_event.set()
+                component.stop()
+                # component._stop_event.set()
             print('Graceful exit was successful')
         except Exception as err:
             print('Graceful exit has failed: {}'.format(err.message))
-
-
-class SICSensorManager(SICComponentManager):
-    started_components = dict()
-
-    def start_component(self, request):
-        """
-        Start a component on this device as requested by a user. A thread is started to run the component in.
-        :param request: The SICStartServiceRequest request
-        :return: the SICStartedServiceInformation with the information to connect to the started component.
-        """
-
-        component_class = self.component_classes[request.component_name]
-
-        if component_class.get_component_name() not in self.started_components:
-            self.logger.info("Starting new component {}".format(request.component_name))
-
-            reply = super(SICSensorManager, self).start_component(request)
-            reply.component_is_singleton = True
-
-            self.started_components[component_class.get_component_name()] = reply
-        else:
-            self.logger.info("Reusing existing component {}".format(component_class.get_component_name()))
-            reply = self.started_components[component_class.get_component_name()]
-
-        # send a copy, as to not have _request_id to the stored object (which would prohibit subsequent replies)
-        return copy.copy(reply)
