@@ -55,12 +55,13 @@ class SICConnector(object):
 
         # subscribe the component to a channel that the user is able send a message on if needed 
         self.input_channel = "user:{}".format(self._ip)
-        self.request(ConnectRequest(self.input_channel), timeout=self._PING_TIMEOUT)
 
-        # if we cannot ping the component, request it to be started
+        # if we cannot ping the component, request it to be started from the ComponentManager
         if not self._ping():
             self._start_component()
 
+    def _start(self):
+        self.request(ConnectRequest(self.input_channel), timeout=self._PING_TIMEOUT)
 
     def _ping(self):
         try:
@@ -69,8 +70,6 @@ class SICConnector(object):
 
         except TimeoutError:
             return False
-
-
 
     @property
     def component_class(self):
@@ -130,7 +129,6 @@ class SICConnector(object):
         # its data will align wrong with other sources
         # possible solution: do redis.time, and use a custom get time functions that is aware of the offset
         return time.time()
-
 
     def connect(self, component: 'SICConnector'):
         """
