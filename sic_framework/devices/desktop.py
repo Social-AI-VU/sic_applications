@@ -1,8 +1,11 @@
 import argparse
 from sic_framework import SICSensorManager
-from sic_framework.devices.desktop.desktop_camera import DesktopCamera
-from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone
-from sic_framework.devices.desktop.desktop_speakers import DesktopSpeakers
+from sic_framework.devices.desktop.desktop_camera import DesktopCamera, \
+    DesktopCameraSensor
+from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone, \
+    DesktopMicrophoneSensor
+from sic_framework.devices.desktop.desktop_speakers import DesktopSpeakers, \
+    DesktopSpeakersSensor
 from sic_framework.devices.device import SICDevice
 
 
@@ -21,4 +24,4 @@ class Desktop(SICDevice):
 
 
 if __name__ == '__main__':
-    SICSensorManager([DesktopMicrophone, DesktopCamera, DesktopSpeakers])
+    SICSensorManager([DesktopMicrophoneSensor, DesktopCameraSensor, DesktopSpeakersSensor])

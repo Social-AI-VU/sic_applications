@@ -2,7 +2,8 @@ import io
 
 import pyaudio
 
-from sic_framework import SICActuator
+from sic_framework import SICActuator, SICComponentManager
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICConfMessage, AudioMessage
 
 
@@ -15,10 +16,10 @@ class SpeakersConf(SICConfMessage):
         self.channels = 1
 
 
-class DesktopSpeakers(SICActuator):
+class DesktopSpeakersSensor(SICActuator):
 
     def __init__(self, *args, **kwargs):
-        super(DesktopSpeakers, self).__init__(*args, **kwargs)
+        super(DesktopSpeakersSensor, self).__init__(*args, **kwargs)
 
         self.device = pyaudio.PyAudio()
 
@@ -48,8 +49,16 @@ class DesktopSpeakers(SICActuator):
         self.stream.write(message.waveform)
 
     def stop(self, *args):
-        super(DesktopSpeakers, self).stop(*args)
+        super(DesktopSpeakersSensor, self).stop(*args)
         self.logger.info("Stopped speakers")
 
         self.stream.close()
         self.device.terminate()
+
+
+class DesktopSpeakers(SICConnector):
+    component_class = DesktopSpeakersSensor
+
+
+if __name__ == '__main__':
+    SICComponentManager([DesktopSpeakersSensor])

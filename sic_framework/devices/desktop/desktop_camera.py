@@ -1,13 +1,14 @@
 import cv2
 
+from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import CompressedImageMessage, SICConfMessage
 from sic_framework.core.sensor_python2 import SICSensor
 
 
-class DesktopCameraService(SICSensor):
+class DesktopCameraSensor(SICSensor):
     def __init__(self, *args, **kwargs):
-        super(DesktopCameraService, self).__init__(*args, **kwargs)
+        super(DesktopCameraSensor, self).__init__(*args, **kwargs)
         self.cam = cv2.VideoCapture(0)
 
     @staticmethod
@@ -30,14 +31,13 @@ class DesktopCameraService(SICSensor):
         return CompressedImageMessage(frame)
 
     def stop(self, *args):
-        super(DesktopCameraService, self).stop(*args)
+        super(DesktopCameraSensor, self).stop(*args)
         self.cam.release()
 
 
 class DesktopCamera(SICConnector):
-    component_class = DesktopCameraService
+    component_class = DesktopCameraSensor
 
 
 if __name__ == '__main__':
-    service = DesktopCameraService()
-    service._start()
+    SICComponentManager([DesktopCameraSensor])

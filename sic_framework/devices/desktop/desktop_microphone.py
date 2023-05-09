@@ -1,5 +1,8 @@
 import numpy as np
 import pyaudio
+
+from sic_framework import SICComponentManager
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import AudioMessage, SICConfMessage
 from sic_framework.core.sensor_python2 import SICSensor
 
@@ -10,10 +13,9 @@ class MicrophoneConf(SICConfMessage):
         self.sample_rate = 44100
 
 
-class DesktopMicrophone(SICSensor):
-
+class DesktopMicrophoneSensor(SICSensor):
     def __init__(self, *args, **kwargs):
-        super(DesktopMicrophone, self).__init__(*args, **kwargs)
+        super(DesktopMicrophoneSensor, self).__init__(*args, **kwargs)
 
         self.audio_buffer = None
 
@@ -46,6 +48,14 @@ class DesktopMicrophone(SICSensor):
         return AudioMessage(data, sample_rate=self.params.sample_rate)
 
     def stop(self, *args):
-        super(DesktopMicrophone, self).stop(*args)
+        super(DesktopMicrophoneSensor, self).stop(*args)
         self.logger.info("Stopped microphone")
         self.stream.close()
+
+
+class DesktopMicrophone(SICConnector):
+    component_class = DesktopMicrophoneSensor
+
+
+if __name__ == '__main__':
+    SICComponentManager([DesktopMicrophoneSensor])
