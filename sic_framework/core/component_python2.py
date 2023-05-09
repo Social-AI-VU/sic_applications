@@ -157,7 +157,6 @@ class SICComponent:
 
         self._parse_conf(conf)
 
-    @abstractmethod
     def on_request(self, request):
         """
         Define the handler for requests. Must return a SICMessage as a reply to the request.
@@ -168,7 +167,6 @@ class SICComponent:
         raise NotImplementedError("You need to define a request handler.")
 
 
-    @abstractmethod
     def on_message(self, message):
         """
         Define the handler for input messages.
