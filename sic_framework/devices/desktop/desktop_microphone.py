@@ -1,4 +1,3 @@
-import numpy as np
 import pyaudio
 
 from sic_framework import SICComponentManager

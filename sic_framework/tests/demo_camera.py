@@ -32,7 +32,7 @@ def on_image(image_message: CompressedImageMessage):
 
 
 # camera = DesktopCamera()
-camera = TopNaoCamera(ip="192.168.0.236")
+camera = TopNaoCamera(ip="192.168.0.151")
 camera.register_callback(on_image)
 
 face_recognition = DNNFaceRecognition(ip='localhost')

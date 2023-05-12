@@ -5,8 +5,6 @@
 ###############################################
 
 unset -v host
-unset -v name
-unset -v redis_host
 
 while getopts h: opt; do
         case $opt in

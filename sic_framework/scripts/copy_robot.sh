@@ -24,9 +24,9 @@ shift "$(( OPTIND - 1 ))"
 # Copy files to the robot                     #
 ###############################################
 
-echo "Installing robot on ip $host";
+echo "Copying to robot on ip $host";
 
-cd ../..; # cd to sic/
+cd ../..; # cd to framework/
 
-rsync -avzP --exclude sic_framework/services . nao@$host:~/sic;
+rsync -avzP --exclude sic_framework/services --exclude venv --exclude .git . nao@$host:~/framework;
 

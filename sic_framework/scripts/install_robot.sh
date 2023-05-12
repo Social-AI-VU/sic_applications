@@ -32,7 +32,7 @@ shift "$(( OPTIND - 1 ))"
 ###############################################
 
 ssh nao@$host << EOF
-  cd ~/sic/lib/redis;
+  cd ~/framework/lib/redis;
   pip install --user redis-3.5.3-py2.py3-none-any.whl;
 
   cd ../libtubojpeg/PyTurboJPEG-master;

@@ -5,14 +5,10 @@
 ###############################################
 
 unset -v host
-unset -v name
-unset -v redis_host
 
-while getopts h:n:b: opt; do
+while getopts h: opt; do
         case $opt in
                 h) host=$OPTARG ;;
-                n) name=$OPTARG ;;
-                b) redis_host=$OPTARG ;;
                 *)
                         echo 'Error in command line parsing' >&2
                         exit 1
@@ -22,8 +18,11 @@ done
 shift "$(( OPTIND - 1 ))"
 
 : ${host:?Missing robot ip adress -h}
-: ${name:?Missing robot name -n}
-: ${redis_host:?Missing redis db ip -b}
+
+# Redis should be running on this device
+redis_host=$(hostname -I | cut -d' ' -f1)
+
+echo "Connecting to redis at ip $redis_host (should be the ip of your laptop/desktop)"
 
 ###############################################
 # Start SIC!                                  #
@@ -31,12 +30,12 @@ shift "$(( OPTIND - 1 ))"
 
 ssh nao@$host " \
     export DB_IP=${redis_host}; \
-    export DB_PASS=changemeplease; \
     export PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages; \
     export LD_LIBRARY_PATH=/opt/aldebaran/lib/naoqi; \
-    cd ~/sic/sic_framework/devices; \
-    echo hello world;\
-    python2 pepper.py --robot_name ${name}; \
+    cd ~/framework/sic_framework/devices; \
+    pwd; \
+    echo 'Starting robot (due to a bug output may or may not be produced until you connect a SICApplication)';\
+    python2 pepper.py; \
 "
 
 echo "Done!"
