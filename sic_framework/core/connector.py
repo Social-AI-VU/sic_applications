@@ -99,7 +99,6 @@ class SICConnector(object):
             log_level=self._log_level,
             conf=self._conf)
 
-        print(component_request.component_name)
         # factory returns a SICStartedComponentInformation
 
         try:
