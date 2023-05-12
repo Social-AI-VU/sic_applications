@@ -145,6 +145,7 @@ class SICComponentManager(object):
 
         component_class = self.component_classes[request.component_name] # SICComponent
 
+        component = None
         try:
             stop_event = threading.Event()
             ready_event = threading.Event()
@@ -174,7 +175,8 @@ class SICComponentManager(object):
 
         except Exception as e:
             # self.logger.exception(e) # maybe not needed if already sending back a not started message
-            component.stop()
+            if component is not None:
+                component.stop()
             return SICNotStartedMessage(e)
 
     def shutdown(self, *args):
