@@ -2,15 +2,8 @@ import time
 
 import cv2
 
-from sic_framework.core import utils_cv2
-from sic_framework.core.message_python2 import BoundingBoxesMessage, CompressedImageMessage
+from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCamera
-from sic_framework.devices.desktop.desktop_camera import DesktopCamera
-from sic_framework.services.face_detection.face_detection_service import FaceDetection
-from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognition
-
-
-
 
 
 def on_image(image_message: CompressedImageMessage):
