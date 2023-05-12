@@ -51,6 +51,7 @@ if __name__ == '__main__':
         TopNaoCameraSensor,
         BottomNaoCameraSensor,
         NaoqiMicrophoneSensor,
+        NaoqiTextToSpeechActuator,
     ]
     sensors = SICComponentManager(s)
 
@@ -62,12 +63,5 @@ if __name__ == '__main__':
         NaoMotionRecorderAction,
         NaoMotionReplayAction,
     ]
-
-    actions = SICComponentManager(s)
-    try:
-        actions.serve()
-    except KeyboardInterrupt:
-        sensors.shutdown()
-        actions.shutdown()
 
 

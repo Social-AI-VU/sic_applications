@@ -2,6 +2,8 @@ import logging
 import time
 from abc import ABCMeta
 
+import six
+
 from sic_framework.core.component_python2 import ConnectRequest
 from sic_framework.core.sensor_python2 import SICSensor
 from sic_framework.core.utils import isinstance_pickle
@@ -99,11 +101,17 @@ class SICConnector(object):
 
         print(component_request.component_name)
         # factory returns a SICStartedComponentInformation
-        component_info = self._redis.request(self._ip, component_request,
-                                             timeout=self.component_class.COMPONENT_STARTUP_TIMEOUT)
+
+        try:
+
+            component_info = self._redis.request(self._ip, component_request,
+                                                 timeout=self.component_class.COMPONENT_STARTUP_TIMEOUT)
+        except TimeoutError as e:
+            six.raise_from(TimeoutError("Could not connect to component. Is SIC running on the device (ip:{})?".format(self._ip)), None)
 
         if isinstance_pickle(component_info, SICNotStartedMessage):
-            raise ComponentNotStartedError("Component did not start: {}".format(component_info.message))
+
+            raise ComponentNotStartedError("Component did not start. \n\nError message from component: {}".format(component_info.message))
 
     def register_callback(self, callback):
         """

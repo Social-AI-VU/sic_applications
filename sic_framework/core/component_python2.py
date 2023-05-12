@@ -29,7 +29,7 @@ class SICComponent:
 
     # This parameter controls how long a SICConnector should wait when requesting the service
     # For example, when the robot has to stand up or model parameters need to load to GPU this might be set higher
-    COMPONENT_STARTUP_TIMEOUT = 5
+    COMPONENT_STARTUP_TIMEOUT = 2
 
     def __init__(self, ready_event=None, stop_event=None, log_level=sic_logging.INFO, conf=None):
         self._ip = utils.get_ip_adress()
@@ -81,6 +81,8 @@ class SICComponent:
 
         # communicate the service is set up and listening to its inputs
         self._ready_event.set()
+
+        self.logger.info("Started component {}".format(self.get_component_name()))
 
     def _connect(self, connection_request):
         """

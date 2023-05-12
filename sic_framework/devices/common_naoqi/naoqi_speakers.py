@@ -18,12 +18,10 @@ class NaoqiTextToSpeechRequest(SICRequest):
 
 # @dataclass
 class NaoqiTextToSpeechConf(SICConfMessage):
-    def __init__(self, ip='127.0.0.1', port=9559, lang=None, pitch_shift=None):
+    def __init__(self, lang=None, pitch_shift=None):
         """ params can be found at http://doc.aldebaran.com/2-8/naoqi/audio/altexttospeech-api.html#ALTextToSpeechProxy::setParameter__ssCR.floatCR
         """
         SICConfMessage.__init__(self)
-        self.ip = ip
-        self.port = port
         self.lang = lang
         self.pitch_shift = pitch_shift
         # TODO: see if we need to add the rest of the speech params
@@ -34,7 +32,7 @@ class NaoqiTextToSpeechActuator(SICActuator):
         super(NaoqiTextToSpeechActuator, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self._ip, self.params.port))
+        self.session.connect('tcp://{}:{}'.format('127.0.0.1', 9559))
 
         self.tts = self.session.service('ALTextToSpeech')
         self.atts = self.session.service('ALAnimatedSpeech')

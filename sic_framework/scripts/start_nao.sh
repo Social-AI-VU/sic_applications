@@ -33,9 +33,8 @@ ssh nao@$host " \
     export PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages; \
     export LD_LIBRARY_PATH=/opt/aldebaran/lib/naoqi; \
     cd ~/framework/sic_framework/devices; \
-    pwd; \
     echo 'Starting robot (due to a bug output may or may not be produced until you start your program)';\
-    python nao.py; \
+    python2 nao.py; \
 "
 
 echo "Done!"

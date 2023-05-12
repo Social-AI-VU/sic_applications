@@ -24,7 +24,7 @@ shift "$(( OPTIND - 1 ))"
 ###############################################
 
 ssh nao@$host << EOF
-  pkill -f "python2 nao.py --robot_name"
+  pkill -f "python2 nao.py"
 EOF
 
 echo "Done!"
