@@ -32,7 +32,7 @@ class NaoqiTextToSpeechActuator(SICActuator):
         super(NaoqiTextToSpeechActuator, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format('127.0.0.1', 9559))
+        self.session.connect('tcp://127.0.0.1:9559')
 
         self.tts = self.session.service('ALTextToSpeech')
         self.atts = self.session.service('ALAnimatedSpeech')

@@ -13,11 +13,6 @@ class NaoqiLoadUrl(SICMessage):
 
 
 
-class NaoqiTabletConf(SICConfMessage):
-    def __init__(self):
-        self.ip = '127.0.0.1'
-        self.port = 9559
-
 
 # make it service because we don't want it to be notified if the url has received or not
 class NaoqiTabletService(SICService):
@@ -25,12 +20,9 @@ class NaoqiTabletService(SICService):
         super(NaoqiTabletService, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.session.connect('tcp://127.0.0.1:9559')
         self.tablet_service = self.session.service('ALTabletService')
 
-    @staticmethod
-    def get_conf():
-        return NaoqiTabletConf()
 
     @staticmethod
     def get_inputs():

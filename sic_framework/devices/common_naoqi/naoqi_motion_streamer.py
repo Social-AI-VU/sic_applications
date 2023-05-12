@@ -4,7 +4,7 @@ from sic_framework import SICComponentManager, SICMessage, utils
 from sic_framework.core.sensor_python2 import SICSensor
 from sic_framework.core.service_python2 import SICService
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionSICv1
-from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator, NaoMotionConf
+from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
 
 if utils.PYTHON_VERSION_IS_2:
     from naoqi import ALProxy
@@ -24,7 +24,7 @@ class NaoMotionStreamProducer(SICSensor, NaoqiMotionSICv1):
 
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.session.connect('tcp://127.0.0.1:9559')
 
         self.motion = self.session.service('ALMotion')
         self.stiffness = 0
@@ -34,9 +34,6 @@ class NaoMotionStreamProducer(SICSensor, NaoqiMotionSICv1):
     def get_inputs():
         return []
 
-    @staticmethod
-    def get_conf():
-        return NaoMotionConf()
 
     @staticmethod
     def get_output():
@@ -62,7 +59,7 @@ class NaoMotionStreamConsumer(SICService, NaoqiMotionSICv1):
 
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.session.connect('tcp://127.0.0.1:9559')
 
         self.motion = self.session.service('ALMotion')
         self.stiffness = 0

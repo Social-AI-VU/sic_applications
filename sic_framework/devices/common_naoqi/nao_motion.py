@@ -10,6 +10,7 @@ import six
 from sic_framework import SICComponentManager, SICService, utils
 import numpy as np
 from sic_framework.core.actuator_python2 import SICActuator
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICRequest, SICMessage, SICConfMessage
 from sic_framework.core.utils import isinstance_pickle
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionSICv1
@@ -84,11 +85,6 @@ class NaoPostureRequest(SICRequest):
         self.speed = speed
 
 
-class NaoMotionConf(SICConfMessage):
-    def __init__(self, naoqi_ip='127.0.0.1', port=9559):
-        SICConfMessage.__init__(self)
-        self.ip = naoqi_ip
-        self.port = port
 
 
 class NaoMotionActuator(SICActuator, NaoqiMotionSICv1):
@@ -97,7 +93,7 @@ class NaoMotionActuator(SICActuator, NaoqiMotionSICv1):
         NaoqiMotionSICv1.__init__(self, robot_type="nao")
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.session.connect('tcp://127.0.0.1:9559')
 
         self.animation = self.session.service('ALAnimationPlayer')
         self.awareness = self.session.service('ALBasicAwareness')
@@ -119,9 +115,6 @@ class NaoMotionActuator(SICActuator, NaoqiMotionSICv1):
             NaoMoveTowardRequest.id(): self.moveToward,
         }
 
-    @staticmethod
-    def get_conf():
-        return NaoMotionConf()
 
     @staticmethod
     def get_inputs():
@@ -172,6 +165,8 @@ class NaoMotionActuator(SICActuator, NaoqiMotionSICv1):
         self.motion.rest()
         super(NaoMotionActuator, self).stop(*args)
 
+class NaoMotion(SICConnector):
+    component_class = NaoMotionActuator
 
 if __name__ == '__main__':
     SICComponentManager([NaoMotionActuator])

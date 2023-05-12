@@ -11,8 +11,6 @@ if utils.PYTHON_VERSION_IS_2:
 
 class NaoqiMicrophoneConf(SICConfMessage):
     def __init__(self):
-        self.ip = '127.0.0.1'
-        self.port = 9559
         self.channel_index = 3  # front microphone
         self.no_channels = 1
         self.sample_rate = 16000
@@ -24,7 +22,7 @@ class NaoqiMicrophoneSensor(SICSensor):
         super(NaoqiMicrophoneSensor, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self._ip, self.params.port))
+        self.session.connect('tcp://127.0.0.1:9559')
 
         self.audio_service = self.session.service('ALAudioDevice')
 
