@@ -53,7 +53,6 @@ class NaoqiTextToSpeechActuator(SICActuator):
 
     def execute(self, message):
         self.tts.say(message.text)
-
         return SICMessage()
 
 

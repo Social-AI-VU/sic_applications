@@ -130,7 +130,7 @@ class SICComponentManager(object):
         """
         name = "{manager}-{ip}".format(manager=self.__class__.__name__, ip=self.ip)
 
-        logger = sic_logging.get_sic_logger(self.redis, name, log_level, sic_framework.core.sic_logging.get_log_channel())
+        logger = sic_logging.get_sic_logger(self.redis, name, log_level)
         logger.info("Manager on device {} starting".format(self.ip))
 
         return logger
@@ -174,6 +174,7 @@ class SICComponentManager(object):
 
         except Exception as e:
             # self.logger.exception(e) # maybe not needed if already sending back a not started message
+            component.stop()
             return SICNotStartedMessage(e)
 
     def shutdown(self, *args):

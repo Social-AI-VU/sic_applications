@@ -2,6 +2,8 @@ import threading
 import time
 from abc import ABCMeta, abstractmethod
 
+import six
+
 import sic_framework.core.sic_logging
 from sic_framework.core.utils import isinstance_pickle
 from . import sic_logging, utils
@@ -59,7 +61,7 @@ class SICComponent:
         """
         # create logger for the component
         name = self.get_component_name()
-        return sic_logging.get_sic_logger(self._redis, name, log_level, sic_framework.core.sic_logging.get_log_channel())
+        return sic_logging.get_sic_logger(self._redis, name, log_level)
 
     def _start(self):
         """
@@ -93,11 +95,19 @@ class SICComponent:
         :return:
         """
         channel = connection_request.channel
-        self._redis.register_message_handler(channel, self.on_message)
+        self._redis.register_message_handler(channel, self._handle_message)
+
+    def _handle_message(self, message):
+        try:
+            return self.on_message(message)
+        except Exception as e:
+            self.logger.exception(e)
+            raise e
 
     def _handle_request(self, request):
         """
-        An handler for control requests such as ConnectRequest. Normal Requests are passed to the on_request handler. 
+        An handler for control requests such as ConnectRequest. Normal Requests are passed to the on_request handler.
+        Also logs the error to the remote log stream in case an exeption occured in the user-defined handler.
         :param request: 
         :return: 
         """
@@ -116,8 +126,11 @@ class SICComponent:
             return SICSuccessMessage()
 
         if not isinstance_pickle(request, SICControlRequest):
-            reply = self.on_request(request)
-            return reply
+            try:
+                return self.on_request(request)
+            except Exception as e:
+                self.logger.exception(e)
+                raise e
 
         raise TypeError("Unknown request type {}".format(type(request)))
 

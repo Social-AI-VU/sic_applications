@@ -98,7 +98,7 @@ class SICLogFormatter(logging.Formatter):
         return text
 
 
-def get_sic_logger(redis, name, log_level, log_messages_channel):
+def get_sic_logger(redis, name, log_level):
     """
     Set up logging to the log output channel to be able to report messages to users. Also logs to the terminal.
 
@@ -111,7 +111,7 @@ def get_sic_logger(redis, name, log_level, log_messages_channel):
     logger = logging.Logger(name)
     logger.setLevel(log_level)
 
-    debug_stream = SICLogStream(redis, log_messages_channel)
+    debug_stream = SICLogStream(redis, get_log_channel())
     handler_redis = logging.StreamHandler(debug_stream)
 
     log_format = SICLogFormatter('[%(name)s {ip}]: %(levelname)s: %(message)s'.format(ip=utils.get_ip_adress()))
