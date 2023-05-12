@@ -37,7 +37,7 @@ class SICSensor(SICComponent):
 
             output._timestamp = self._get_timestamp()
 
-            self._redis.send_message(self._output_channel, output)
+            self.output_message(output)
 
             self.logger.debug_framework_verbose("Outputting message {}".format(output))
 

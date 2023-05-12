@@ -64,9 +64,19 @@ class SICMessage(object):
     # this request id must be set when the message is sent as a reply to a SICRequest
     _request_id = None
 
+    def __eq__(self, other):
+        """
+        Loose check to compare if messages are the same type. type(a) == type(b) might not work because the messages
+        might have been created on different machines.
+        :param other:
+        :return:
+        """
+        return self.get_message_name() == other.get_message_name()
+
     @classmethod
     def id(cls, index=0):
         """
+        TODO deprecate? this is the same as get_message_name but vague
         Identifies the message type, used for indexing dictionaries containing service input.
         The index allows for differentiation when there are multiple inputs of the same message type.
         """

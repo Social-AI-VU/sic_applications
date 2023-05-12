@@ -1,18 +1,8 @@
 import argparse
-import json
-import logging
-import threading
-from abc import ABCMeta
-from threading import Thread
-from time import sleep
 
-import six
-from sic_framework import SICComponentManager, SICService, SICMessage, SICConfMessage, utils
-
-import numpy as np
+from sic_framework import SICComponentManager, SICMessage, SICConfMessage, utils
 from sic_framework.core.message_python2 import SICRequest
 from sic_framework.core.utils import isinstance_pickle
-from sic_framework.devices.common_naoqi.motion_affect_transformation import MotionAffectTransformation
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
 
 if utils.PYTHON_VERSION_IS_2:
@@ -36,12 +26,6 @@ class NaoMotionRecording(SICMessage):
         super(NaoMotionRecording, self).__init__()
         self.motion_recording = motion_recording
 
-
-class NaoqiMotionConf(SICConfMessage):
-    def __init__(self, ip='127.0.0.1', port=9559):
-        SICConfMessage.__init__(self)
-        self.ip = ip
-        self.port = port
 
 
 class NaoMotionRecorderAction(NaoMotionActuator):

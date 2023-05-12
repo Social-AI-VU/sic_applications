@@ -181,7 +181,6 @@ class SICComponent:
         """
         raise NotImplementedError("You need to define a request handler.")
 
-
     def on_message(self, message):
         """
         Define the handler for input messages.
@@ -190,6 +189,13 @@ class SICComponent:
         :rtype: SICMessage
         """
         raise NotImplementedError("You need to define a message handler.")
+
+    def output_message(self, message):
+        """
+        Send a message on the output channel of this component.
+        :param message:
+        """
+        self._redis.send_message(self._output_channel, message)
 
     @staticmethod
     @abstractmethod

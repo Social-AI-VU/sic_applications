@@ -52,11 +52,11 @@ if __name__ == '__main__':
         BottomNaoCameraSensor,
         NaoqiMicrophoneSensor,
         NaoqiTextToSpeechActuator,
+        NaoMotionActuator,
     ]
     sensors = SICComponentManager(s)
 
     s = [
-        NaoMotionActuator,
         NaoqiTextToSpeechActuator,
         NaoMotionStreamConsumer,
         NaoMotionStreamProducer,
