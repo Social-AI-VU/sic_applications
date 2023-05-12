@@ -1,23 +1,19 @@
 import argparse
 
-import six
+from sic_framework import utils
 from sic_framework.core.actuator_python2 import SICActuator
 from sic_framework.core.component_manager_python2 import SICComponentManager
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICRequest, SICConfMessage, SICMessage
 
-if not six.PY3:
-    from naoqi import ALProxy
+if utils.PYTHON_VERSION_IS_2:
     import qi
-
 
 # @dataclass
 class NaoqiTextToSpeechRequest(SICRequest):
     def __init__(self, text):
         super(NaoqiTextToSpeechRequest, self).__init__()
         self.text = text
-
-
-
 
 
 # @dataclass
@@ -38,7 +34,7 @@ class NaoqiTextToSpeechActuator(SICActuator):
         super(NaoqiTextToSpeechActuator, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.session.connect('tcp://{}:{}'.format(self._ip, self.params.port))
 
         self.tts = self.session.service('ALTextToSpeech')
         self.atts = self.session.service('ALAnimatedSpeech')
@@ -63,9 +59,9 @@ class NaoqiTextToSpeechActuator(SICActuator):
         return SICMessage()
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('robot_name')
-    args = parser.parse_args()
+class NaoqiTextToSpeech(SICConnector):
+    component_class = NaoqiTextToSpeechActuator
 
-    SICComponentManager(NaoqiTextToSpeechActuator, args.robot_name)
+
+if __name__ == '__main__':
+    SICComponentManager([NaoqiTextToSpeechActuator])

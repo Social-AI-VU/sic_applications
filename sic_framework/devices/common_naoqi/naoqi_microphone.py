@@ -1,12 +1,7 @@
-import argparse
 import threading
-
-import numpy as np
-import sic_framework
-from sic_framework import SICComponentManager, SICService, SICMessage, SICConfMessage, SICSensorManager, utils, \
-    sic_logging
+from sic_framework import SICComponentManager, utils
 from sic_framework.core.connector import SICConnector
-from sic_framework.core.message_python2 import AudioMessage
+from sic_framework.core.message_python2 import AudioMessage, SICConfMessage
 from sic_framework.core.sensor_python2 import SICSensor
 
 if utils.PYTHON_VERSION_IS_2:
@@ -29,7 +24,7 @@ class NaoqiMicrophoneSensor(SICSensor):
         super(NaoqiMicrophoneSensor, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
-        self.session.connect('tcp://{}:{}'.format(self.params._ip, self.params.port))
+        self.session.connect('tcp://{}:{}'.format(self._ip, self.params.port))
 
         self.audio_service = self.session.service('ALAudioDevice')
 
@@ -71,6 +66,7 @@ class NaoqiMicrophoneSensor(SICSensor):
     def stop(self, *args):
         self.audio_service.unsubscribe(self.module_name)
         self.session.unregisterService(self.session_id)
+        self.session.close()
         super(NaoqiMicrophoneSensor, self).stop(*args)
 
     def processRemote(self, nbOfChannels, nbOfSamplesByChannel, timeStamp, inputBuffer):
@@ -91,4 +87,4 @@ class NaoqiMicrophone(SICConnector):
 
 
 if __name__ == '__main__':
-    SICSensorManager([NaoqiMicrophoneSensor])
+    SICComponentManager([NaoqiMicrophoneSensor])

@@ -7,11 +7,10 @@ from threading import Thread
 from time import sleep
 
 import six
-from sic_framework import SICComponentManager, SICService, SICMessage, SICConfMessage, utils
-
+from sic_framework import SICComponentManager, SICService, utils
 import numpy as np
 from sic_framework.core.actuator_python2 import SICActuator
-from sic_framework.core.message_python2 import SICRequest
+from sic_framework.core.message_python2 import SICRequest, SICMessage, SICConfMessage
 from sic_framework.core.utils import isinstance_pickle
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionSICv1
 from sic_framework.devices.common_naoqi.motion_affect_transformation import MotionAffectTransformation

@@ -3,27 +3,16 @@ TODO explain dialogflow
 bi-directional stream
 a response is sent per audio chunk, but sending a long audio chunk might generate multiple responses.
 
-
 https://github.com/googleapis/python-dialogflow/blob/main/samples/snippets/detect_intent_stream.py
-
-
-
 """
-
-# [START speech_transcribe_infinite_streaming]
-import io
-import random
-import re
-import sys
 import threading
 import time
 
 from google.cloud import dialogflow
 from google.oauth2.service_account import Credentials
-import pyaudio
-from sic_framework import SICComponentManager, SICService
+from sic_framework import SICComponentManager
 from sic_framework.core.component_python2 import SICComponent
-from sic_framework.core.actuator_python2 import SICActuator
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import AudioMessage, SICConfMessage, SICMessage, SICRequest, SICStopRequest, SICIgnoreRequestMessage
 from sic_framework.core.utils import isinstance_pickle
 from six.moves import queue
@@ -123,7 +112,6 @@ class QueryResult(SICMessage):
             self.fulfillment_message = str(response.query_result.fulfillment_messages[0].text.text[0])
 
 
-
 class DialogflowConf(SICConfMessage):
     def __init__(self, keyfile_json:str, project_id: str, sample_rate_hertz: int = 44100,
                  audio_encoding=dialogflow.AudioEncoding.AUDIO_ENCODING_LINEAR_16, language: str = 'en-US'):
@@ -153,19 +141,24 @@ class DialogflowService(SICComponent):
         As soon as an intent is received, it will start streaming the audio to dialogflow, and while it is listening
         send out intermediate results as RecognitionResult messages. This all occurs on the same channel.
 
-
         Requires audio to be no more than 250ms chunks as interim results are given a few times a second, and we block
         reading a request until a new audio message is available.
+
+        The buffer length is 1 such that it discards audio before we request it to listen. The buffer is updated as
+        new audio becomes available by the register_message_handler. This queue enables the generator to wait for new
+        audio messages, and yield them to dialogflow. The request generator SHOULD be quite fast, fast enough
+        that it won't drop messages due to the queue size of 1.
     """
 
     def __init__(self, *args, **kwargs):
         self.responses = None
         super().__init__(*args, **kwargs)
 
-
+        # Setup session client
         credentials = Credentials.from_service_account_info(self.params.keyfile_json)
         self.session_client = dialogflow.SessionsClient(credentials=credentials)
 
+        # Set default audio parameters
         self.dialogflow_audio_config = dialogflow.InputAudioConfig(
             audio_encoding=self.params.audio_encoding,
             language_code=self.params.language_code,
@@ -183,31 +176,8 @@ class DialogflowService(SICComponent):
         )
 
         self.query_input = dialogflow.QueryInput(audio_config=self.dialogflow_audio_config)
-
-
         self.message_was_final = threading.Event()
-
-        # The buffer length is 1 such that it discards audio before we request it to listen. The buffer is updated as
-        # new audio becomes available by the register_message_handler. This queue enables the generator to wait for new
-        # audio messages, and yield them to dialogflow. The request generator SHOULD be quite fast, fast enough
-        # that it wont drop messages due to the queue size of 1.
-
         self.audio_buffer = queue.Queue(maxsize=1)
-
-
-
-    def start(self):
-        # This is a service that accepts both a stream of audio messages
-        # and requests to start transcribing, because the dialogflow api only works
-        # on "requests" of transcribing short (max 60s) audio snippets. For this, we need the
-        # continuous stream of audio messages, but also a 'signal' to start transcription (e.g. the request)
-        self._redis.register_request_handler(self._input_channels, self.on_request)
-        self._redis.register_message_handler(self._input_channels, self.on_message)
-
-        # signal the handlers are ready
-        super(DialogflowService, self).start()
-
-
 
     def on_message(self, message):
         if isinstance_pickle(message, AudioMessage):
@@ -219,20 +189,9 @@ class DialogflowService(SICComponent):
                 self.audio_buffer.get_nowait()
                 self.audio_buffer.put_nowait(message.waveform)
 
-
     def on_request(self, request):
-
-        if isinstance_pickle(request, SICStopRequest):
-            self._stop_event.set()
-            return SICStopMessage()
-
-        # this action cannot perform the request, so do not reply to it by returning an invalid request id
-        if request.id() not in self._input_type_names:
-            return SICIgnoreRequestMessage()
-
         reply = self.execute(request)
         return reply
-
 
     def request_generator(self, session_path):
         try:
@@ -258,8 +217,6 @@ class DialogflowService(SICComponent):
             self.logger.exception("Exception in request iterator")
             raise e
 
-
-
     @staticmethod
     def get_conf():
         return DialogflowConf()
@@ -273,32 +230,24 @@ class DialogflowService(SICComponent):
         return QueryResult
 
     def execute(self, input):
-        # unset final message flag
-        self.message_was_final.clear()
-
+        self.message_was_final.clear()  # unset final message flag
 
         session_path = self.session_client.session_path(self.params.project_id, input.session_id)
-
         self.logger.debug("Executing dialogflow request with session id {}".format(input.session_id))
 
+        requests = self.request_generator(session_path)  # get bi-directional request iterator
 
-        # get the bi-directional request iterator
-        requests = self.request_generator(session_path)
-
-        # responses is a bi-directional iterator object, providing after consuming each yielded
-        # request in the requests generator
+        # responses is a bi-directional iterator object, providing after
+        # consuming each yielded request in the requests generator
         responses = self.session_client.streaming_detect_intent(requests)
 
         for response in responses:
-
             if response.recognition_result:
                 print("recognition_result:", response.recognition_result.transcript)
                 self._redis.send_message(self._output_channel, RecognitionResult(response))
-
             if response.query_result:
                 print("query_result:", response.query_result)
                 return QueryResult(response)
-
             if response.recognition_result.is_final:
                 print("recognition_result:", response.recognition_result.transcript)
                 print("----- FINAL -----")
@@ -309,5 +258,9 @@ class DialogflowService(SICComponent):
         return QueryResult(dict())
 
 
+class Dialogflow(SICConnector):
+    component_class = DialogflowService
+
+
 if __name__ == '__main__':
-    SICComponentManager([DialogflowService], "local")
+    SICComponentManager([DialogflowService])
