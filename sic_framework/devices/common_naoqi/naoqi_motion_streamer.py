@@ -3,10 +3,11 @@ import threading
 
 from sic_framework import SICComponentManager, SICMessage, utils, SICRequest, SICConfMessage
 from sic_framework.core.component_python2 import SICComponent
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.sensor_python2 import SICSensor
 from sic_framework.core.service_python2 import SICService
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionSICv1
-from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
+from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
 
 if utils.PYTHON_VERSION_IS_2:
     from naoqi import ALProxy
@@ -36,10 +37,10 @@ class NaoMotionStreamerConf(SICConfMessage):
         self.stiffness = stiffness
 
 
-class NaoMotionStreamer(SICComponent, NaoqiMotionSICv1):
+class NaoMotionStreamerService(SICComponent, NaoqiMotionTools):
     def __init__(self, *args, **kwargs):
         SICComponent.__init__(self, *args, **kwargs)
-        NaoqiMotionSICv1.__init__(self, robot_type="nao")
+        NaoqiMotionTools.__init__(self, robot_type="nao")
 
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
@@ -101,3 +102,12 @@ class NaoMotionStreamer(SICComponent, NaoqiMotionSICv1):
             angles = self.motion.getAngles(joints, False)  # joint_list, use_sensors=True
 
             self.output_message(NaoJointAngles(joints, angles))
+
+
+
+
+class NaoMotionStreamer(SICConnector):
+    component_class = NaoMotionStreamerService
+
+if __name__ == '__main__':
+    SICComponentManager([NaoMotionStreamerService])

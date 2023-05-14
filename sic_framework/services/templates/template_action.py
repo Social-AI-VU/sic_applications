@@ -45,7 +45,7 @@ class ExampleActuator(SICActuator):
     def get_conf():
         return DummyConf()
 
-    def execute(self, input):
+    def execute(self, request):
         # Do something, this is the core of your service
         return DummyResult()
 

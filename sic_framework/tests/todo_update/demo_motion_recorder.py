@@ -2,7 +2,7 @@ import logging
 import time
 
 from sic_framework.core.connector import SICApplication
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorderAction, NaoMotionReplayAction, \
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorderActuator, NaoMotionReplayAction, \
     NaoMotionRecordingStart, NaoMotionRecordingStop, NaoMotionRecordingReplay
 
 """ This demo should display a camera image
@@ -14,7 +14,7 @@ class DemoMotion(SICApplication):
     def run(self) -> None:
         #### use camera
 
-        recorder = self.start_service(NaoMotionRecorderAction, device_id='nao', inputs_to_service=[self],
+        recorder = self.start_service(NaoMotionRecorderActuator, device_id='nao', inputs_to_service=[self],
                                       log_level=logging.INFO)
         replay_action = self.start_service(NaoMotionReplayAction, device_id='nao', inputs_to_service=[self],
                                            log_level=logging.INFO)

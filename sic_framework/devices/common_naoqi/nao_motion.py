@@ -1,20 +1,10 @@
-import argparse
-import json
-import logging
-import threading
-from abc import ABCMeta
-from threading import Thread
-from time import sleep
-
 import six
 from sic_framework import SICComponentManager, SICService, utils
 import numpy as np
 from sic_framework.core.actuator_python2 import SICActuator
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICRequest, SICMessage, SICConfMessage
-from sic_framework.core.utils import isinstance_pickle
-from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionSICv1
-from sic_framework.devices.common_naoqi.motion_affect_transformation import MotionAffectTransformation
+from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
 
 if utils.PYTHON_VERSION_IS_2:
     from naoqi import ALProxy
@@ -87,10 +77,9 @@ class NaoPostureRequest(SICRequest):
 
 
 
-class NaoMotionActuator(SICActuator, NaoqiMotionSICv1):
+class NaoMotionActuator(SICActuator):
     def __init__(self, *args, **kwargs):
         SICActuator.__init__(self, *args, **kwargs)
-        NaoqiMotionSICv1.__init__(self, robot_type="nao")
 
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
@@ -125,8 +114,8 @@ class NaoMotionActuator(SICActuator, NaoqiMotionSICv1):
     def get_output():
         return SICMessage
 
-    def execute(self, input):
-        motion = input
+    def execute(self, request):
+        motion = request
 
         fun = self.action_mapping[motion.id()]
 

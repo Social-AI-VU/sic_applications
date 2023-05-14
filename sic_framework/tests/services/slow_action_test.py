@@ -23,10 +23,10 @@ class SlowActionTest(SICActuator):
     def get_output():
         return SICMessage
 
-    def execute(self, input):
+    def execute(self, request):
         self.logger.info("RUNNING!")
         time.sleep(5)
-        self.logger.info("message! {}".format(input.text))
+        self.logger.info("message! {}".format(request.text))
         time.sleep(1)
         self.logger.info("Action took six seconds!")
         return SICMessage()

@@ -95,20 +95,20 @@ class Text2Speech(SICActuator):
     def get_conf():
         return Text2SpeechConf()
 
-    def execute(self, input):
+    def execute(self, request):
         """
         Main function of the SICAction. Builds the voice request, calls Google's API and returns audio in MP3 format.
         NOTE: if the GetSpeechRequest does not set a voice parameters, the SICAction's default parameters will be used.
-        :param input: GetSpeechRequest, the request with the text to synthesize and optionally voice paramters
+        :param request: GetSpeechRequest, the request with the text to synthesize and optionally voice paramters
         :return: SpeechResult, the response with the synthesized text as audio (MP3 format)
         """
         # Set the text input to be synthesized
-        synthesis_input = tts.SynthesisInput(text=input.text)
+        synthesis_input = tts.SynthesisInput(text=request.text)
 
         # Build the voice request based on request parameters, fall back on service config parameters
-        lang_code = input.language_code if input.language_code else self.params.language_code
-        voice_name = input.voice_name if input.voice_name else self.params.voice_name
-        ssml_gender = input.ssml_gender if input.ssml_gender else self.params.ssml_gender
+        lang_code = request.language_code if request.language_code else self.params.language_code
+        voice_name = request.voice_name if request.voice_name else self.params.voice_name
+        ssml_gender = request.ssml_gender if request.ssml_gender else self.params.ssml_gender
 
         voice = tts.VoiceSelectionParams(language_code=lang_code, name=voice_name, ssml_gender=ssml_gender)
 

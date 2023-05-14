@@ -1,3 +1,10 @@
+
+"""
+
+TODO this code is unused.
+What is it for exactly anyways?
+"""
+
 class MotionAffectTransformation:
 
     def transform_values(self, motion, valence, arousal):

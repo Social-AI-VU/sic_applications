@@ -10,11 +10,11 @@ class SICActuator(SICComponent):
     """
 
     @abstractmethod
-    def execute(self, input):
+    def execute(self, request):
         """
         Main function of the device. Must return a SICMessage as a reply to the user.
-        :param input: input messages
-        :type input: SICRequest
+        :param request: input messages
+        :type request: SICRequest
         :rtype: SICMessage
         """
         return NotImplementedError("You need to define device execution.")
