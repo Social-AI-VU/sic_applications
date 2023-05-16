@@ -11,7 +11,7 @@ def on_image(image_message: CompressedImageMessage):
   cv2.waitKey(1)
 
 
-camera = TopNaoCamera(ip="192.168.0.151")
+camera = TopNaoCamera(ip="192.168.0.210")
 camera.register_callback(on_image)
 
 
