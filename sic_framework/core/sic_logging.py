@@ -41,7 +41,7 @@ class SICLogSubscriber(object):
         """
 
         if not self.started:
-            self.redis = SICRedis(client_name="SICLogSubscriber")
+            self.redis = SICRedis(parent_name="SICLogSubscriber")
             self.redis.register_message_handler(get_log_channel(), self._handle_log_message)
             self.started = True
 

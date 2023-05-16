@@ -55,6 +55,7 @@ class SICComponentManager(object):
         self.ready_event = threading.Event()
 
         self.logger = self.get_manager_logger()
+        self.redis.parent_logger = self.logger
 
         # The _handle_request function is calls execute directly, as we must reply when execution done to allow the user
         # to wait for this. New messages will be buffered by redis. The component manager listens to

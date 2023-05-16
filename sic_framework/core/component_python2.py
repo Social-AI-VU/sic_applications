@@ -46,12 +46,15 @@ class SICComponent:
         self.params = None
 
         # Redis initialization
-        self._redis = SICRedis(client_name=self.get_component_name())
+        self._redis = SICRedis(parent_name=self.get_component_name())
+
+        # Initialize logging and enable redis to log any exeptions as well
+        self.logger = self._get_logger(log_level)
+        self._redis.parent_logger = self.logger
 
         # load config if set by user
         self.set_config(conf)
 
-        self.logger = self._get_logger(log_level)
 
     def _get_logger(self, log_level):
         """
@@ -98,11 +101,7 @@ class SICComponent:
         self._redis.register_message_handler(channel, self._handle_message)
 
     def _handle_message(self, message):
-        try:
-            return self.on_message(message)
-        except Exception as e:
-            self.logger.exception(e)
-            raise e
+        return self.on_message(message)
 
     def _handle_request(self, request):
         """
@@ -126,11 +125,7 @@ class SICComponent:
             return SICSuccessMessage()
 
         if not isinstance_pickle(request, SICControlRequest):
-            try:
-                return self.on_request(request)
-            except Exception as e:
-                self.logger.exception(e)
-                raise e
+            return self.on_request(request)
 
         raise TypeError("Unknown request type {}".format(type(request)))
 

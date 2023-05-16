@@ -54,7 +54,10 @@ class SICRedis:
     this is ignored by this extension. Using any other redis functions 'as is' is discouraged.
     """
 
-    def __init__(self, client_name=None):
+    def __init__(self, parent_name=None):
+        """
+        :param parent_name: The name of the module that uses this redis connection, for easier debugging
+        """
         host = os.getenv('DB_IP')
         password = os.getenv('DB_PASS')
 
@@ -69,8 +72,11 @@ class SICRedis:
         self._running_callbacks = []
         self._redis = redis.Redis(host=host, ssl=True, ssl_ca_certs=ssl_ca_certs, password=password)
 
+        # To be set by any component that requires exceptions in the callback threads to be logged to somewhere
+        self.parent_logger = None
+
         # service name (assigned to thread to help debugging)
-        self.service_name = client_name
+        self.service_name = parent_name
 
     def register_message_handler(self, channels, callback, ignore_requests=True):
         """
@@ -95,13 +101,18 @@ class SICRedis:
 
         # unpack pubsub message to SICMessage
         def wrapped_callback(pubsub_msg):
-            sic_message = self.parse_pubsub_message(pubsub_msg)
+            try:
+                sic_message = self.parse_pubsub_message(pubsub_msg)
 
-            if ignore_requests and isinstance_pickle(sic_message, SICRequest):
-                return
+                if ignore_requests and isinstance_pickle(sic_message, SICRequest):
+                    return
 
-            # channel = utils.str_if_bytes(pubsub_msg["channel"])
-            return callback(sic_message)
+                return callback(sic_message)
+            except Exception as e:
+                # Errors in a remote thread fail silently, so explicitly catch anything and log to the user.
+                if self.parent_logger:
+                    self.parent_logger.exception(e)
+                raise e
 
         channels = [utils.str_if_bytes(c) for c in channels]
 
