@@ -21,8 +21,8 @@ class ComponentNotStartedError(Exception):
 class SICConnector(object):
     __metaclass__ = ABCMeta
 
-    # define how long an "instant" reply should take at most
-    _PING_TIMEOUT = .2
+    # define how long an "instant" reply should take at most (ping sometimes takes more than 150ms)
+    _PING_TIMEOUT = 1
 
     def __init__(self, ip="localhost", log_level=logging.INFO, conf=None):
         """
