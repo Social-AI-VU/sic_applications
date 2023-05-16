@@ -37,14 +37,14 @@ class SICComponentManager(object):
     # Number of seconds we wait at most for a component to start
     COMPONENT_START_TIMEOUT = 10
 
-    def __init__(self, component_classes, redis_ip=None):
+    def __init__(self, component_classes):
         """
         A component manager to start components when requested by users.
         :param component_classes: List of SICService components to be started
         """
 
         # Redis initialization
-        self.redis = SICRedis(redis_ip=redis_ip)
+        self.redis = SICRedis()
         self.ip = utils.get_ip_adress()
 
         self.active_components = []
