@@ -70,7 +70,7 @@ class NaoMotionStreamerService(SICComponent, NaoqiMotionTools):
         self.do_streaming = threading.Event()
 
         # A list of joint names (not chains)
-        self.joints = None
+        self.joints = self.generate_joint_list(["Body"])
 
         self.stream_thread = threading.Thread(target=self.stream_joints)
         self.stream_thread.name = self.get_component_name()
@@ -91,7 +91,8 @@ class NaoMotionStreamerService(SICComponent, NaoqiMotionTools):
             self.do_streaming.set()
             return SICMessage()
 
-        if request == StartStreaming:
+
+        if request == StopStreaming:
             self.do_streaming.clear()
             return SICMessage()
 
@@ -111,20 +112,22 @@ class NaoMotionStreamerService(SICComponent, NaoqiMotionTools):
         # Set the stiffness value of a list of joint chain.
         # For Nao joint chains are: Head, RArm, LArm, RLeg, LLeg
         try:
-            self.motion.setStiffnesses(self.joints, 0)
 
             while not self._stop_event.is_set():
 
                 # check both do_streaming and _stop_event periodically
-                self.do_streaming.wait(.5)
+                self.do_streaming.wait(1)
                 if not self.do_streaming.is_set():
                     continue
 
-                joints = self.generate_joint_list([self.joints])
+                if self.stiffness != 0:
+                    self.motion.setStiffnesses(self.joints, 0.0)
+                    self.stiffness = 0
 
-                angles = self.motion.getAngles(joints, self.params.use_sensors)  # use_sensors=False
 
-                self.output_message(NaoJointAngles(joints, angles))
+                angles = self.motion.getAngles(self.joints, self.params.use_sensors)  # use_sensors=False
+
+                self.output_message(NaoJointAngles(self.joints, angles))
 
                 time.sleep(1 / float(self.samples_per_second))
         except Exception as e:
