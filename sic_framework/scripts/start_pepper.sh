@@ -6,9 +6,9 @@
 
 unset -v host
 
-while getopts h: opt; do
+while getopts r: opt; do
         case $opt in
-                h) host=$OPTARG ;;
+                r) host=$OPTARG ;;
                 *)
                         echo 'Error in command line parsing' >&2
                         exit 1
@@ -17,7 +17,7 @@ done
 
 shift "$(( OPTIND - 1 ))"
 
-: ${host:?Missing robot ip adress -h}
+: ${host:?Missing robot ip adress -r}
 
 # Redis should be running on this device
 redis_host=$(hostname -I | cut -d' ' -f1)
