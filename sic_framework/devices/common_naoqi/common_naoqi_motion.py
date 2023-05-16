@@ -17,14 +17,15 @@ class NaoqiMotionTools(object):
         """
         joints = []
         for joint_chain in joint_chains:
+            print(joint_chain)
             if joint_chain == 'Body':
                 joints += self.all_joints
             elif not joint_chain == 'Body' and joint_chain in self.body_model.keys():
                 joints += self.body_model[joint_chain]
             elif joint_chain not in self.body_model.keys() and joint_chain in self.all_joints:
-                joints += joint_chain
+                joints.append(joint_chain)
             else:
-                print('Joint ' + joint_chain + ' not recognized. Will be skipped for recording.')
+                raise ValueError('Joint {} not recognized.'.format(joint_chain))
         return joints
 
     @property

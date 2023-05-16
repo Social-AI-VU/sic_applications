@@ -6,8 +6,7 @@ from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, 
     BottomNaoCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import \
     NaoqiMicrophone, NaoqiMicrophoneSensor
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorderActuator, NaoMotionReplayAction
-from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoMotionStreamConsumer, NaoMotionStreamProducer
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorderActuator
 from sic_framework.devices.common_naoqi.naoqi_speakers import \
     NaoqiTextToSpeechActuator, NaoqiTextToSpeech
 from sic_framework.devices.device import SICDevice
@@ -53,15 +52,13 @@ if __name__ == '__main__':
         NaoqiMicrophoneSensor,
         NaoqiTextToSpeechActuator,
         NaoMotionActuator,
+        NaoMotionRecorderActuator
     ]
-    sensors = SICComponentManager(s)
-
-    s = [
-        NaoqiTextToSpeechActuator,
-        NaoMotionStreamConsumer,
-        NaoMotionStreamProducer,
-        NaoMotionRecorderActuator,
-        NaoMotionReplayAction,
-    ]
+    SICComponentManager(s)
+    #
+    # s = [
+    #     NaoMotionStreamConsumer,
+    #     NaoMotionStreamProducer,
+    # ]
 
 
