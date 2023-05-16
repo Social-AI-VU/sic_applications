@@ -1,8 +1,10 @@
 import argparse
+import os
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, BottomNaoCameraSensor, TopNaoCamera, \
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, \
+    BottomNaoCameraSensor, TopNaoCamera, \
     BottomNaoCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import \
     NaoqiMicrophone, NaoqiMicrophoneSensor
@@ -47,6 +49,13 @@ class Nao(SICDevice):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--redis_ip', type=str,
+                        help="IP address where Redis is running")
+    args = parser.parse_args()
+
+    os.environ['DB_IP'] = args.redis_ip
+
     s = [
         TopNaoCameraSensor,
         BottomNaoCameraSensor,
@@ -57,10 +66,3 @@ if __name__ == '__main__':
         NaoMotionStreamerService,
     ]
     SICComponentManager(s)
-    #
-    # s = [
-    #     NaoMotionStreamConsumer,
-    #     NaoMotionStreamProducer,
-    # ]
-
-

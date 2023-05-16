@@ -41,7 +41,7 @@ class Pepper(SICDevice):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot_name', required=True, type=str, help="Provide a name for the robot to use as identifier")
+    parser.add_argument('--redis_ip', type=str, help="IP address where Redis is running")
     args = parser.parse_args()
 
     s = [
