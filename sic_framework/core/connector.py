@@ -105,12 +105,14 @@ class SICConnector(object):
 
             component_info = self._redis.request(self._ip, component_request,
                                                  timeout=self.component_class.COMPONENT_STARTUP_TIMEOUT)
+            if isinstance_pickle(component_info, SICNotStartedMessage):
+
+                raise ComponentNotStartedError(
+                    "\n\nComponent did not start, error should be logged above. ({})".format(component_info.message))
+
         except TimeoutError as e:
             six.raise_from(TimeoutError("Could not connect to component. Is SIC running on the device (ip:{})?".format(self._ip)), None)
 
-        if isinstance_pickle(component_info, SICNotStartedMessage):
-
-            raise ComponentNotStartedError("Component did not start. \n\nError message from component: {}".format(component_info.message))
 
     def register_callback(self, callback):
         """
