@@ -57,7 +57,7 @@ if __name__ == '__main__':
         NaoqiMicrophoneSensor,
         NaoqiTextToSpeechActuator,
     ]
-    sensors = SICComponentManager(s)
+    sensors = SICComponentManager(s, redis_ip=args.redis_ip)
 
     s = [
         NaoMotionActuator,
