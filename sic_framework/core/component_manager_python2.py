@@ -174,7 +174,7 @@ class SICComponentManager(object):
             return reply
 
         except Exception as e:
-            # self.logger.exception(e) # maybe not needed if already sending back a not started message
+            self.logger.exception(e) # maybe not needed if already sending back a not started message
             if component is not None:
                 component.stop()
             return SICNotStartedMessage(e)
