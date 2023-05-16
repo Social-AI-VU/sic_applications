@@ -17,7 +17,6 @@ class NaoqiMotionTools(object):
         """
         joints = []
         for joint_chain in joint_chains:
-            print(joint_chain)
             if joint_chain == 'Body':
                 joints += self.all_joints
             elif not joint_chain == 'Body' and joint_chain in self.body_model.keys():

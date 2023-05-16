@@ -72,7 +72,8 @@ class PlayRecording(SICRequest):
 
 
 class NaoMotionRecorderConf(SICConfMessage):
-    def __init__(self, replay_stiffness=.6, replay_speed=.75, use_interpolation=True, setup_time=.5, use_sensors=False):
+    def __init__(self, replay_stiffness=.6, replay_speed=.75, use_interpolation=True, setup_time=.5, use_sensors=False,
+                 samples_per_second=20):
         """
         There is a choice between setAngles, which is an approximation of the motion or
         angleInterpolation which may not play the motion if it exceeds max body speed.
@@ -87,6 +88,7 @@ class NaoMotionRecorderConf(SICConfMessage):
         :param setup_time: The time in seconds the robot has to reach the start position of the recording. Only used
                            when use_interpolation=True.
         :param use_sensors: If true, sensor angles will be returned, otherwise command angles are used.
+        :param samples_per_second: How many times per second the joint positions are sampled.
         """
         SICConfMessage.__init__(self)
         self.replay_stiffness = replay_stiffness
@@ -94,6 +96,7 @@ class NaoMotionRecorderConf(SICConfMessage):
         self.use_interpolation = use_interpolation
         self.setup_time = setup_time
         self.use_sensors = use_sensors
+        self.samples_per_second = samples_per_second
 
 
 class NaoMotionRecorderActuator(SICActuator, NaoqiMotionTools):
@@ -105,6 +108,8 @@ class NaoMotionRecorderActuator(SICActuator, NaoqiMotionTools):
         self.session.connect('tcp://127.0.0.1:9559')
 
         self.motion = self.session.service('ALMotion')
+
+        self.samples_per_second = self.params.samples_per_second
 
         self.recorded_joints = []
         self.recorded_angles = []
@@ -120,7 +125,6 @@ class NaoMotionRecorderActuator(SICActuator, NaoqiMotionTools):
         self.stream_thread.name = self.get_component_name()
         self.stream_thread.start()
 
-        self.samples_per_second = 20
 
     @staticmethod
     def get_conf():
@@ -136,10 +140,7 @@ class NaoMotionRecorderActuator(SICActuator, NaoqiMotionTools):
 
     def record_motion(self):
         """
-
-        :param joint_chains: list of joints and/or joint chains to record
-        :param framerate: number of recordings per second
-        :return:
+        A thread that starts to record the motion of the robot until an event is set.
         """
         try:
 
@@ -228,6 +229,4 @@ class NaoMotionRecorder(SICConnector):
 
 
 if __name__ == '__main__':
-    # SICComponentManager([NaoMotionRecorderActuator])
-    a = NaoMotionRecorderActuator()
-    a._start()
+    SICComponentManager([NaoMotionRecorderActuator])
