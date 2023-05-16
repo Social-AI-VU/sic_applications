@@ -9,13 +9,13 @@ This demo should display a camera image from your webcam on your laptop.
 
 imgs = queue.Queue()
 def on_image(image_message: CompressedImageMessage):
-  imgs.put(image_message.image)
+    imgs.put(image_message.image)
 
 
 camera = DesktopCamera()
 camera.register_callback(on_image)
 
 while True:
-  img = imgs.get()
-  cv2.imshow('', img)
-  cv2.waitKey(1)
+    img = imgs.get()
+    cv2.imshow('', img)
+    cv2.waitKey(1)
