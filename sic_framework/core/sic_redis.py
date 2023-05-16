@@ -54,8 +54,8 @@ class SICRedis:
     this is ignored by this extension. Using any other redis functions 'as is' is discouraged.
     """
 
-    def __init__(self, client_name=None):
-        host = os.getenv('DB_IP')
+    def __init__(self, client_name=None, redis_ip=None):
+        host = redis_ip if redis_ip is not None else os.getenv('DB_IP')
         password = os.getenv('DB_PASS')
 
         if host is None:
