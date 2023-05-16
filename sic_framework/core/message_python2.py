@@ -71,7 +71,10 @@ class SICMessage(object):
         :param other:
         :return:
         """
-        return self.get_message_name() == other.get_message_name()
+        if hasattr(other, "get_message_name"):
+            return self.get_message_name() == other.get_message_name()
+        else:
+            return False
 
     @classmethod
     def id(cls, index=0):
@@ -225,7 +228,10 @@ class SICMessage(object):
         max_len = 20
         out = str(self.__class__.__name__) + "\n"
 
-        for attr in vars(self):
+        for attr in sorted(vars(self)):
+            if attr.startswith("__"):
+                continue
+
             attr_value = str(getattr(self, attr))
             out += " " + attr + ":" + attr_value[:max_len]
 
