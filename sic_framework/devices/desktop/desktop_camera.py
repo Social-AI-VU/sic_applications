@@ -9,7 +9,7 @@ from sic_framework.core.sensor_python2 import SICSensor
 class DesktopCameraSensor(SICSensor):
     def __init__(self, *args, **kwargs):
         super(DesktopCameraSensor, self).__init__(*args, **kwargs)
-        self.cam = cv2.VideoCapture(0)
+        self.cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     @staticmethod
     def get_conf():
