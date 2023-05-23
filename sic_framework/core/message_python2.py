@@ -21,7 +21,7 @@ else:
 try:
     from turbojpeg import TurboJPEG
     turbojpeg = TurboJPEG(lib_turbo_jpeg_path)
-except RuntimeError:
+except (RuntimeError, ImportError):
     # fall back to PIL in case TurboJPEG is not installed
     # PIL _can_ use turbojpeg, but can also fall back to a slower libjpeg
     # it is recommended to install turbojpeg
