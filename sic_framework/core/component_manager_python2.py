@@ -61,9 +61,9 @@ class SICComponentManager(object):
         # to wait for this. New messages will be buffered by redis. The component manager listens to
         self.redis.register_request_handler(self.ip, self._handle_request)
 
-        print('Starting component manager on ip "{}" with components:'.format(self.ip))
+        self.logger.info('Starting component manager on ip "{}" with components:'.format(self.ip))
         for c in self.component_classes.values():
-            print(" - {}".format(c.get_component_name()))
+            self.logger.info(" - {}".format(c.get_component_name()))
 
         # TODO FIXME
         # self._sync_time()
