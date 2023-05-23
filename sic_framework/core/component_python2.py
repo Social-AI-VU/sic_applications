@@ -12,7 +12,7 @@ from .message_python2 import SICConfMessage, SICRequest, SICMessage, SICSuccessM
 from .sic_redis import SICRedis
 
 
-class ConnectRequest(SICRequest):
+class ConnectRequest(SICControlRequest):
     def __init__(self, channel):
         """
         A request for this component to start listening to the output of another component. The provided channel should
