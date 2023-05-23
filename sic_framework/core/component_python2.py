@@ -190,6 +190,7 @@ class SICComponent:
         Send a message on the output channel of this component.
         :param message:
         """
+        message._previous_component = self.get_component_name()
         self._redis.send_message(self._output_channel, message)
 
     @staticmethod

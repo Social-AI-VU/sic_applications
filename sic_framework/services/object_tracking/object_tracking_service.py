@@ -31,7 +31,7 @@ class ObjectTrackingService(SICService):
         return BoundingBoxesMessage
 
     def execute(self, inputs):
-        message = inputs[BoundingBoxesMessage.id()]
+        message = inputs.get(BoundingBoxesMessage)
 
         detection_bboxes = []
 

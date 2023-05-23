@@ -34,7 +34,7 @@ class NaoqiTabletService(SICService):
 
     def execute(self, message):
         # display a webview on a pepper's tablet given a url
-        self.tablet_service.showWebview(message[NaoqiLoadUrl.id()].url)
+        self.tablet_service.showWebview(message.get(NaoqiLoadUrl).url)
         return SICMessage()
 
 

@@ -19,6 +19,9 @@ class MessageQueue(collections.deque):
         super(MessageQueue, self).__init__(maxlen=SICService.MAX_MESSAGE_BUFFER_SIZE)
 
     def appendleft(self, x):
+        # TODO when inputs arrive faster than processing, the buffer might fill up. Do we want to handle this better or
+        # just silence the logging. Maybe its better to log only when receiving lots of messages but never executing.
+
         if len(self) == self.maxlen:
             self.dropped_messages_counter += 1
             if self.dropped_messages_counter in {5, 10, 50, 100, 200, 1000, 5000, 10000}:
@@ -35,23 +38,38 @@ class PopMessageException(ValueError):
 
 class SICMessageDictionary:
     """
-    TODO
+    A dictionary type container for messages, indexable by the message type and possibly an origin.
+
+    Example:
+        # in config: self.params.image_source_one = TopCameraSensor
+        img_msg1 = inputs.get(ImageMessage, self.params.image_source_one)
+        img_msg2 = inputs.get(ImageMessage, self.params.image_source_two)
+
+        audio_msg = inputs.get(AudioMessage)
     """
 
-    def __init__(self, allowed_classes):
-        pass
-        self.allowed_classes = {b.id() for b in allowed_classes}
-        self.message_class_mapping = collections.OrderedDict()
-        self.input_type_count = collections.defaultdict(lambda: 0)
+    def __init__(self):
+        self.messages = collections.defaultdict(lambda: list())
 
-    def set(self, msg):
-        for b in msg.__class__.__mro__:
-            if issubclass(b, SICMessage) and b.id() in self.allowed_classes:
-                count = self.input_type_count[b.id()]
-                self.message_class_mapping[b.id(index=count)] = msg
-                self.input_type_count[b.id()] += 1
+    def set(self, message):
+        self.messages[message.get_message_name()].append(message)
 
-                break
+    def get(self, type, source_component=None):
+
+        messages = self.messages[type.get_message_name()]
+
+        assert len(messages), "Attempting to get message from empty buffer (framework issue, should not be possible)"
+
+        for message in messages:
+            if source_component is not None:
+                # find the message with the right source component in the list of duplicate input types
+                if message._previous_component == source_component.get_component_name():
+                    return message
+            else:
+                # if no source component is set, just accept any (should be only 1)
+                return message
+
+        raise IndexError("Input of type {} with source: {} not found.".format(type, source_component))
 
 
 class SICService(SICComponent):
@@ -68,22 +86,13 @@ class SICService(SICComponent):
         # this event is set whenever a new message arrives.
         self._new_data_event = Event()
 
-
-        # TODO this does not handle duplicate input type
-        # A solution is to add a parameter to all messages with the component name that outputed it last
-        # this can be appended to the message name, which would lead to separate buffers.
-        # a conf can be set to handle which component leads to which "index"
-        self._input_buffers = collections.OrderedDict()
-        for input_type in self.get_inputs():
-            self._input_buffers[input_type.get_message_name()] = MessageQueue(self.logger)
+        self._input_buffers = dict()
 
     def start(self):
         """
         Start the service. This method must be called by the user at the end of the constructor
         """
         super(SICService, self).start()
-
-        self.logger.info('Starting {}'.format(self.get_component_name()))
 
         self._listen()
 
@@ -92,7 +101,7 @@ class SICService(SICComponent):
         """
         Main function of the service
         :param inputs: dict of input messages from other components
-        :type inputs: dict[str, SICMessage]
+        :type inputs: SICMessageDictionary
         :return: A SICMessage or None
         :rtype: SICMessage | None
         """
@@ -112,6 +121,8 @@ class SICService(SICComponent):
         self.logger.debug_framework_verbose(
             "input buffers: {}".format([(k, len(v)) for k, v in self._input_buffers.items()]))
 
+
+
         # First, get the most recent message for all buffers. Then, select the oldest message from these messages.
         # The timestamp of this message corresponds to the most recent timestamp for which we have all information
         # available
@@ -121,32 +132,39 @@ class SICService(SICComponent):
             # Not all buffers are full, so do not pop messages
             raise PopMessageException("Could not collect aligned input data from buffers, not all buffers filled")
 
-        # Second, we go through each buffer and check if we can find a message that is within the time difference
-        # threshold. If there are duplicate input types, their occurrence is counted and registered by index in the
-        # service input dict. The order matters for this, so _input_buffers is also an OrderedDict
+        # Buffers are created dynamically, based on the source components. Only start executing once
+        # we have at least one buffer per message type
+        if len(self._input_buffers) != len(self.get_inputs()):
+            raise PopMessageException("Not enough buffer has been created yet")
 
-        message_dict = SICMessageDictionary(self.get_inputs())
-        for buffer in self._input_buffers.values():
+        # Second, we go through each buffer and check if we can find a message that is within the time difference
+        # threshold. Duplicate input types are in separate buffers based on their _previous_component attribute.
+
+
+        # TODO might raise
+        # RuntimeError: deque mutated during iteration
+        # in for msg in buffer: as on_message could be set while iterating
+        message_dict = SICMessageDictionary()
+        messages_to_remove = []
+        for name, buffer in self._input_buffers.items():
             # get the newest message in the buffer closest to the selected timestamp
             # if there is none, we raise a ValueError to stop searching and wait for new data again
             for msg in buffer:
                 if abs(msg._timestamp - selected_timestamp) <= self.MAX_MESSAGE_AGE_DIFF_IN_SECONDS:
+
                     message_dict.set(msg)
+                    messages_to_remove.append(msg)
                     break
             else:
                 # the timestamps across all buffers did not align within the threshold, so do not pop messages
                 raise PopMessageException("Could not collect aligned input data from buffers, no matching timestamps")
 
-        # The message have been collected according to their (inherited) type
-        service_inputs = message_dict.message_class_mapping
-
         # Third, we now know all buffers contain a valid (aligned) message for the timestamp
         # only then, consume these messages from the buffers and return the messages.
-        for buffer, msg in zip(self._input_buffers.values(), service_inputs.values()):
+        for buffer, msg in zip(self._input_buffers.values(), messages_to_remove):
             buffer.remove(msg)
 
-        return service_inputs, selected_timestamp
-
+        return message_dict, selected_timestamp
 
     def on_message(self, message):
         """
@@ -154,7 +172,17 @@ class SICService(SICComponent):
         :param data: the redis pubsub message
         """
 
-        self._input_buffers[message.get_message_name()].appendleft(message)
+        # TODO support inheritance by indexing using the superclass that matches an input type
+        # for b in msg.__class__.__mro__:
+        #     if issubclass(b, SICMessage):
+
+        idx = (message.get_message_name(), message._previous_component)
+
+        try:
+            self._input_buffers[idx].appendleft(message)
+        except KeyError:
+            self._input_buffers[idx] = MessageQueue(self.logger)
+            self._input_buffers[idx].appendleft(message)
 
         self._new_data_event.set()
 
@@ -190,7 +218,7 @@ class SICService(SICComponent):
                 # the timestamp sources.
                 output._timestamp = timestamp
 
-                self._redis.send_message(self._output_channel, output)
+                self.output_message(output)
 
         self.logger.debug("Stopped listening")
         self.stop()

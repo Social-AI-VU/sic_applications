@@ -54,7 +54,8 @@ class DepthEstimationService(SICService):
 
     def execute(self, inputs):
         # Notice that the images are already rectified by StereoPepperCamera
-        left, right = inputs[StereoImageMessage.id()].left_image, inputs[StereoImageMessage.id()].right_image
+        stereo_msg = inputs.get(StereoImageMessage)
+        left, right = stereo_msg.left_image, stereo_msg.right_image
 
         # Calculate combined left-to-right and right-to-left disparities
         left_disp = self.left_matcher.compute(left, right)

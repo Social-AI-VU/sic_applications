@@ -30,7 +30,7 @@ class FaceDetectionService(SICService):
         return BoundingBoxesMessage
 
     def execute(self, inputs):
-        image = inputs[CompressedImageMessage.id()].image
+        image = inputs.get(CompressedImageMessage).image
 
         img = array(image).astype(np.uint8)
 

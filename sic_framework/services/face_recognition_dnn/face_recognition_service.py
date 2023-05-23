@@ -58,7 +58,7 @@ class DNNFaceRecognitionService(SICService):
         return BoundingBoxesMessage
 
     def execute(self, inputs):
-        image = inputs[CompressedImageMessage.id()].image
+        image = inputs.get(CompressedImageMessage).image
 
         id = 0
 
