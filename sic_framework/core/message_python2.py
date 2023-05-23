@@ -58,7 +58,7 @@ class SICMessage(object):
     # camera data, and should be aligned with data from the same creation time.
     _timestamp = None
     # A string with the name of the previous component that created it, used to differentiate messages of the same type.
-    _previous_component = ""
+    _previous_component_name = ""
     __NP_VALUES = []
     __JPEG_VALUES = []
     __SIC_MESSAGES = []

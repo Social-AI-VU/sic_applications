@@ -35,6 +35,8 @@ class SICConnector(object):
         """
         self._redis = SICRedis()
 
+        assert isinstance(ip, str), "IP must be string"
+
         # default ip adress is local ip adress (the actual inet, not localhost or 127.0.0.1)
 
         if ip in ["localhost", "127.0.0.1"]:

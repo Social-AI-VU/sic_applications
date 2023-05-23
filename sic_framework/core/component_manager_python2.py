@@ -166,7 +166,7 @@ class SICComponentManager(object):
 
             if component._ready_event.is_set() is False:
                 self.logger.error(
-                    "Component {} refused to start within {} seconds!".format(component.get_component_name, component.COMPONENT_STARTUP_TIMEOUT))
+                    "Component {} refused to start within {} seconds!".format(component.get_component_name(), component.COMPONENT_STARTUP_TIMEOUT))
                 # Todo do something!
 
             # inform the user their component has started

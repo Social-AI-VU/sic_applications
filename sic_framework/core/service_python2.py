@@ -56,6 +56,13 @@ class SICMessageDictionary:
 
     def get(self, type, source_component=None):
 
+
+        try:
+            source_component_name = source_component.get_component_name()
+        except AttributeError:
+            # Object is SICConnector and not SICComponent
+            source_component_name = source_component.component_class.get_component_name()
+
         messages = self.messages[type.get_message_name()]
 
         assert len(messages), "Attempting to get message from empty buffer (framework issue, should not be possible)"
@@ -63,7 +70,7 @@ class SICMessageDictionary:
         for message in messages:
             if source_component is not None:
                 # find the message with the right source component in the list of duplicate input types
-                if message._previous_component == source_component.get_component_name():
+                if message._previous_component_name == source_component_name:
                     return message
             else:
                 # if no source component is set, just accept any (should be only 1)
@@ -176,7 +183,7 @@ class SICService(SICComponent):
         # for b in msg.__class__.__mro__:
         #     if issubclass(b, SICMessage):
 
-        idx = (message.get_message_name(), message._previous_component)
+        idx = (message.get_message_name(), message._previous_component_name)
 
         try:
             self._input_buffers[idx].appendleft(message)
