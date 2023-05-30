@@ -56,12 +56,12 @@ class SICMessageDictionary:
 
     def get(self, type, source_component=None):
 
-
-        try:
-            source_component_name = source_component.get_component_name()
-        except AttributeError:
-            # Object is SICConnector and not SICComponent
-            source_component_name = source_component.component_class.get_component_name()
+        if source_component is not None:
+            try:
+                source_component_name = source_component.get_component_name()
+            except AttributeError:
+                # Object is SICConnector and not SICComponent
+                source_component_name = source_component.component_class.get_component_name()
 
         messages = self.messages[type.get_message_name()]
 
