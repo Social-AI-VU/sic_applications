@@ -58,19 +58,22 @@ class SICRedis:
         """
         :param parent_name: The name of the module that uses this redis connection, for easier debugging
         """
-        host = os.getenv('DB_IP')
-        password = os.getenv('DB_PASS')
-
-        if host is None:
-            host = "127.0.0.1"
-
-        if password is None:
-            password = "changemeplease"
-
-        ssl_ca_certs = os.path.join(os.path.dirname(__file__), 'cert.pem')
 
         self._running_callbacks = []
-        self._redis = redis.Redis(host=host, ssl=True, ssl_ca_certs=ssl_ca_certs, password=password)
+
+        # we assume that a password is required
+        host = os.getenv('DB_IP', "127.0.0.1")
+        password = os.getenv('DB_PASS', "changemeplease")
+
+        # Let's try to connect first without TLS / working without TLS facilitates simple use of redis-cli
+        try:
+            self._redis = redis.Redis(host=host, ssl=False, password=password)
+            self._redis.ping()
+        except: # TODO: perhaps better to use an __enter__ / __exit__ setup?
+            # Must be a connection error; so now let's try to connect with TLS
+            ssl_ca_certs = os.path.join(os.path.dirname(__file__), 'cert.pem')
+            print('TLS required. Looking for certificate here:', ssl_ca_certs)
+            self._redis = redis.Redis(host=host, ssl=True, ssl_ca_certs=ssl_ca_certs, password=password)
 
         # To be set by any component that requires exceptions in the callback threads to be logged to somewhere
         self.parent_logger = None
@@ -121,11 +124,13 @@ class SICRedis:
         # sleep_time is how often the thread checks if the connection is still alive (and checks the stop condition),
         # if it is 0.0 it can never time out. It can receive messages much faster, so be nice to the CPU.
         thread = pubsub.run_in_thread(sleep_time=0.1)
+
         if self.service_name:
             thread.name = "{}_callback_thread".format(self.service_name)
 
         c = CallbackThread(callback, pubsub=pubsub, thread=thread)
         self._running_callbacks.append(c)
+
         return c
 
     def unregister_callback(self, callback_thread):
@@ -134,6 +139,7 @@ class SICRedis:
         multiple hooks are created.
         :param callback_thread: The CallbackThread to unregister
         """
+
         callback_thread.pubsub.unsubscribe()
         callback_thread.thread.stop()
         self._running_callbacks.remove(callback_thread)
@@ -146,6 +152,7 @@ class SICRedis:
         :return: The number of subscribers that received the message.
         """
         assert isinstance(message, SICMessage), "Message must inherit from SICMessage (got {})".format(type(message))
+
         return self._redis.publish(channel, message.serialize())
 
     def _reply(self, channel, request, reply):
