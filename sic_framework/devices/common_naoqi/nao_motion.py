@@ -95,13 +95,13 @@ class NaoMotionActuator(SICActuator):
         self.stiffness = 0
 
         self.action_mapping = {
-            NaoPostureRequest.id(): self.goToPosture,
-            NaoRestRequest.id(): self.rest,
-            NaoWakeUpRequest.id(): self.wakeUp,
+            NaoPostureRequest.get_message_name(): self.goToPosture,
+            NaoRestRequest.get_message_name(): self.rest,
+            NaoWakeUpRequest.get_message_name(): self.wakeUp,
 
-            NaoMoveRequest.id(): self.move,
-            NaoMoveToRequest.id(): self.moveTo,
-            NaoMoveTowardRequest.id(): self.moveToward,
+            NaoMoveRequest.get_message_name(): self.move,
+            NaoMoveToRequest.get_message_name(): self.moveTo,
+            NaoMoveTowardRequest.get_message_name(): self.moveToward,
         }
 
 
@@ -117,7 +117,8 @@ class NaoMotionActuator(SICActuator):
     def execute(self, request):
         motion = request
 
-        fun = self.action_mapping[motion.id()]
+
+        fun = self.action_mapping[motion.get_message_name()]
 
         fun(motion)
 

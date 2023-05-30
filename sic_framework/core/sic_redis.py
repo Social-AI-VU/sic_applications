@@ -196,18 +196,20 @@ class SICRedis:
 
         self.send_message(channel, request)
 
-        if block is False:
+        if not block:
             return None
 
-        done.wait(timeout)
+        else:
 
-        if not done.is_set():
-            raise TimeoutError("Waiting for reply to {} to request timed out".format(request.get_message_name()))
+            done.wait(timeout)
 
-        # cleanup by unsubscribing and stopping the subscriber thread
-        self.unregister_callback(callback_thread)
+            if not done.is_set():
+                raise TimeoutError("Waiting for reply to {} to request timed out".format(request.get_message_name()))
 
-        return q.get()
+            # cleanup by unsubscribing and stopping the subscriber thread
+            self.unregister_callback(callback_thread)
+
+            return q.get()
 
     def register_request_handler(self, channel, callback):
         """

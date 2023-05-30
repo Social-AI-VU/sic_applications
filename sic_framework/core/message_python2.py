@@ -79,15 +79,6 @@ class SICMessage(object):
             return False
 
     @classmethod
-    def id(cls, index=0):
-        """
-        TODO deprecate? this is the same as get_message_name but vague
-        Identifies the message type, used for indexing dictionaries containing service input.
-        The index allows for differentiation when there are multiple inputs of the same message type.
-        """
-        return "{}-{}".format(cls.__name__, index)
-
-    @classmethod
     def get_message_name(cls):
         """
         The pretty name of this service.

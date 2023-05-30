@@ -6,7 +6,20 @@ from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, 
 
 class MergeImageConf(SICConfMessage):
     """
-    Dummy SICConfMessage
+    Configure how to handle duplicate input type based on source component.
+
+
+    Example usage:
+
+        camera1 = TopNaoCamera(ip="192.168.0.180")
+        camera2 = BottomNaoCamera(ip="192.168.0.180")
+
+        conf = MergeImageConf(TopNaoCamera, BottomNaoCamera)
+        merger = MergeImages(conf=conf)
+
+        merger.connect(camera1)
+        merger.connect(camera2)
+
     """
     def __init__(self, source_a, source_b):
         super(SICConfMessage, self).__init__()

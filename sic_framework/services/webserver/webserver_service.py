@@ -59,7 +59,7 @@ class WebserverService(SICService):
         return SICMessage
     
     def execute(self, inputs):
-        self.input_text = str(inputs[GetWebText.id()].text)
+        self.input_text = str(inputs.get(GetWebText).text)
         return SICMessage()
 
 
