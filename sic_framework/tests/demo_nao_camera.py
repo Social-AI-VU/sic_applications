@@ -7,6 +7,7 @@ from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCamera
 
 imgs = queue.Queue()
 def on_image(image_message: CompressedImageMessage):
+    # we could cv2.imshow here, but that does not work on Mac OSX
     imgs.put(image_message.image)
 
 
