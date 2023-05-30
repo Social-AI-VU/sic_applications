@@ -69,10 +69,14 @@ class SICRedis:
         try:
             self._redis = redis.Redis(host=host, ssl=False, password=password)
             self._redis.ping()
-        except: # TODO: perhaps better to use an __enter__ / __exit__ setup?
+        except redis.exceptions.AuthenticationError:
+            # redis is running without a password, do not supply it.
+            self._redis = redis.Redis(host=host, ssl=False)
+            self._redis.ping()
+        except redis.exceptions.ConnectionError as e:
             # Must be a connection error; so now let's try to connect with TLS
             ssl_ca_certs = os.path.join(os.path.dirname(__file__), 'cert.pem')
-            print('TLS required. Looking for certificate here:', ssl_ca_certs)
+            print('TLS required. Looking for certificate here:', ssl_ca_certs, "(Source error {})".format(e))
             self._redis = redis.Redis(host=host, ssl=True, ssl_ca_certs=ssl_ca_certs, password=password)
 
         # To be set by any component that requires exceptions in the callback threads to be logged to somewhere
