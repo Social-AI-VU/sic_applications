@@ -19,6 +19,11 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 class DNNFaceRecognitionService(SICService):
+
+    # loading resnet takes some time
+    COMPONENT_STARTUP_TIMEOUT = 15
+
+
     def __init__(self, *args, **kwargs):
         super(DNNFaceRecognitionService, self).__init__(*args, **kwargs)
         self.save_image = False
