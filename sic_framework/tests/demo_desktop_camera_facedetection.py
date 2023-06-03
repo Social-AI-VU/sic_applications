@@ -12,11 +12,14 @@ from sic_framework.services.face_recognition_dnn.face_recognition_service import
 This demo recognizes faces from your webcam and displays the result on your laptop.
 """
 
-
 imgs_buffer = queue.Queue()
 
 
 def on_image(image_message: CompressedImageMessage):
+    try:
+        imgs_buffer.get_nowait()  # remove previous message if its still there
+    except queue.Empty:
+        pass
     imgs_buffer.put(image_message.image)
 
 
@@ -24,13 +27,15 @@ faces_buffer = queue.Queue()
 
 
 def on_faces(message: BoundingBoxesMessage):
+    try:
+        faces_buffer.get_nowait()  # remove previous message if its still there
+    except queue.Empty:
+        pass
     faces_buffer.put(message.bboxes)
 
-print("Hi")
 
 # Connect to the services
 camera = DesktopCamera()
-print("there")
 face_rec = DNNFaceRecognition()
 
 # Feed the camera images into the face recognition component

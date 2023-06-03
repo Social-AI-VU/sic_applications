@@ -10,7 +10,7 @@ from sic_framework.core.connector import SICApplication
 from sic_framework.devices.common_naoqi.nao_motion import NaoPostureRequest, NaoRestRequest, NaoWakeUpRequest
 from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
-from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiTextToSpeechRequest
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
 from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone
 from sic_framework.devices.nao import Nao
 

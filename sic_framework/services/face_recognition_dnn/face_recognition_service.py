@@ -52,6 +52,7 @@ class DNNFaceRecognitionService(SICService):
 
         self.classifier = KNeighborsClassifier(n_neighbors=1)
 
+        # maxlen=number of face embeddings we remember for classification
         self.features_history = collections.deque([], maxlen=3000)
 
     @staticmethod

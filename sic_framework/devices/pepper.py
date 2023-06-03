@@ -4,7 +4,7 @@ from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
 from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
-from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiTextToSpeechActuator
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator
 from sic_framework.devices.common_naoqi.pepper_tablet import NaoqiTabletService
 from sic_framework.devices.device import SICDevice
 

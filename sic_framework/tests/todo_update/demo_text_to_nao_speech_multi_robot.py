@@ -2,7 +2,7 @@ import logging
 import time
 
 from sic_framework import SICApplication
-from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiTextToSpeechActuator, NaoqiTextToSpeechRequest
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator, NaoqiTextToSpeechRequest
 
 """ This demo should display a camera image
 """

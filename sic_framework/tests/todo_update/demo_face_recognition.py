@@ -4,7 +4,7 @@ import tqdm
 from sic_framework import SICApplication
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, NaoqiCameraConf
-from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiTextToSpeechActuator, NaoqiTextToSpeechRequest
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator, NaoqiTextToSpeechRequest
 from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognitionService, \
     Face, RecognizedFacesMessage
 

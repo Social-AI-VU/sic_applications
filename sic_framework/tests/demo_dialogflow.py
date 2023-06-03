@@ -4,7 +4,7 @@ import time
 import numpy as np
 import pyaudio
 # from sic_framework.devices.common_naoqi.nao_motion import NaoPostureRequest, NaoRestRequest
-from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiTextToSpeechRequest
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
 from sic_framework.devices.nao import Nao, NaoLite
 
 from sic_framework.services.dialogflow.dialogflow_service import DialogflowConf, \
