@@ -18,6 +18,9 @@ if utils.PYTHON_VERSION_IS_2:
 class NaoqiCameraConf(SICConfMessage):
     def __init__(self, naoqi_ip='127.0.0.1', port=9559, cam_id=0, res_id=2, fps=30):
         """ params can be found at http://doc.aldebaran.com/2-8/family/nao_technical/video_naov6.html#naov6-video
+        Camera ID:
+        0 - TopCamera
+        1 - BottomCamera
 
         Resolution ID:
         1  -  320x240px
@@ -210,7 +213,4 @@ class DepthPepperCamera(SICConnector):
 
 
 if __name__ == '__main__':
-    c = TopNaoCameraSensor(conf = NaoqiCameraConf(cam_id=0, res_id=3))
-    c._start()
-
-    # SICComponentManager([TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor])
+    SICComponentManager([TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor])

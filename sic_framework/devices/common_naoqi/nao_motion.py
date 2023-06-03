@@ -35,7 +35,7 @@ class NaoMoveRequest(SICRequest):
     theta - velocity around Z-axis, in radians per second. Use negative values to turn clockwise.
     """
     def __init__(self, x, y, theta):
-        super().__init__()
+        super(NaoMoveRequest, self).__init__()
         self.x = x
         self.y = y
         self.theta = theta
@@ -117,10 +117,20 @@ class NaoMotionActuator(SICActuator):
     def execute(self, request):
         motion = request
 
+        if motion == NaoPostureRequest:
+            self.goToPosture(motion)
+        elif motion == NaoRestRequest:
+            self.rest(motion)
+        elif motion == NaoWakeUpRequest:
+            self.wakeUp(motion)
 
-        fun = self.action_mapping[motion.get_message_name()]
+        elif motion == NaoMoveRequest:
+            self.move(motion)
+        elif motion == NaoMoveToRequest:
+            self.moveTo(motion)
+        elif motion == NaoMoveTowardRequest:
+            self.moveToward(motion)
 
-        fun(motion)
 
         return SICMessage()
 
