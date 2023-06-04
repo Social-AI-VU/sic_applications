@@ -51,5 +51,4 @@ class FaceDetection(SICConnector):
     component_class = FaceDetectionService
 
 if __name__ == '__main__':
-    c = FaceDetectionService()
-    c._start()
+    SICComponentManager([FaceDetectionService])
