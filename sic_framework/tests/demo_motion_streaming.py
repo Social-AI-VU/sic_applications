@@ -11,7 +11,7 @@ streamer = NaoMotionStreamer("192.168.0.151", conf=conf)
 consumer = NaoMotionStreamer("192.168.0.210")
 consumer.connect(streamer)
 
-streamer.request(StartStreaming(["Head"]))
+streamer.request(StartStreaming(["Torso"]))
 
 time.sleep(10)
 print("Done")

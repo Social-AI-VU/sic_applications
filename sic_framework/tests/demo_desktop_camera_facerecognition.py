@@ -2,11 +2,11 @@ import queue
 
 import cv2
 
-from sic_framework.core import utils_cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
+from sic_framework.core.utils_cv2 import draw_on_image
 from sic_framework.devices.desktop.desktop_camera import DesktopCamera
-from sic_framework.services.face_detection.face_detection_service import FaceDetection
+from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognition
 
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.
@@ -36,7 +36,7 @@ def on_faces(message: BoundingBoxesMessage):
 
 # Connect to the services
 camera = DesktopCamera()
-face_rec = FaceDetection()
+face_rec = DNNFaceRecognition()
 
 # Feed the camera images into the face recognition component
 face_rec.connect(camera)
@@ -50,7 +50,7 @@ while True:
     faces = faces_buffer.get()
 
     for face in faces:
-        utils_cv2.draw_on_image(face, img)
+        draw_on_image(face, img)
 
     cv2.imshow('', img)
     cv2.waitKey(1)

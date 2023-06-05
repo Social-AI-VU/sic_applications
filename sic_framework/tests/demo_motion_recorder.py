@@ -8,8 +8,8 @@ conf = NaoMotionRecorderConf()
 recorder = NaoMotionRecorder("192.168.0.151", conf=conf)
 
 recorder.request(StartRecording(["Body"]))
-
 # recorder.request(StartRecording(["HeadYaw", "HeadPitch"]))
+
 print("Start moving the robot!")
 
 record_time = 5
