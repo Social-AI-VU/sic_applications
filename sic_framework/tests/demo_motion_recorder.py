@@ -2,13 +2,19 @@ import time
 
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorder, StartRecording, StopRecording, \
-    PlayRecording, NaoMotionRecorderConf
+    PlayRecording, NaoqiMotionRecorderConf
 
-conf = NaoMotionRecorderConf()
-recorder = NaoMotionRecorder("192.168.0.151", conf=conf)
+conf = NaoqiMotionRecorderConf(use_sensors=True)
+recorder = NaoMotionRecorder("192.168.0.148", conf=conf)
 
-recorder.request(StartRecording(["Body"]))
+recorder.request(StartRecording(["LArm"]))
 # recorder.request(StartRecording(["HeadYaw", "HeadPitch"]))
+
+#
+# TODO use new SetStiffness
+#
+
+
 
 print("Start moving the robot!")
 

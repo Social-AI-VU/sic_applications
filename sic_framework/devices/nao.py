@@ -8,7 +8,8 @@ from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, 
     BottomNaoCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import \
     NaoqiMicrophone, NaoqiMicrophoneSensor
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorderActuator
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorderActuator, \
+    NaoMotionRecorderActuator
 from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoMotionStreamerService
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import \
     NaoqiTextToSpeechActuator, NaoqiTextToSpeech

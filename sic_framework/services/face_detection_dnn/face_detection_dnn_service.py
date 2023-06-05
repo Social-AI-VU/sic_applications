@@ -75,6 +75,7 @@ class DNNFaceDetectionService(SICService):
         image_original = inputs.get(CompressedImageMessage).image
 
         original_shape = image_original.shape
+        print("original shape", original_shape) #(480, 640, 3)
 
         if self.params.resize_to is not None:
             image = letterbox(image_original, self.params.resize_to)[0]
@@ -82,6 +83,7 @@ class DNNFaceDetectionService(SICService):
             image = image_original
 
         image_tensor = self.tf(image).unsqueeze(0).to(self.device)
+        print(image_tensor.shape) # = [1, 3, 480, 640])
 
         pred = self.model(image_tensor, augment=self.params.augment)[0]
         # Apply NMS
