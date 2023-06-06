@@ -85,34 +85,34 @@ class BaseNaoqiCameraSensor(SICSensor):
 # Top Camera
 ##################
 
-class TopNaoCameraSensor(BaseNaoqiCameraSensor):
+class TopNaoqiCameraSensor(BaseNaoqiCameraSensor):
     def __init__(self, *args, **kwargs):
-        super(TopNaoCameraSensor, self).__init__(*args, **kwargs)
+        super(TopNaoqiCameraSensor, self).__init__(*args, **kwargs)
 
     @staticmethod
     def get_conf():
         return NaoqiCameraConf(cam_id=0, res_id=1)
 
 
-class TopNaoCamera(SICConnector):
-    component_class = TopNaoCameraSensor
+class TopNaoqiCamera(SICConnector):
+    component_class = TopNaoqiCameraSensor
 
 
 ##################
 # Bottom Camera
 ##################
 
-class BottomNaoCameraSensor(BaseNaoqiCameraSensor):
+class BottomNaoqiCameraSensor(BaseNaoqiCameraSensor):
     def __init__(self, *args, **kwargs):
-        super(BottomNaoCameraSensor, self).__init__(*args, **kwargs)
+        super(BottomNaoqiCameraSensor, self).__init__(*args, **kwargs)
 
     @staticmethod
     def get_conf():
         return NaoqiCameraConf(cam_id=1, res_id=1)
 
 
-class BottomNaoCamera(SICConnector):
-    component_class = BottomNaoCameraSensor
+class BottomNaoqiCamera(SICConnector):
+    component_class = BottomNaoqiCameraSensor
 
 
 ##################
@@ -213,4 +213,4 @@ class DepthPepperCamera(SICConnector):
 
 
 if __name__ == '__main__':
-    SICComponentManager([TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor])
+    SICComponentManager([TopNaoqiCameraSensor, BottomNaoqiCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor])

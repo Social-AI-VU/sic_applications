@@ -6,7 +6,7 @@ import cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage, BoundingBox
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.core.utils_cv2 import draw_on_image
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCamera, NaoqiCameraConf
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCamera, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAt
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import PepperMotionRecorder, NaoqiMotionRecording, \
     SetStiffness, PlayRecording
@@ -41,7 +41,7 @@ def on_faces(message: BoundingBoxesMessage):
 
 # Connect to the services
 conf = NaoqiCameraConf(cam_id=0, res_id=2)
-camera = TopNaoCamera(ip="192.168.0.148", conf=conf)
+camera = TopNaoqiCamera(ip="192.168.0.148", conf=conf)
 face_rec = DNNFaceDetection()
 lookat = NaoqiLookAt(ip="192.168.0.148")
 

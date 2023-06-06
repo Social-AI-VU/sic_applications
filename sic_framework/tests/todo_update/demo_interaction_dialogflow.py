@@ -8,7 +8,7 @@ import numpy as np
 import pyaudio
 from sic_framework.core.connector import SICApplication
 from sic_framework.devices.common_naoqi.nao_motion import NaoPostureRequest, NaoRestRequest, NaoWakeUpRequest
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, NaoqiCameraConf
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
 from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone
@@ -59,7 +59,7 @@ class DemoDialogflow(SICApplication):
         self.face_name_memory = {}
 
         self.nao = Nao(device_id='nao', application=self)
-        self.nao.set_config(TopNaoCameraSensor, NaoqiCameraConf(res_id=3))
+        self.nao.set_config(TopNaoqiCameraSensor, NaoqiCameraConf(res_id=3))
 
         keyfile_json = json.load(open("dialogflow-test-project-wiggers.json"))
 

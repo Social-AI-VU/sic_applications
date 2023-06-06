@@ -6,7 +6,7 @@ import time
 import cv2
 
 from sic_framework import SICApplication
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, BottomNaoCameraSensor, StereoPepperCameraSensor, \
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, BottomNaoqiCameraSensor, StereoPepperCameraSensor, \
     DepthPepperCameraSensor
 
 
@@ -30,14 +30,14 @@ class DemoDisplayCameras(SICApplication):
 
     def run(self) -> None:
         # Connect to all cameras and microphone
-        top_cam = self.start_service(TopNaoCameraSensor, device_id='pepper')
+        top_cam = self.start_service(TopNaoqiCameraSensor, device_id='pepper')
         top_cam.register_callback(self.top)
         self.top_cam = top_cam
 
         time.sleep(1)
         self.image.show
 
-        bottom_cam = self.start_service(BottomNaoCameraSensor, device_id='pepper')
+        bottom_cam = self.start_service(BottomNaoqiCameraSensor, device_id='pepper')
         bottom_cam.register_callback(self.bottom)
 
         stereo_cam = self.start_service(StereoPepperCameraSensor, device_id='pepper')

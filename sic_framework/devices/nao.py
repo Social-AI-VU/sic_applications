@@ -3,9 +3,9 @@ import os
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, \
-    BottomNaoCameraSensor, TopNaoCamera, \
-    BottomNaoCamera
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, \
+    BottomNaoqiCameraSensor, TopNaoqiCamera, \
+    BottomNaoqiCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import \
     NaoqiMicrophone, NaoqiMicrophoneSensor
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorderActuator, \
@@ -30,11 +30,11 @@ class NaoLite(object):
 class Nao(SICDevice):
     @property
     def top_camera(self):
-        return self._get_connector(TopNaoCamera)
+        return self._get_connector(TopNaoqiCamera)
 
     @property
     def bottom_camera(self):
-        return self._get_connector(BottomNaoCamera)
+        return self._get_connector(BottomNaoqiCamera)
 
     @property
     def mic(self):
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     os.environ['DB_IP'] = args.redis_ip
 
     s = [
-        TopNaoCameraSensor,
-        BottomNaoCameraSensor,
+        TopNaoqiCameraSensor,
+        BottomNaoqiCameraSensor,
         NaoqiMicrophoneSensor,
         NaoqiTextToSpeechActuator,
         NaoMotionActuator,

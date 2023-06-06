@@ -3,7 +3,7 @@ import os
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCameraSensor, BottomNaoCameraSensor, \
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, BottomNaoqiCameraSensor, \
     StereoPepperCameraSensor, DepthPepperCameraSensor
 from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAtComponent
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
@@ -18,11 +18,11 @@ from sic_framework.devices.device import SICDevice
 class Pepper(SICDevice):
     @property
     def top_camera(self):
-        return self._get_connector(TopNaoCameraSensor)
+        return self._get_connector(TopNaoqiCameraSensor)
 
     @property
     def bottom_camera(self):
-        return self._get_connector(BottomNaoCameraSensor)
+        return self._get_connector(BottomNaoqiCameraSensor)
 
     @property
     def stereo_camera(self):
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     os.environ['DB_IP'] = args.redis_ip
 
     s = [
-        TopNaoCameraSensor,
-        BottomNaoCameraSensor,
+        TopNaoqiCameraSensor,
+        BottomNaoqiCameraSensor,
         NaoqiMicrophoneSensor,
         NaoqiTextToSpeechActuator,
         NaoMotionActuator,  # TODO make pepper variant

@@ -11,7 +11,7 @@ import pyaudio
 from sic_framework.core import utils_cv2
 from sic_framework.core.message_python2 import CompressedImageMessage, BoundingBoxesMessage
 from sic_framework.devices.common_naoqi.nao_motion import NaoPostureRequest, NaoWakeUpRequest, NaoRestRequest, NaoMotion
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoCamera
+from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest, NaoqiTextToSpeech
 from sic_framework.services.dialogflow.dialogflow_service import Dialogflow, DialogflowConf, GetIntentRequest
@@ -68,7 +68,7 @@ robot_ip = '192.168.0.210'
 
 nao_tts = NaoqiTextToSpeech(ip=robot_ip)
 motion = NaoMotion(ip=robot_ip)
-camera = TopNaoCamera(ip=robot_ip)
+camera = TopNaoqiCamera(ip=robot_ip)
 camera.register_callback(display)
 
 microphone = NaoqiMicrophone(ip=robot_ip)
