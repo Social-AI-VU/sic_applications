@@ -168,6 +168,7 @@ class SICMessage(object):
 
         try:
             if utils.PYTHON_VERSION_IS_2:
+                byte_string = utils.ensure_binary(byte_string)
                 return pickle.loads(byte_string)
             else:
                 return pickle.loads(byte_string, encoding='latin1')
@@ -181,7 +182,7 @@ class SICMessage(object):
                     e))
         except TypeError as e:
             raise TypeError(
-                "You tried to deserialize a wrong type of message. Got message:\n\n{}\n\n(original error: {})".format(
+                "You tried to deserialize a wrong type of message, or sent unpickleable types such as numpy arrays nested in objects. \n Got message:\n\n{}\n\n(original error: {})".format(
                     byte_string, e))
 
     @classmethod
