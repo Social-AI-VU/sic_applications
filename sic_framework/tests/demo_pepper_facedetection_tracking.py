@@ -58,8 +58,17 @@ face_rec.register_callback(on_faces)
 # send the detected boundingboxes to the face tracking
 lookat.connect(face_rec)
 
+def angles(angles_message):
+    print("")
+    print("x", angles_message.angles[0])
+    print("y", angles_message.angles[1])
+    angles_message.angles[0] *= -1.0
+    consumer.send_message(angles_message)
 
-consumer.connect(lookat)
+lookat.register_callback(angles)
+
+# consumer.connect(lookat)
+# consumer.connect(lookat)
 
 # print("Replaying action")
 #
