@@ -51,7 +51,7 @@ class Nao(SICDevice):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--redis_ip', type=str,
+    parser.add_argument('--redis_ip', type=str, required=True,
                         help="IP address where Redis is running")
     args = parser.parse_args()
 

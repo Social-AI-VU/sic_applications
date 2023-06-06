@@ -4,6 +4,8 @@ import os
 import socket
 import sys
 
+import six
+
 PYTHON_VERSION_IS_2 = sys.version_info[0] < 3
 
 
@@ -29,6 +31,25 @@ def get_username_hostname_ip():
     return getpass.getuser() + "_" + socket.gethostname() + "_" + get_ip_adress()
 
 
+
+def ensure_binary(s, encoding='utf-8', errors='strict'):
+    """
+    From a future six version.
+    Coerce **s** to six.binary_type.
+
+    For Python 2:
+      - `unicode` -> encoded to `str`
+      - `str` -> `str`
+
+    For Python 3:
+      - `str` -> encoded to `bytes`
+      - `bytes` -> `bytes`
+    """
+    if isinstance(s, six.binary_type):
+        return s
+    if isinstance(s, six.text_type):
+        return s.encode(encoding, errors)
+    raise TypeError("not expecting type '%s'" % type(s))
 
 def str_if_bytes(data):
     """

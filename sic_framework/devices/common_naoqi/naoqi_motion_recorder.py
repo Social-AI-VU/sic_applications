@@ -46,6 +46,7 @@ class SetStiffness(SICRequest):
         self.stiffness = stiffness
         self.joints = joints
 
+
 class StopRecording(SICRequest):
     pass
 
@@ -100,7 +101,6 @@ class PlayRecording(SICRequest):
         """
         super(PlayRecording, self).__init__()
         self.motion_recording_message = motion_recording_message
-
 
 
 class NaoqiMotionRecorderConf(SICConfMessage):
@@ -272,6 +272,8 @@ class NaoqiMotionRecorderActuator(SICActuator, NaoqiMotionTools):
         super(NaoqiMotionRecorderActuator, self).stop(*args)
 
 
+## Nao
+
 class NaoMotionRecorderActuator(NaoqiMotionRecorderActuator):
     ROBOT_TYPE = "nao"
 
@@ -279,6 +281,8 @@ class NaoMotionRecorderActuator(NaoqiMotionRecorderActuator):
 class NaoMotionRecorder(SICConnector):
     component_class = NaoMotionRecorderActuator
 
+
+## Pepper
 
 class PepperMotionRecorderActuator(NaoqiMotionRecorderActuator):
     ROBOT_TYPE = "pepper"

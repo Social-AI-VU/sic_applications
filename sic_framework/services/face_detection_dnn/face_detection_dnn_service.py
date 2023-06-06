@@ -109,10 +109,10 @@ class DNNFaceDetectionService(SICService):
             for j in range(det.size()[0]):  # for every detection in the image
                 xywh = (xyxy2xywh(det[j, :4].view(1, 4)) / gn).view(-1)
                 xywh = xywh.data.cpu().numpy()
-                conf = det[j, 4].cpu().numpy()
+                conf = float(det[j, 4].cpu().numpy())
                 # TODO this indexing is incorrect
                 # landmarks = (det[j, 5:15].view(1, 10) / gn_lks).view(-1).tolist()
-                class_num = det[j, 5].cpu().numpy()
+                class_num = int(det[j, 5].cpu().numpy())
                 x1 = int(xywh[0] * w - 0.5 * xywh[2] * w)
                 y1 = int(xywh[1] * h - 0.5 * xywh[3] * h)
                 w2 = int(xywh[2] * w)
