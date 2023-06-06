@@ -129,7 +129,6 @@ class SICConnector(object):
     def send_message(self, message):
         # Update the timestamp, as it should be set by the device of origin
         message._timestamp = self._get_timestamp()
-        print("Sending message on ", self.input_channel)
         self._redis.send_message(self.input_channel, message)
 
     def _get_timestamp(self):
