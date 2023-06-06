@@ -60,7 +60,7 @@ class SICConnector(object):
             self._start_component()
 
         # subscribe the component to a channel that the user is able send a message on if needed
-        self.input_channel = "user:{}".format(self._ip)
+        self.input_channel = "{}:input:{}".format(self.component_class.get_component_name(), self._ip)
         self.request(ConnectRequest(self.input_channel), timeout=self._PING_TIMEOUT)
 
     def _ping(self):
@@ -129,7 +129,7 @@ class SICConnector(object):
     def send_message(self, message):
         # Update the timestamp, as it should be set by the device of origin
         message._timestamp = self._get_timestamp()
-
+        print("Sending message on ", self.input_channel)
         self._redis.send_message(self.input_channel, message)
 
     def _get_timestamp(self):
