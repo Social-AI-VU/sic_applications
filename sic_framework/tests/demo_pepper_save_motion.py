@@ -1,15 +1,15 @@
 import time
 
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
-from sic_framework.devices.common_naoqi.nao_motion import NaoMotion, NaoPostureRequest
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import PepperMotionRecorder, StartRecording, \
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotion, NaoPostureRequest
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, StartRecording, \
     StopRecording, \
     PlayRecording, NaoqiMotionRecorderConf, NaoqiMotionRecording, SetStiffness
 
 conf = NaoqiMotionRecorderConf(use_sensors=True, use_interpolation=True, samples_per_second=60)
-recorder = PepperMotionRecorder("192.168.0.148", conf=conf)
+recorder = NaoqiMotionRecorder("192.168.0.148", conf=conf)
 
-motion = NaoMotion(ip="192.168.0.148")
+motion = NaoqiMotion(ip="192.168.0.148")
 
 a = NaoPostureRequest("Stand", .5)
 

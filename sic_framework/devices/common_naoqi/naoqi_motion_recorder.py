@@ -27,26 +27,6 @@ class StartRecording(SICRequest):
         self.joints = joints
 
 
-class SetStiffness(SICRequest):
-    def __init__(self, stiffness=.7, joints="Body"):
-        """
-        Record motion of the selected joints. For more information see robot documentation:
-        For nao: http://doc.aldebaran.com/2-8/family/nao_technical/bodyparts_naov6.html#nao-chains
-        For pepper: http://doc.aldebaran.com/2-8/family/pepper_technical/bodyparts_pep.html
-
-        TODO it seems Body stiffenss is incorrect ofr pepper, as setting any leg joint causes the call to fail
-        # set other parts without setting leg joint
-
-        :param stiffness: the stiffess to set the joints to.
-        :type stiffness: float
-        :param joints: One of the robot's "Joint chains" such as ["Body"] or ["LArm", "HeadYaw"]
-        :type joints: list[str]
-        """
-        super(SetStiffness, self).__init__()
-        self.stiffness = stiffness
-        self.joints = joints
-
-
 class StopRecording(SICRequest):
     pass
 
@@ -133,14 +113,14 @@ class NaoqiMotionRecorderConf(SICConfMessage):
 
 class NaoqiMotionRecorderActuator(SICActuator, NaoqiMotionTools):
     COMPONENT_STARTUP_TIMEOUT = 20  # allow robot to wake up
-    ROBOT_TYPE = None
 
     def __init__(self, *args, **kwargs):
         SICActuator.__init__(self, *args, **kwargs)
-        NaoqiMotionTools.__init__(self, robot_type=self.ROBOT_TYPE)
 
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
+
+        NaoqiMotionTools.__init__(self, qi_session=self.session)
 
         self.motion = self.session.service('ALMotion')
 
@@ -153,17 +133,12 @@ class NaoqiMotionRecorderActuator(SICActuator, NaoqiMotionTools):
         self.do_recording = threading.Event()
         self.record_start_time = None
 
-        # A list of joint names (not chains)
+        # A list of joint names (should not include chains)
         self.joints = None
 
         self.stream_thread = threading.Thread(target=self.record_motion)
         self.stream_thread.name = self.get_component_name()
         self.stream_thread.start()
-
-        if self.ROBOT_TYPE == "pepper":
-            self.motion.wakeUp()
-            self.motion.setMoveArmsEnabled(True, True)
-            self.motion.setStiffnesses(["LArm", "RArm", "Head"], 0.0)
 
     @staticmethod
     def get_conf():
@@ -210,9 +185,9 @@ class NaoqiMotionRecorderActuator(SICActuator, NaoqiMotionTools):
         :param request:
         """
         self.record_start_time = time.time()
-        print("request.joints:", request.joints)
+
         self.joints = self.generate_joint_list(request.joints)
-        print("Joint list:", self.joints)
+
         self.recorded_angles = []
         self.recorded_times = []
         for _ in self.joints:
@@ -222,17 +197,7 @@ class NaoqiMotionRecorderActuator(SICActuator, NaoqiMotionTools):
     def execute(self, request):
         if request == StartRecording:
             self.reset_recording_variables(request)
-            self.motion.setStiffnesses(self.joints, 0.0)
-
             self.do_recording.set()
-            return SICMessage()
-
-        if request == SetStiffness:
-            joints = request.joints
-            joints = self.generate_joint_list(request.joints)
-            print("joints", joints)
-            self.motion.setMoveArmsEnabled(True, True)
-            self.motion.setStiffnesses(joints, request.stiffness)
             return SICMessage()
 
         if request == StopRecording:
@@ -266,33 +231,13 @@ class NaoqiMotionRecorderActuator(SICActuator, NaoqiMotionTools):
 
         return SICMessage()
 
-    def stop(self, *args):
-        self.logger.info("Shutdown, setting robot to rest.")
-        self.motion.rest()
-        super(NaoqiMotionRecorderActuator, self).stop(*args)
 
 
-## Nao
 
-class NaoMotionRecorderActuator(NaoqiMotionRecorderActuator):
-    ROBOT_TYPE = "nao"
+class NaoqiMotionRecorder(SICConnector):
+    component_class = NaoqiMotionRecorderActuator
 
-
-class NaoMotionRecorder(SICConnector):
-    component_class = NaoMotionRecorderActuator
-
-
-## Pepper
-
-class PepperMotionRecorderActuator(NaoqiMotionRecorderActuator):
-    ROBOT_TYPE = "pepper"
-
-
-class PepperMotionRecorder(SICConnector):
-    component_class = PepperMotionRecorderActuator
-
-
-if __name__ == '__main__':
-    # c = PepperMotionRecorderActuator()
-    # c._start()
-    SICComponentManager([PepperMotionRecorderActuator])
+# if __name__ == '__main__':
+#     # c = PepperMotionRecorderActuator()
+#     # c._start()
+#     SICComponentManager([NaoqiMotionRecorderActuator])

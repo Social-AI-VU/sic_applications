@@ -4,7 +4,6 @@ import numpy as np
 from sic_framework.core.actuator_python2 import SICActuator
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICRequest, SICMessage, SICConfMessage
-from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
 
 if utils.PYTHON_VERSION_IS_2:
     from naoqi import ALProxy
@@ -27,21 +26,22 @@ class NaoWakeUpRequest(SICRequest):
     pass
 
 
-class NaoMoveRequest(SICRequest):
+class NaoqiMoveRequest(SICRequest):
     """
     Make the robot move at the given velocity, in the specified direction vector in m/s, where theta indicates rotation.
     x - velocity along X-axis (forward), in meters per second. Use negative values for backward motion
     y - velocity along Y-axis (side), in meters per second. Use positive values to go to the left
     theta - velocity around Z-axis, in radians per second. Use negative values to turn clockwise.
     """
+
     def __init__(self, x, y, theta):
-        super(NaoMoveRequest, self).__init__()
+        super(NaoqiMoveRequest, self).__init__()
         self.x = x
         self.y = y
         self.theta = theta
 
 
-class NaoMoveToRequest(NaoMoveRequest):
+class NaoqiMoveToRequest(NaoqiMoveRequest):
     """
     Make the robot move to a given point in space relative to the robot, where theta indicates rotation.
     x -  Distance along the X axis (forward) in meters.
@@ -51,7 +51,7 @@ class NaoMoveToRequest(NaoMoveRequest):
     pass
 
 
-class NaoMoveTowardRequest(NaoMoveRequest):
+class NaoqiMoveTowardRequest(NaoqiMoveRequest):
     """
     Makes the robot move at the given normalized velocity.
     x - normalized, unitless, velocity along X-axis. +1 and -1 correspond to the maximum velocity in the forward and backward directions, respectively.
@@ -67,6 +67,7 @@ class NaoPostureRequest(SICRequest):
     Options:
     ["Crouch", "LyingBack" "LyingBelly", "Sit", "SitRelax", "Stand", "StandInit", "StandZero"]
     """
+
     def __init__(self, target_posture, speed=.4):
         super(NaoPostureRequest, self).__init__()
         options = ["Crouch", "LyingBack" "LyingBelly", "Sit", "SitRelax", "Stand", "StandInit", "StandZero"]
@@ -75,40 +76,36 @@ class NaoPostureRequest(SICRequest):
         self.speed = speed
 
 
+class PepperPostureRequest(SICRequest):
+    """
+    Make the robot go to a predefined posture.
+    Options:
+    ["Crouch", "LyingBack" "LyingBelly", "Sit", "SitRelax", "Stand", "StandInit", "StandZero"]
+    """
+
+    def __init__(self, target_posture, speed=.4):
+        super(PepperPostureRequest, self).__init__()
+        options = ["Crouch", "Stand", "StandInit", "StandZero"]
+        assert target_posture in options, "Invalid pose {}".format(target_posture)
+        self.target_posture = target_posture
+        self.speed = speed
 
 
-class NaoMotionActuator(SICActuator):
+class NaoqiMotionActuator(SICActuator):
     def __init__(self, *args, **kwargs):
         SICActuator.__init__(self, *args, **kwargs)
 
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
 
-        self.animation = self.session.service('ALAnimationPlayer')
-        self.awareness = self.session.service('ALBasicAwareness')
         self.motion = self.session.service('ALMotion')
         self.posture = self.session.service('ALRobotPosture')
 
-        self.logger.info("Starting in rest position.")
-        self.motion.rest()
-
-        self.stiffness = 0
-
-        self.action_mapping = {
-            NaoPostureRequest.get_message_name(): self.goToPosture,
-            NaoRestRequest.get_message_name(): self.rest,
-            NaoWakeUpRequest.get_message_name(): self.wakeUp,
-
-            NaoMoveRequest.get_message_name(): self.move,
-            NaoMoveToRequest.get_message_name(): self.moveTo,
-            NaoMoveTowardRequest.get_message_name(): self.moveToward,
-        }
 
 
     @staticmethod
     def get_inputs():
-        return [NaoPostureRequest, NaoRestRequest, NaoWakeUpRequest, NaoMoveRequest, NaoMoveToRequest, 
-                NaoMoveTowardRequest]
+        return [NaoPostureRequest, NaoqiMoveRequest, NaoqiMoveToRequest, NaoqiMoveTowardRequest]
 
     @staticmethod
     def get_output():
@@ -119,30 +116,17 @@ class NaoMotionActuator(SICActuator):
 
         if motion == NaoPostureRequest:
             self.goToPosture(motion)
-        elif motion == NaoRestRequest:
-            self.rest(motion)
-        elif motion == NaoWakeUpRequest:
-            self.wakeUp(motion)
 
-        elif motion == NaoMoveRequest:
+
+        elif motion == NaoqiMoveRequest:
             self.move(motion)
-        elif motion == NaoMoveToRequest:
+        elif motion == NaoqiMoveToRequest:
             self.moveTo(motion)
-        elif motion == NaoMoveTowardRequest:
+        elif motion == NaoqiMoveTowardRequest:
             self.moveToward(motion)
-
 
         return SICMessage()
 
-    def rest(self, motion):
-        self.awareness.stopAwareness()
-        self.motion.rest()
-        self.stiffness = 0
-
-    def wakeUp(self, motion):
-        self.motion.wakeUp()
-        self.awareness.setEngagementMode("FullyEngaged")
-        self.awareness.startAwareness()
 
     def goToPosture(self, motion):
         if self.stiffness != .5:
@@ -160,13 +144,10 @@ class NaoMotionActuator(SICActuator):
     def moveToward(self, motion):
         self.motion.moveToward(motion.x, motion.y, motion.theta)
 
-    def stop(self, *args):
-        self.logger.info("Shutdown, setting robot to rest.")
-        self.motion.rest()
-        super(NaoMotionActuator, self).stop(*args)
 
-class NaoMotion(SICConnector):
-    component_class = NaoMotionActuator
+class NaoqiMotion(SICConnector):
+    component_class = NaoqiMotionActuator
+
 
 if __name__ == '__main__':
-    SICComponentManager([NaoMotionActuator])
+    SICComponentManager([NaoqiMotionActuator])

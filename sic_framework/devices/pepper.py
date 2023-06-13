@@ -2,47 +2,35 @@ import argparse
 import os
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
-from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, BottomNaoqiCameraSensor, \
-    StereoPepperCameraSensor, DepthPepperCameraSensor
-from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAtComponent
-from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorderActuator, \
-    PepperMotionRecorderActuator
-from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoMotionStreamerService
-from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator
-from sic_framework.devices.common_naoqi.pepper_tablet import NaoqiTabletService
-from sic_framework.devices.device import SICDevice
+from sic_framework.devices.common_naoqi.naoqi_camera import StereoPepperCamera, DepthPepperCamera, \
+    DepthPepperCameraSensor, StereoPepperCameraSensor
+from sic_framework.devices.nao import shared_naoqi_components, Naoqi
 
 
-class Pepper(SICDevice):
-    @property
-    def top_camera(self):
-        return self._get_connector(TopNaoqiCameraSensor)
+class Pepper(Naoqi):
+    def __init__(self, *args,
+                 stereo_camera_conf=None,
+                 depth_camera_conf=None,
+                 **kwargs
+                 ):
+        super().__init__(*args, **kwargs)
 
-    @property
-    def bottom_camera(self):
-        return self._get_connector(BottomNaoqiCameraSensor)
+        self.configs[StereoPepperCamera] = stereo_camera_conf
+        self.configs[DepthPepperCamera] = depth_camera_conf
 
     @property
     def stereo_camera(self):
-        return self._get_connector(StereoPepperCameraSensor)
+        return self._get_connector(StereoPepperCamera)
 
     @property
     def depth_camera(self):
-        return self._get_connector(DepthPepperCameraSensor)
+        return self._get_connector(DepthPepperCamera)
 
-    @property
-    def mic(self):
-        return self._get_connector(NaoMotionActuator)
+    # @property
+    # def tablet_load_url(self):
+    #     return self._get_connector(NaoqiTablet)
 
-    @property
-    def text_to_speech(self):
-        return self._get_connector(NaoqiTextToSpeechActuator)
-
-    @property
-    def tablet_load_url(self):
-        return self._get_connector(NaoqiTabletService)
+    pass
 
 
 if __name__ == '__main__':
@@ -53,18 +41,12 @@ if __name__ == '__main__':
 
     os.environ['DB_IP'] = args.redis_ip
 
-    s = [
-        TopNaoqiCameraSensor,
-        BottomNaoqiCameraSensor,
-        NaoqiMicrophoneSensor,
-        NaoqiTextToSpeechActuator,
-        NaoMotionActuator,  # TODO make pepper variant
-        PepperMotionRecorderActuator,
-        NaoMotionStreamerService,  # TODO make pepper variant
-        NaoqiLookAtComponent,
-        # NaoqiTabletService,
-        # DepthPepperCameraSensor,
-        # StereoPepperCameraSensor,
 
+    pepper_components = shared_naoqi_components + [
+        # NaoqiLookAtComponent,
+        # NaoqiTabletService,
+        DepthPepperCameraSensor,
+        StereoPepperCameraSensor,
     ]
-    SICComponentManager(s)
+
+    SICComponentManager(pepper_components)
