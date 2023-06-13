@@ -11,20 +11,7 @@ if utils.PYTHON_VERSION_IS_2:
     import qi
 
 
-class NaoRestRequest(SICRequest):
-    """
-    Go to the rest position. It is good practise to do this when not using the robot, to allow the motors to cool and
-    reduce wear on the robot.
-    """
-    pass
 
-
-class NaoWakeUpRequest(SICRequest):
-    """
-    The robot wakes up: sets Motor on and, if needed, goes to initial position.
-    Enable FullyEngaged mode to appear alive.
-    """
-    pass
 
 
 class NaoMoveRequest(SICRequest):

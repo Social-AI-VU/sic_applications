@@ -3,6 +3,8 @@ import os
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator
+from sic_framework.devices.common_naoqi.naoqi_autonomous import \
+    NaoqiAutonomousActuator
 from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, BottomNaoqiCameraSensor, \
     StereoPepperCameraSensor, DepthPepperCameraSensor
 from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAtComponent
@@ -37,6 +39,10 @@ class Pepper(SICDevice):
         return self._get_connector(NaoMotionActuator)
 
     @property
+    def autonomous(self):
+        return self._get_connector(NaoqiAutonomousActuator)
+
+    @property
     def text_to_speech(self):
         return self._get_connector(NaoqiTextToSpeechActuator)
 
@@ -59,6 +65,7 @@ if __name__ == '__main__':
         NaoqiMicrophoneSensor,
         NaoqiTextToSpeechActuator,
         NaoMotionActuator,  # TODO make pepper variant
+        NaoqiAutonomousActuator,
         PepperMotionRecorderActuator,
         NaoMotionStreamerService,  # TODO make pepper variant
         NaoqiLookAtComponent,
