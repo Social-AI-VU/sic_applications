@@ -6,11 +6,11 @@ import cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage, BoundingBox
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.core.utils_cv2 import draw_on_image
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCamera, NaoqiCameraConf
+from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAt
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import PepperMotionRecorder, NaoqiMotionRecording, \
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, NaoqiMotionRecording, \
     SetStiffness, PlayRecording
-from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoMotionStreamer, NaoMotionStreamerConf
+from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoqiMotionStreamer, NaoMotionStreamerConf
 from sic_framework.services.face_detection_dnn.face_detection_dnn_service import DNNFaceDetection
 
 """ 
@@ -41,12 +41,12 @@ def on_faces(message: BoundingBoxesMessage):
 
 # Connect to the services
 conf = NaoqiCameraConf(cam_id=0, res_id=2)
-camera = TopNaoqiCamera(ip="192.168.0.148", conf=conf)
+camera = NaoqiTopCamera(ip="192.168.0.148", conf=conf)
 face_rec = DNNFaceDetection()
 lookat = NaoqiLookAt(ip="192.168.0.148")
 
 conf = NaoMotionStreamerConf(stiffness=.4, speed=.2)
-consumer = NaoMotionStreamer("192.168.0.148", conf=conf)
+consumer = NaoqiMotionStreamer("192.168.0.148", conf=conf)
 
 # Feed the camera images into the face recognition component
 face_rec.connect(camera)

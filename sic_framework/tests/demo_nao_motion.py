@@ -1,8 +1,8 @@
 import time
 
-from sic_framework.devices.common_naoqi.nao_motion import NaoMotion, NaoPostureRequest, NaoRestRequest
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotion, NaoPostureRequest, NaoRestRequest
 
-motion = NaoMotion(ip="192.168.0.151")
+motion = NaoqiMotion(ip="192.168.0.151")
 
 a = NaoPostureRequest("Stand", .5)
 

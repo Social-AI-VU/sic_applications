@@ -1,11 +1,11 @@
 import time
 
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoMotionRecorder, StartRecording, StopRecording, \
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, StartRecording, StopRecording, \
     PlayRecording, NaoqiMotionRecorderConf
 
 conf = NaoqiMotionRecorderConf(use_sensors=True)
-recorder = NaoMotionRecorder("192.168.0.148", conf=conf)
+recorder = NaoqiMotionRecorder("192.168.0.148", conf=conf)
 
 recorder.request(StartRecording(["LArm"]))
 # recorder.request(StartRecording(["HeadYaw", "HeadPitch"]))
