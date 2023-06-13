@@ -8,12 +8,12 @@ from sic_framework.devices.nao import shared_naoqi_components, Naoqi
 
 
 class Pepper(Naoqi):
-    def __init__(self, *args,
+    def __init__(self, ip,
                  stereo_camera_conf=None,
                  depth_camera_conf=None,
                  **kwargs
                  ):
-        super().__init__(*args, **kwargs)
+        super().__init__(ip, **kwargs)
 
         self.configs[StereoPepperCamera] = stereo_camera_conf
         self.configs[DepthPepperCamera] = depth_camera_conf

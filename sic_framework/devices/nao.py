@@ -2,8 +2,6 @@ import argparse
 import os
 from abc import ABCMeta
 
-from six import add_metaclass
-
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoqiAutonomousActuator, NaoqiAutonomous
 from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotionActuator, NaoqiMotion
@@ -21,8 +19,8 @@ from sic_framework.devices.common_naoqi.naoqi_text_to_speech import \
 from sic_framework.devices.device import SICDevice
 
 
-@add_metaclass(ABCMeta)
 class Naoqi(SICDevice):
+    __metaclass__ = ABCMeta
 
     def __init__(self, ip,
                  top_camera_conf=None,

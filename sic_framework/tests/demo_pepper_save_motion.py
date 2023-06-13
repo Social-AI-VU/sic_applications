@@ -1,36 +1,37 @@
 import time
 
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
-from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotion, NaoPostureRequest
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotion, NaoPostureRequest, NaoqiIdlePostureRequest
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, StartRecording, \
     StopRecording, \
-    PlayRecording, NaoqiMotionRecorderConf, NaoqiMotionRecording, SetStiffness
+    PlayRecording, NaoqiMotionRecorderConf, NaoqiMotionRecording
+from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
+from sic_framework.devices.pepper import Pepper
 
 conf = NaoqiMotionRecorderConf(use_sensors=True, use_interpolation=True, samples_per_second=60)
-recorder = NaoqiMotionRecorder("192.168.0.148", conf=conf)
 
-motion = NaoqiMotion(ip="192.168.0.148")
-
-a = NaoPostureRequest("Stand", .5)
+pepper = Pepper("192.168.0.148", motion_record_conf=conf)
 
 
-# chain = ["Body"] # TODO doesnt work for pepper.
+
 
 print("Set robot to start position")
 
-chain = ["LArm", "RArm", "Head"]
-recorder.request(SetStiffness(0.0, chain))
+chain = ["RArm"]
+
+pepper.motion.request(NaoqiIdlePostureRequest("Body", False))
+pepper.stiffness.request(Stiffness(0.0, chain))
+
 
 time.sleep(5)
 
 print("Starting to record in one second!")
+
 time.sleep(1)
 
 
-recorder.request(StartRecording(chain))
+pepper.motion_record.request(StartRecording(chain))
 
-# Lock head while waving, so it doesnt fall
-recorder.request(SetStiffness(1.0, ["Head"]))
 
 print("Start moving the robot!")
 
@@ -38,7 +39,7 @@ print("Start moving the robot!")
 record_time = 5
 time.sleep(record_time)
 
-recording = recorder.request(StopRecording())
+recording = pepper.motion_record.request(StopRecording())
 recording.save("wave.motion")
 
 print("Done")
@@ -48,11 +49,11 @@ time.sleep(2)
 print("Replaying action")
 # recording = NaoqiMotionRecording.load("wave.motion")
 
-recorder.request(SetStiffness(.95, chain))
+pepper.stiffness.request(Stiffness(.95, chain))
 
-recorder.request(PlayRecording(recording))
+pepper.motion_record.request(PlayRecording(recording))
 
-recorder.request(SetStiffness(.0, chain))
+pepper.stiffness.request(Stiffness(.0, chain))
 
 
 print("end")

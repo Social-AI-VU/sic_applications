@@ -5,9 +5,13 @@ import cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.core.utils_cv2 import draw_on_image
+from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoBasicAwarenessRequest, NaoBackgroundMovingRequest, \
+    NaoWakeUpRequest
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera, NaoqiCameraConf
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, NaoqiMotionRecording, \
-    SetStiffness, PlayRecording
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiIdlePostureRequest
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, NaoqiMotionRecording, PlayRecording
+from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
+from sic_framework.devices.pepper import Pepper
 from sic_framework.services.face_detection_dnn.face_detection_dnn_service import DNNFaceDetection
 
 """ 
@@ -36,22 +40,29 @@ def on_faces(message: BoundingBoxesMessage):
     faces_buffer.put(message.bboxes)
 
 
-# Connect to the services
 conf = NaoqiCameraConf(cam_id=0, res_id=2)
-camera = NaoqiTopCamera(ip="192.168.0.148", conf=conf)
+
+pepper = Pepper("192.168.0.148", top_camera_conf=conf)
+
+#
+# pepper.motion.request(NaoqiIdlePostureRequest("Body", True))
+# pepper.autonomous.request(NaoBasicAwarenessRequest(True))
+# pepper.autonomous.request(NaoBackgroundMovingRequest(True))
+pepper.autonomous.request(NaoWakeUpRequest())
+
+# Connect to the services
 face_rec = DNNFaceDetection()
 
 # Feed the camera images into the face recognition component
-face_rec.connect(camera)
+face_rec.connect(pepper.top_camera)
 
 # Send back the outputs to this program
-camera.register_callback(on_image)
+pepper.top_camera.register_callback(on_image)
 face_rec.register_callback(on_faces)
 
 
-recorder = NaoqiMotionRecorder("192.168.0.148")
-recording = NaoqiMotionRecording.load("wave_fast.motion")
-chain = ["LArm", "RArm", "Head"]
+recording = NaoqiMotionRecording.load("wave.motion")
+chain = ["RArm"]
 
 # print("Replaying action")
 
@@ -68,9 +79,9 @@ while True:
 
         if face.w > 80:
             print("WAVE")
-            recorder.request(SetStiffness(.95, chain))
-            recorder.request(PlayRecording(recording))
-            recorder.request(SetStiffness(.1, chain))
+            pepper.stiffness.request(Stiffness(.95, chain))
+            pepper.motion_record.request(PlayRecording(recording))
+            pepper.stiffness.request(Stiffness(.1, chain))
 
     cv2.imshow('', img[:,:,::-1])
     cv2.waitKey(1)

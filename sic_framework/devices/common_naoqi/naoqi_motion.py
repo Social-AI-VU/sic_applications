@@ -47,6 +47,34 @@ class NaoqiMoveTowardRequest(NaoqiMoveRequest):
     """
     pass
 
+class NaoqiIdlePostureRequest(SICRequest):
+    def __init__(self, joints, value):
+        """
+        Control idle behaviour
+        http://doc.aldebaran.com/2-4/naoqi/motion/idle.html
+        :param joints: The chain name, one of ["Body", "Legs", "Arms", "LArm", "RArm" or "Head"].
+        :type joints: str
+        :param value: True or False
+        :type value: bool
+        """
+        super(NaoqiIdlePostureRequest, self).__init__()
+        self.joints = joints
+        self.value = value
+
+
+class NaoqiBreathingRequest(SICRequest):
+    def __init__(self, joints, value):
+        """
+        Control Breathing behaviour
+        http://doc.aldebaran.com/2-4/naoqi/motion/idle.html
+        :param joints: The chain name, one of ["Body", "Legs", "Arms", "LArm", "RArm" or "Head"].
+        :type joints: str
+        :param value: True or False
+        :type value: bool
+        """
+        super(NaoqiBreathingRequest, self).__init__()
+        self.joints = joints
+        self.value = value
 
 class NaoPostureRequest(SICRequest):
     """
@@ -104,6 +132,10 @@ class NaoqiMotionActuator(SICActuator):
         if motion == NaoPostureRequest:
             self.goToPosture(motion)
 
+        elif motion == NaoqiIdlePostureRequest:
+            self.motion.setIdlePostureEnabled(motion.joints, motion.value)
+        elif motion == NaoqiBreathingRequest:
+            self.motion.setBreathEnabled(motion.joints, motion.value)
 
         elif motion == NaoqiMoveRequest:
             self.move(motion)
