@@ -5,6 +5,7 @@ from abc import ABCMeta
 from six import add_metaclass
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
+from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoqiAutonomousActuator, NaoqiAutonomous
 from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotionActuator, NaoqiMotion
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, \
     NaoqiBottomCameraSensor, NaoqiTopCamera, \
@@ -76,6 +77,10 @@ class Naoqi(SICDevice):
     def stiffness(self):
         return self._get_connector(NaoqiStiffness)
 
+    @property
+    def autonomous(self):
+        return self._get_connector(NaoqiAutonomous)
+
 
 shared_naoqi_components = [
     NaoqiTopCameraSensor,
@@ -86,6 +91,7 @@ shared_naoqi_components = [
     NaoqiMotionRecorderActuator,
     NaoqiMotionStreamerService,
     NaoqiStiffnessActuator,
+    NaoqiAutonomousActuator,
 ]
 
 
