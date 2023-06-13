@@ -1,11 +1,18 @@
 class NaoqiMotionTools(object):
 
-    def __init__(self, robot_type):
+    def __init__(self, qi_session):
         """
         Functions from the previous framework to provide equivalent functionality
-        :param robot_type: "nao" or "pepper"
+        :param qi_session: A qi.Session() to determine robot type
         """
-        self.robot_type = robot_type
+        
+        robot_model_service = qi_session.service("ALRobotModel")
+        if robot_model_service.getRobotType() == "Nao":
+            self.robot_type = "nao"
+        elif robot_model_service.getRobotType() == "Juliette":
+            self.robot_type = "pepper"
+        else:
+            raise NotImplementedError("Romeo is not supported")
 
     def generate_joint_list(self, joint_chains):
         """
