@@ -113,14 +113,12 @@ class QueryResult(SICMessage):
 
 
 class DialogflowConf(SICConfMessage):
-    def __init__(self, keyfile_json:str, project_id: str, sample_rate_hertz: int = 44100,
+    def __init__(self, keyfile_json:str, sample_rate_hertz: int = 44100,
                  audio_encoding=dialogflow.AudioEncoding.AUDIO_ENCODING_LINEAR_16, language: str = 'en-US'):
         """
         :param keyfile_json         Dict of google service account json key file, which has access to your dialogflow
                                     agent. Example `keyfile_json = json.load(open("my-dialogflow-project.json"))`
-        :param project_id           the ID of the project in use, can be found on the Dialogflow agent page
-                                    dialogflow.cloud.google.com
-        :param sample_rate_hertz    16000Hz by default
+        :param sample_rate_hertz    44100Hz by default. Use 16000 for a Nao/Pepper robot.
         :param audio_encoding       encoding for the audio
         :param language             the language of the Dialogflow agent
         """
@@ -128,7 +126,7 @@ class DialogflowConf(SICConfMessage):
 
         # init Dialogflow variables
         self.language_code = language
-        self.project_id = project_id
+        self.project_id = keyfile_json["project_id"]
         self.keyfile_json = keyfile_json
         self.sample_rate_hertz = sample_rate_hertz
         self.audio_encoding = audio_encoding
