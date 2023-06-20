@@ -10,9 +10,6 @@ if utils.PYTHON_VERSION_IS_2:
     import qi
 
 
-
-
-
 class NaoqiMoveRequest(SICRequest):
     """
     Make the robot move at the given velocity, in the specified direction vector in m/s, where theta indicates rotation.
@@ -47,6 +44,7 @@ class NaoqiMoveTowardRequest(NaoqiMoveRequest):
     """
     pass
 
+
 class NaoqiIdlePostureRequest(SICRequest):
     def __init__(self, joints, value):
         """
@@ -76,6 +74,7 @@ class NaoqiBreathingRequest(SICRequest):
         self.joints = joints
         self.value = value
 
+
 class NaoPostureRequest(SICRequest):
     """
     Make the robot go to a predefined posture.
@@ -89,6 +88,30 @@ class NaoPostureRequest(SICRequest):
         assert target_posture in options, "Invalid pose {}".format(target_posture)
         self.target_posture = target_posture
         self.speed = speed
+
+
+class NaoqiAnimationRequest(SICRequest):
+    """
+    Make the robot play predefined animation. Either the short or full name as a string will work.
+    See: http://doc.aldebaran.com/2-4/naoqi/motion/alanimationplayer-advanced.html#animationplayer-list-behaviors-nao
+
+    Nao Examples:
+        animations/Sit/BodyTalk/BodyTalk_1
+        animations/Stand/Gestures/Hey_1
+        Enthusiastic_4
+
+    Pepper Examples:
+        Hey_3
+        animations/Stand/Gestures/ShowSky_5
+    """
+
+    def __init__(self, animation_path):
+        """
+        :param animation_path: the animation name or path
+        :type animation_path: str
+        """
+        super(NaoqiAnimationRequest, self).__init__()
+        self.animation_path = animation_path
 
 
 class PepperPostureRequest(SICRequest):
@@ -115,8 +138,7 @@ class NaoqiMotionActuator(SICActuator):
 
         self.motion = self.session.service('ALMotion')
         self.posture = self.session.service('ALRobotPosture')
-
-
+        self.animation = self.session.service("ALAnimationPlayer")
 
     @staticmethod
     def get_inputs():
@@ -131,7 +153,8 @@ class NaoqiMotionActuator(SICActuator):
 
         if motion == NaoPostureRequest:
             self.goToPosture(motion)
-
+        if motion == NaoqiAnimationRequest:
+            self.run_animation(motion)
         elif motion == NaoqiIdlePostureRequest:
             self.motion.setIdlePostureEnabled(motion.joints, motion.value)
         elif motion == NaoqiBreathingRequest:
@@ -146,13 +169,11 @@ class NaoqiMotionActuator(SICActuator):
 
         return SICMessage()
 
-
     def goToPosture(self, motion):
-        if self.stiffness != .5:
-            self.motion.setStiffnesses("Body", .5)
-            self.stiffness = .5
-
         self.posture.goToPosture(motion.target_posture, motion.speed)
+
+    def run_animation(self, motion):
+        self.animation.run(motion.animation_path)
 
     def move(self, motion):
         self.motion.move(motion.x, motion.y, motion.theta)
