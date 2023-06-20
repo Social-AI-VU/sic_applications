@@ -35,7 +35,7 @@ ssh nao@$host " \
     cd ~/framework/sic_framework/devices; \
     pwd; \
     echo 'Starting robot (due to a bug output may or may not be produced until you connect a SICApplication)';\
-    python2 pepper.py; \
+    python2 pepper.py --redis_ip=${redis_host}; \
 "
 
 echo "Done!"
