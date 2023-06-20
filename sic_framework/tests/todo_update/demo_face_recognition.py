@@ -3,7 +3,7 @@ import numpy as np
 import tqdm
 from sic_framework import SICApplication
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, NaoqiCameraConf
+from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator, NaoqiTextToSpeechRequest
 from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognitionService, \
     Face, RecognizedFacesMessage
@@ -20,7 +20,7 @@ class FaceRecognitionApp(SICApplication):
         self.seen_faces = set()
 
         cam_conf = NaoqiCameraConf(cam_id=0, res_id=2)
-        cam = self.start_service(TopNaoqiCameraSensor, device_id='nao', conf=cam_conf)
+        cam = self.start_service(NaoqiTopCameraSensor, device_id='nao', conf=cam_conf)
         self.nao_tts = self.start_service(NaoqiTextToSpeechActuator, device_id='nao', inputs_to_service=[self])
 
         face = self.start_service(DNNFaceRecognitionService, device_id='xps15', inputs_to_service=[cam])

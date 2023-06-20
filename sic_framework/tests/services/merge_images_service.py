@@ -2,7 +2,7 @@ import numpy as np
 from sic_framework import SICComponentManager, SICService
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import CompressedImageMessage, SICConfMessage
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor, BottomNaoqiCameraSensor
+from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, NaoqiBottomCameraSensor
 
 class MergeImageConf(SICConfMessage):
     """

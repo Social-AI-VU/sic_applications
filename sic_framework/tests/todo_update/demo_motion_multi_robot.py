@@ -8,8 +8,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from sic_framework.core.connector import SICApplication
-from sic_framework.devices.common_naoqi.nao_motion import NaoMotionActuator, NaoPostureRequest, NaoRestRequest, \
-    NaoMoveToRequest
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotionActuator, NaoPostureRequest, NaoRestRequest, \
+    NaoqiMoveToRequest
 import tqdm
 
 """ This demo should display a camera image
@@ -40,7 +40,7 @@ class DemoMotion(SICApplication):
         for nao in ips:
 
             def do_start():
-                motion = self.start_service(NaoMotionActuator, device_id=nao, inputs_to_service=[self], log_level=logging.INFO)
+                motion = self.start_service(NaoqiMotionActuator, device_id=nao, inputs_to_service=[self], log_level=logging.INFO)
                 motions.append(motion)
 
             t = threading.Thread(target=do_start)
@@ -60,7 +60,7 @@ class DemoMotion(SICApplication):
         print("MOVE")
 
         for motion in motions:
-            a = NaoMoveToRequest(.7,0,0)
+            a = NaoqiMoveToRequest(.7, 0, 0)
             reply = motion.request(a, block=False)
 
         #

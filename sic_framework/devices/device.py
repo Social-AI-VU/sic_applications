@@ -14,18 +14,10 @@ class SICDevice(object):
 
         # TODO ping device manager to quickly fail if ip is incorrect
 
-        self.connectors = {}
-        self.configs = {}
+        self.connectors = dict()
+        self.configs = dict()
 
-    def set_config(self, component, conf):
-        """
-        Set a configuration for a device component. Must be set before the first usage of the component.
-        :param component:
-        :param conf:
-        """
-        if component in self.connectors:
-            raise ValueError("Cannot set config, component {} is already active.".format(component.get_component_name()))
-        self.configs[component] = conf
+
 
     def _get_connector(self, component_connector):
         """

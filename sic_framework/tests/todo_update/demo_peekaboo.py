@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from sic_framework import SICApplication
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.devices.common_naoqi.naoqi_camera import TopNaoqiCameraSensor
+from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator, NaoqiTextToSpeechRequest
 from sic_framework.devices.nao import Nao
 

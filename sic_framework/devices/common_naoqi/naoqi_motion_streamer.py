@@ -55,15 +55,18 @@ class NaoMotionStreamerConf(SICConfMessage):
         self.samples_per_second = samples_per_second
 
 
-class NaoMotionStreamerService(SICComponent, NaoqiMotionTools):
+class NaoqiMotionStreamerService(SICComponent, NaoqiMotionTools):
     def __init__(self, *args, **kwargs):
         SICComponent.__init__(self, *args, **kwargs)
-        NaoqiMotionTools.__init__(self, robot_type="nao")
 
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
 
+        NaoqiMotionTools.__init__(self, qi_session=self.session)
+
         self.motion = self.session.service('ALMotion')
+
+
         self.stiffness = 0
         self.samples_per_second = self.params.samples_per_second
 
@@ -135,9 +138,9 @@ class NaoMotionStreamerService(SICComponent, NaoqiMotionTools):
             self.stop()
 
 
-class NaoMotionStreamer(SICConnector):
-    component_class = NaoMotionStreamerService
+class NaoqiMotionStreamer(SICConnector):
+    component_class = NaoqiMotionStreamerService
 
 
 if __name__ == '__main__':
-    SICComponentManager([NaoMotionStreamerService])
+    SICComponentManager([NaoqiMotionStreamerService])
