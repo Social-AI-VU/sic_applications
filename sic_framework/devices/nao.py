@@ -4,6 +4,8 @@ from abc import ABCMeta
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoqiAutonomousActuator, NaoqiAutonomous
+from sic_framework.devices.common_naoqi.naoqi_leds import NaoqiLEDs, \
+    NaoqiLEDsActuator
 from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotionActuator, NaoqiMotion
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, \
     NaoqiBottomCameraSensor, NaoqiTopCamera, \
@@ -79,6 +81,10 @@ class Naoqi(SICDevice):
     def autonomous(self):
         return self._get_connector(NaoqiAutonomous)
 
+    @property
+    def leds(self):
+        return self._get_connector(NaoqiLEDs)
+
 
 shared_naoqi_components = [
     NaoqiTopCameraSensor,
@@ -90,6 +96,7 @@ shared_naoqi_components = [
     NaoqiMotionStreamerService,
     NaoqiStiffnessActuator,
     NaoqiAutonomousActuator,
+    NaoqiLEDsActuator,
 ]
 
 
