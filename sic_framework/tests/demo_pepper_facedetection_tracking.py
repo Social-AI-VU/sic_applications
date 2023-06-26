@@ -5,7 +5,7 @@ import cv2
 
 from sic_framework.core.message_python2 import BoundingBoxesMessage, BoundingBox
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.core.utils_cv2 import draw_on_image
+from sic_framework.core.utils_cv2 import draw_bbox_on_image
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAt
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, NaoqiMotionRecording, \
@@ -78,7 +78,7 @@ while True:
     faces = faces_buffer.get()
 
     for face in faces:
-        draw_on_image(face, img)
+        draw_bbox_on_image(face, img)
 
     cv2.imshow('', img[:, :, ::-1])
     cv2.waitKey(1)

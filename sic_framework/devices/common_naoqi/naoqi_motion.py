@@ -48,7 +48,15 @@ class NaoqiMoveTowardRequest(NaoqiMoveRequest):
 class NaoqiIdlePostureRequest(SICRequest):
     def __init__(self, joints, value):
         """
-        Control idle behaviour
+        Control idle behaviour. This is the robot behaviour when no user commands are sent.
+        There are three idle control modes:
+          No idle control: in this mode, when no user command is sent to the robot, it does not move.
+          Idle posture control: in this mode, the robot automatically comes back to a reference posture, then stays at
+                                that posture until a user command is sent.
+          Breathing control: in this mode, the robot plays a breathing animation in loop.
+
+        See also NaoqiBreathingRequest.
+
         http://doc.aldebaran.com/2-4/naoqi/motion/idle.html
         :param joints: The chain name, one of ["Body", "Legs", "Arms", "LArm", "RArm" or "Head"].
         :type joints: str
@@ -63,7 +71,15 @@ class NaoqiIdlePostureRequest(SICRequest):
 class NaoqiBreathingRequest(SICRequest):
     def __init__(self, joints, value):
         """
-        Control Breathing behaviour
+        Control Breathing behaviour. This is the robot behaviour when no user commands are sent.
+        There are three idle control modes:
+          No idle control: in this mode, when no user command is sent to the robot, it does not move.
+          Idle posture control: in this mode, the robot automatically comes back to a reference posture, then stays at
+                                that posture until a user command is sent.
+          Breathing control: in this mode, the robot plays a breathing animation in loop.
+
+        See also NaoqiIdlePostureRequest.
+
         http://doc.aldebaran.com/2-4/naoqi/motion/idle.html
         :param joints: The chain name, one of ["Body", "Legs", "Arms", "LArm", "RArm" or "Head"].
         :type joints: str

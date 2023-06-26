@@ -39,14 +39,14 @@ class FaceDetectionApp(SICApplication):
         image = image_message.image
 
         for face in self.faces:
-            face.draw_on_image(image)
+            face.draw_bbox_on_image(image)
 
         for face in self.faces_tracked:
             face.x += 1
             face.y += 1
             face.w -= 2
             face.h -= 2
-            face.draw_on_image(image, color=(255,0,0))
+            face.draw_bbox_on_image(image, color=(255, 0, 0))
 
         cv2.imshow('', image[:, :, ::-1])
         cv2.waitKey(1)

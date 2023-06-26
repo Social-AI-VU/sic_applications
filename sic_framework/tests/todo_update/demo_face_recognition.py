@@ -42,7 +42,7 @@ class FaceRecognitionApp(SICApplication):
         image = image_message.image[:, :, ::-1]
 
         for face in self.faces:
-            face.draw_on_image(image)
+            face.draw_bbox_on_image(image)
 
         cv2.imshow('', image)
         cv2.waitKey(1)

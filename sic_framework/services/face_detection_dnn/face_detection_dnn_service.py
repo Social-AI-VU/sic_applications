@@ -97,7 +97,7 @@ class DNNFaceDetectionService(SICService):
             self.device)  # normalization gain landmarks
 
         if pred is not None:
-            # batch should be one, so squeeze
+            # batch is be one, so squeeze
             det = pred[0]
             if self.params.resize_to is not None:
                 scale_coords(image_tensor.shape[2:], det[:, :4], original_shape, kpt_label=False)
