@@ -67,7 +67,7 @@ def random_hex(nbytes=8):
     return binascii.b2a_hex(os.urandom(nbytes))
 
 
-def isinstance_pickle(obj, cls):
+def is_sic_instance(obj, cls):
     """
     Return True if the object argument is an instance of the classinfo argument, or of a (direct, indirect,
     or virtual) subclass thereof.
@@ -86,7 +86,7 @@ def isinstance_pickle(obj, cls):
     return False
 
 
-def type_equal_pickle(a, b):
+def type_equal_sic(a, b):
     """
     type(a) == type(b), but with support for objects transported across the nework with pickle.
     :param a: object

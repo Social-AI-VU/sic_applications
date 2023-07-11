@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from threading import Event
 
 from sic_framework.core.component_python2 import SICComponent
-from sic_framework.core.utils import isinstance_pickle
+from sic_framework.core.utils import is_sic_instance
 
 from . import sic_logging
 from .message_python2 import SICMessage, SICConfMessage

@@ -6,7 +6,7 @@ import six
 
 from sic_framework.core.component_python2 import ConnectRequest
 from sic_framework.core.sensor_python2 import SICSensor
-from sic_framework.core.utils import isinstance_pickle
+from sic_framework.core.utils import is_sic_instance
 from . import utils
 from .component_manager_python2 import SICStartComponentRequest, SICNotStartedMessage
 from .message_python2 import SICMessage, SICRequest, SICStopRequest, SICPingRequest
@@ -107,7 +107,7 @@ class SICConnector(object):
 
             component_info = self._redis.request(self._ip, component_request,
                                                  timeout=self.component_class.COMPONENT_STARTUP_TIMEOUT)
-            if isinstance_pickle(component_info, SICNotStartedMessage):
+            if is_sic_instance(component_info, SICNotStartedMessage):
 
                 raise ComponentNotStartedError(
                     "\n\nComponent did not start, error should be logged above. ({})".format(component_info.message))
@@ -163,7 +163,7 @@ class SICConnector(object):
         :return: the SICMessage reply from the device, or none if blocking=False
         :rtype: SICMessage | None
         """
-        assert utils.isinstance_pickle(request, SICRequest), "Cannot send requests that do not inherit from " \
+        assert utils.is_sic_instance(request, SICRequest), "Cannot send requests that do not inherit from " \
                                                              "SICRequest (type: {req})".format(req=type(request))
 
         # Update the timestamp, as it is not yet set (normally be set by the device of origin, e.g a camera)

@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 import six
 
 import sic_framework.core.sic_logging
-from sic_framework.core.utils import isinstance_pickle
+from sic_framework.core.utils import is_sic_instance
 from . import sic_logging, utils
 from .message_python2 import SICConfMessage, SICRequest, SICMessage, SICSuccessMessage, \
     SICControlRequest, SICPingRequest, SICPongMessage
@@ -113,18 +113,18 @@ class SICComponent:
 
         self.logger.debug_framework_verbose("Handling request {}".format(request.get_message_name()))
 
-        if isinstance_pickle(request, SICPingRequest):
+        if is_sic_instance(request, SICPingRequest):
             return SICPongMessage()
 
         # if isinstance_pickle(request, SICStopRequest):
         #     self._stop_event.set()
         #     return SICSuccessMessage()
 
-        if isinstance_pickle(request, ConnectRequest):
+        if is_sic_instance(request, ConnectRequest):
             self._connect(request)
             return SICSuccessMessage()
 
-        if not isinstance_pickle(request, SICControlRequest):
+        if not is_sic_instance(request, SICControlRequest):
             return self.on_request(request)
 
         raise TypeError("Unknown request type {}".format(type(request)))
@@ -228,7 +228,7 @@ class SICComponent:
         :param conf: a SICConfMessage with the parameters as fields
         :type conf: SICConfMessage
         """
-        assert isinstance_pickle(conf, SICConfMessage), "Configuration message should be of type SICConfMessage, " \
+        assert is_sic_instance(conf, SICConfMessage), "Configuration message should be of type SICConfMessage, " \
                                                         "is {type_conf}".format(type_conf=type(conf))
 
         if conf == self.params:

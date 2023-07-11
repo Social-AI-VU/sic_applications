@@ -33,7 +33,7 @@ import threading
 import redis
 import six
 from sic_framework.core.message_python2 import SICMessage, SICRequest
-from sic_framework.core.utils import isinstance_pickle
+from sic_framework.core.utils import is_sic_instance
 from sic_framework.core import utils
 from six.moves import queue
 
@@ -111,7 +111,7 @@ class SICRedis:
             try:
                 sic_message = self.parse_pubsub_message(pubsub_msg)
 
-                if ignore_requests and isinstance_pickle(sic_message, SICRequest):
+                if ignore_requests and is_sic_instance(sic_message, SICRequest):
                     return
 
                 return callback(sic_message)
@@ -198,7 +198,7 @@ class SICRedis:
         def await_reply(reply):
             # If not our own request but is a SICMessage with the right id, then it is the reply
             # we are waiting for
-            if not isinstance_pickle(reply, SICRequest) and reply._request_id == request._request_id:
+            if not is_sic_instance(reply, SICRequest) and reply._request_id == request._request_id:
                 q.put(reply)
                 done.set()
 
@@ -231,10 +231,10 @@ class SICRedis:
         """
 
         def wrapped_callback(request):
-            if isinstance_pickle(request, SICRequest):
+            if is_sic_instance(request, SICRequest):
                 reply = callback(request)
 
-                assert not isinstance_pickle(reply, SICRequest) and isinstance_pickle(reply, SICMessage), \
+                assert not is_sic_instance(reply, SICRequest) and is_sic_instance(reply, SICMessage), \
                     "Request handler callback must return a SICMessage but not SICRequest, " \
                     "received: {}".format(type(reply))
 

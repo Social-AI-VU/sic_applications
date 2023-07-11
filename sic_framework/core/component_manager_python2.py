@@ -5,7 +5,7 @@ from signal import signal, SIGTERM, SIGINT
 from sys import exit
 
 import sic_framework.core.sic_logging
-from sic_framework.core.utils import isinstance_pickle
+from sic_framework.core.utils import is_sic_instance
 
 from . import utils, sic_logging
 from .message_python2 import SICMessage, SICStopRequest, SICRequest, SICIgnoreRequestMessage, SICSuccessMessage
@@ -110,7 +110,7 @@ class SICComponentManager(object):
         :param request: The SICStartServiceRequest request
         """
 
-        if isinstance_pickle(request, SICStopRequest):
+        if is_sic_instance(request, SICStopRequest):
             self.stop_event.set()
             # return an empty stop message as a request must always be replied to
             return SICSuccessMessage()
