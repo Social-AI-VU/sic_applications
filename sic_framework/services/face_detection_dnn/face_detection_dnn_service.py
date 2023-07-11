@@ -10,18 +10,13 @@ from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.core.component_python2 import SICComponent
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import CompressedImageMessage, SICMessage, BoundingBox, BoundingBoxesMessage, \
-    SICConfMessage, SICRequest
+    SICConfMessage, SICRequest, CompressedImageRequest
 from sic_framework.core.service_python2 import SICService
 from sic_framework.services.face_detection_dnn import attempt_load, scale_coords, xyxy2xywh, letterbox
 from sic_framework.services.face_detection_dnn import non_max_suppression
 
 
-class CompressedImageRequest(SICRequest, CompressedImageMessage):
-    """
-    A request to detect faces on the image provided.
-    See CompressedImageMessage for more details about this class
-    """
-    pass
+
 
 
 class DNNFaceDetectionConf(SICConfMessage):
