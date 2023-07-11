@@ -5,7 +5,7 @@ import wave
 import pyaudio
 
 from sic_framework.core.message_python2 import AudioMessage
-from sic_framework.services.dialogflow.dialogflow_service import DialogflowConf, GetIntentRequest, Dialogflow, \
+from sic_framework.services.dialogflow.dialogflow import DialogflowConf, GetIntentRequest, Dialogflow, \
     StopListeningMessage
 
 # Read the wav file

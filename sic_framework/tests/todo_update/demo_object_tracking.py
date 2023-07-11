@@ -4,7 +4,7 @@ import tqdm
 from sic_framework import SICApplication
 from sic_framework.core.message_python2 import CompressedImageMessage, BoundingBoxesMessage, BoundingBox
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, NaoqiCameraConf
-from sic_framework.services.face_detection.face_detection_service import FaceDetectionComponent
+from sic_framework.services.face_detection.face_detection import FaceDetectionComponent
 from sic_framework.services.object_tracking.object_tracking_service import ObjectTrackingService
 
 """ 

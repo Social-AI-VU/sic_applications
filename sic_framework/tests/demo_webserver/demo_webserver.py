@@ -6,7 +6,7 @@ import numpy as np
 
 from sic_framework.core.connector import SICApplication, SICActuator
 from sic_framework.services.webserver.webserver_service import WebserverService, WebserverConf, GetWebText
-from sic_framework.services.dialogflow.dialogflow_service import DialogflowService, DialogflowConf, GetIntentRequest, RecognitionResult, QueryResult
+from sic_framework.services.dialogflow.dialogflow import DialogflowComponent, DialogflowConf, GetIntentRequest, RecognitionResult, QueryResult
 # from sic_framework.devices.desktop import Desktop
 
 from sic_framework.devices.nao import Nao

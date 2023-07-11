@@ -10,7 +10,8 @@ from numpy import array
 from sic_framework.core.connector import SICConnector
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
-from sic_framework.core.message_python2 import CompressedImageMessage, SICMessage, BoundingBox, BoundingBoxesMessage
+from sic_framework.core.message_python2 import CompressedImageMessage, SICMessage, BoundingBox, BoundingBoxesMessage, \
+    CompressedImageRequest
 from sic_framework.core.service_python2 import SICService
 
 from sklearn.neighbors import KNeighborsClassifier
@@ -18,14 +19,14 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 
-class DNNFaceRecognitionService(SICService):
+class DNNFaceRecognitionComponent(SICService):
 
     # loading resnet takes some time
     COMPONENT_STARTUP_TIMEOUT = 15
 
 
     def __init__(self, *args, **kwargs):
-        super(DNNFaceRecognitionService, self).__init__(*args, **kwargs)
+        super(DNNFaceRecognitionComponent, self).__init__(*args, **kwargs)
         self.save_image = False
         self.img_timestamp = None
 
@@ -57,15 +58,21 @@ class DNNFaceRecognitionService(SICService):
 
     @staticmethod
     def get_inputs():
-        return [CompressedImageMessage]
+        return [CompressedImageMessage, CompressedImageRequest]
 
     @staticmethod
     def get_output():
         return BoundingBoxesMessage
 
-    def execute(self, inputs):
-        image = inputs.get(CompressedImageMessage).image
 
+    def on_message(self, message):
+        bboxes = self.detect(message.image)
+        self.output_message(bboxes)
+
+    def on_request(self, request):
+        return self.detect(request.image)
+
+    def detect(self, image):
         id = 0
 
         img = array(image)[:, :, ::-1].astype(np.uint8)
@@ -124,9 +131,9 @@ class DNNFaceRecognitionService(SICService):
         return BoundingBoxesMessage(faces)
 
 class DNNFaceRecognition(SICConnector):
-    component_class = DNNFaceRecognitionService
+    component_class = DNNFaceRecognitionComponent
 
 
 
 if __name__ == '__main__':
-    SICComponentManager([DNNFaceRecognitionService])
+    SICComponentManager([DNNFaceRecognitionComponent])
