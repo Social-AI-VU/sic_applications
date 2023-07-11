@@ -200,7 +200,6 @@ class DialogflowService(SICComponent):
             # force the request generator to break, which indicates to dialogflow we want an intent for the
             # audio sent so far.
             self.message_was_final.set()
-            self.session_client.cancel_operation()
 
     def on_request(self, request):
         if is_sic_instance(request, GetIntentRequest):
