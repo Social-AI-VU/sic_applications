@@ -129,7 +129,7 @@ class SICComponentManager(object):
         Create a logger to inform the user during the setup of the component by the manager.
         :return: Logger
         """
-        name = "{manager}-{ip}".format(manager=self.__class__.__name__, ip=self.ip)
+        name = "{manager}".format(manager=self.__class__.__name__)
 
         logger = sic_logging.get_sic_logger(self.redis, name, log_level)
         logger.info("Manager on device {} starting".format(self.ip))
