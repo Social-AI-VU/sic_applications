@@ -53,9 +53,14 @@ output = p.open(format=pyaudio.paInt16,
                 rate=samplerate,
                 output=True)
 
+# To make dialogflow listen to the audio, we need to ask it to "listen for intent".
+# This means it will try to determine what the intention is of what is being said by the person speaking.
+# Instead of using this intent, we simply store the transcript and ask it to listen for intent again.
+
 print("Listening for first sentence")
 dialogflow.request(GetIntentRequest(), block=False)
 
+# send the audio in chunks of one second
 for i in range(wavefile.getnframes() // wavefile.getframerate()):
 
     if dialogflow_detected_sentence.is_set():
