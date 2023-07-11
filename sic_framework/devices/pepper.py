@@ -4,10 +4,13 @@ import os
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.naoqi_camera import StereoPepperCamera, DepthPepperCamera, \
     DepthPepperCameraSensor, StereoPepperCameraSensor
-from sic_framework.devices.nao import shared_naoqi_components, Naoqi
+from sic_framework.devices.naoqi_shared import shared_naoqi_components, Naoqi
 
 
 class Pepper(Naoqi):
+    """
+    Wrapper for Pepper device to easily access its components (connectors)
+    """
     def __init__(self, ip,
                  stereo_camera_conf=None,
                  depth_camera_conf=None,
