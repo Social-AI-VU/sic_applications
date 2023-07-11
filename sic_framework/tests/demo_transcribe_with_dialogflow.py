@@ -1,73 +1,85 @@
 import json
+import threading
 import time
 
+import wave
 import numpy as np
+import pyaudio
 
-from scipy.io import wavfile
-
+from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
 
 from sic_framework.services.dialogflow.dialogflow_service import DialogflowConf, \
-    GetIntentRequest, RecognitionResult, QueryResult, Dialogflow
+    GetIntentRequest, RecognitionResult, QueryResult, Dialogflow, \
+    StopListeningMessage
 
+wavefile = wave.open('office_top_short.wav', 'rb')
+samplerate = wavefile.getframerate()
 
+print("Audio file specs:")
+print("  sample rate:", wavefile.getframerate())
+print("  length:", wavefile.getnframes())
+print("  data size in bytes:", wavefile.getsampwidth())
+print("  number of chanels:", wavefile.getnchannels())
+print()
+
+dialogflow_detected_sentence = threading.Event()
+transcripts = []
 
 
 def on_dialog(message):
     if message.response:
+        t = message.response.recognition_result.transcript
+        print("\r Transcript:", t, end="")
+
         if message.response.recognition_result.is_final:
-            print("Transcript:", message.response.recognition_result.transcript)
+            transcripts.append(t)
+            dialogflow_detected_sentence.set()
 
 
-
+#
 keyfile_json = json.load(open("sail-380610-0dea39e1a452.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json,
-                      project_id='sail-380610',
-                      sample_rate_hertz=16000, )
-
-
-samplerate, data = wavfile.read('office_top_short.wav')
-
-with open('audio.wav', 'rb') as fh:
-    while fh.tell() != FILE_SIZE: # get the file-size from the os module
-        AUDIO_FRAME = fh.read(CHUNK_SIZE)
-        output.write(AUDIO_FRAME)
-
-dialogflow = Dialogflow(ip='localhost', conf=conf)
+                      sample_rate_hertz=samplerate, )
+dialogflow = Dialogflow(conf=conf)
 dialogflow.register_callback(on_dialog)
-dialogflow.connect(nao.mic)
 
-nao.tts.request(NaoqiTextToSpeechRequest("Hello!"))
+p = pyaudio.PyAudio()
+output = p.open(format=pyaudio.paInt16,
+                channels=1,
+                rate=samplerate,
+                output=True)  # frames_per_buffer=CHUNK_SIZE
 
-print(" -- Ready -- ")
-x = np.random.randint(10000)
+print("Listening for first sentence")
+dialogflow.request(GetIntentRequest(), block=False)
 
-for i in range(25):
-    print(" ----- Conversation turn", i)
-    reply = dialogflow.request(GetIntentRequest(x))
+for i in range(20):
 
-    print(reply.intent)
+    if dialogflow_detected_sentence.is_set():
+        print()
+        dialogflow.request(GetIntentRequest(), block=False)
 
-    if reply.fulfillment_message:
-        text = reply.fulfillment_message
-        print("Reply:", )
-        nao.tts.request(NaoqiTextToSpeechRequest(text))
+        dialogflow_detected_sentence.clear()
 
-    if reply.intent:
-        print("Intent:", reply.intent)
+    # grab one second of audio data
+    chunk = wavefile.readframes(samplerate)
 
-        name = reply.response.query_result.intent.display_name
-        if name == "get_up":
-            print("TEST")
-            # nao.motion.request(NaoPostureRequest("Stand"))
-        if name == "sit_down":
-            print("TEST2")
-            # nao.motion.request(NaoRestRequest())
+    output.write(chunk)
 
-    # if reply.response.output_audio:
-    #     print("reply.response.output_audio", reply.response.output_audio)
-    #     audio = reply.response.output_audio
-    #     song = AudioSegment.from_wav(io.BytesIO(audio))
-    #     play(song)
+    message = AudioMessage(sample_rate=samplerate, waveform=chunk)
+    dialogflow.send_message(message)
 
-time.sleep(100)
+dialogflow.send_message(StopListeningMessage())
+
+print("\n\n")
+print("Final transcript")
+print(transcripts)
+
+with open('transcript.txt', 'w') as f:
+    for line in transcripts:
+        f.write(f"{line}\n")
+
+output.close()
+p.terminate()
+
+

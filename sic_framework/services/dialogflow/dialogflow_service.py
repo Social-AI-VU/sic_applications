@@ -14,22 +14,31 @@ from sic_framework import SICComponentManager
 from sic_framework.core.component_python2 import SICComponent
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import AudioMessage, SICConfMessage, SICMessage, SICRequest, SICStopRequest, SICIgnoreRequestMessage
-from sic_framework.core.utils import isinstance_pickle
+from sic_framework.core.utils import is_sic_instance
 from six.moves import queue
 
 
 class GetIntentRequest(SICRequest):
-    def __init__(self, session_id):
+    def __init__(self, session_id=0):
         """
         Every dialogflow conversation must use a (semi) unique conversation id to keep track
         of the conversation. The conversation is forgotten after 20 minutes.
-        :param session_id: the randomly generated id, but the same one for the whole conversation
+        :param session_id: a (randomly generated) id, but the same one for the whole conversation
         """
         super().__init__()
         self.session_id = session_id
 
-    pass
+    
 
+class StopListeningMessage(SICMessage):
+    def __init__(self, session_id=0):
+        """
+        Stop the conversation and determine a last intent. Dialogflow automatically stops listening when it thinks the
+        user is done talking, but this can be used to force intent detection as well.
+        :param session_id: a (randomly generated) id, but the same one for the whole conversation
+        """
+        super().__init__()
+        self.session_id = session_id
 
 class RecognitionResult(SICMessage):
     def __init__(self, response):
@@ -113,7 +122,7 @@ class QueryResult(SICMessage):
 
 
 class DialogflowConf(SICConfMessage):
-    def __init__(self, keyfile_json:str, sample_rate_hertz: int = 44100,
+    def __init__(self, keyfile_json:dict, sample_rate_hertz: int = 44100,
                  audio_encoding=dialogflow.AudioEncoding.AUDIO_ENCODING_LINEAR_16, language: str = 'en-US'):
         """
         :param keyfile_json         Dict of google service account json key file, which has access to your dialogflow
@@ -178,7 +187,7 @@ class DialogflowService(SICComponent):
         self.audio_buffer = queue.Queue(maxsize=1)
 
     def on_message(self, message):
-        if isinstance_pickle(message, AudioMessage):
+        if is_sic_instance(message, AudioMessage):
             self.logger.debug_framework_verbose("Received audio message")
             # update the audio message in the queue
             try:
@@ -187,9 +196,18 @@ class DialogflowService(SICComponent):
                 self.audio_buffer.get_nowait()
                 self.audio_buffer.put_nowait(message.waveform)
 
+        if is_sic_instance(message, StopListeningMessage):
+            # force the request generator to break, which indicates to dialogflow we want an intent for the
+            # audio sent so far.
+            self.message_was_final.set()
+            self.session_client.cancel_operation()
+
     def on_request(self, request):
-        reply = self.execute(request)
-        return reply
+        if is_sic_instance(request, GetIntentRequest):
+            reply = self.get_intent(request)
+            return reply
+
+        raise NotImplementedError("Unknown request type {}".format(type(request)))
 
     def request_generator(self, session_path):
         try:
@@ -202,11 +220,7 @@ class DialogflowService(SICComponent):
 
             while not self.message_was_final.is_set():
                 chunk = self.audio_buffer.get()
-                yield dialogflow.StreamingDetectIntentRequest(input_audio=bytes(chunk))
-
-                # dialogflow limit is 60 seconds, so stop the stream if it takes too long
-                if time.time() - start_time > 55:
-                    break
+                yield dialogflow.StreamingDetectIntentRequest(input_audio=chunk)
 
             # unset flag for next loop
             self.message_was_final.clear()
@@ -221,13 +235,13 @@ class DialogflowService(SICComponent):
 
     @staticmethod
     def get_inputs():
-        return [GetIntentRequest]
+        return [GetIntentRequest, StopListeningMessage, AudioMessage]
 
     @staticmethod
     def get_output():
         return QueryResult
 
-    def execute(self, input):
+    def get_intent(self, input):
         self.message_was_final.clear()  # unset final message flag
 
         session_path = self.session_client.session_path(self.params.project_id, input.session_id)
@@ -241,13 +255,12 @@ class DialogflowService(SICComponent):
 
         for response in responses:
             if response.recognition_result:
-                print("recognition_result:", response.recognition_result.transcript)
+                print("\r recognition_result:", response.recognition_result.transcript, end="")
                 self._redis.send_message(self._output_channel, RecognitionResult(response))
             if response.query_result:
                 print("query_result:", response.query_result)
                 return QueryResult(response)
             if response.recognition_result.is_final:
-                print("recognition_result:", response.recognition_result.transcript)
                 print("----- FINAL -----")
                 # Stop sending audio to dialogflow as it detected the person stopped speaking, but continue this loop
                 # to receive the query result
