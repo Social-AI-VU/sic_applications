@@ -25,7 +25,6 @@ nao = Nao(ip='192.168.0.191')
 
 keyfile_json = json.load(open("sail-380610-0dea39e1a452.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json,
-                      project_id='sail-380610',
                       sample_rate_hertz=16000, )
 
 dialogflow = Dialogflow(ip='localhost', conf=conf)
