@@ -1,7 +1,7 @@
 import cv2
 
 
-def draw_on_image(bbox, img, color=(0, 255, 0)):
+def draw_bbox_on_image(bbox, img, color=(0, 255, 0)):
 
     cv2.rectangle(img, (bbox.x, bbox.y), (bbox.x + bbox.w, bbox.y + bbox.h), color, 2)
 

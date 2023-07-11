@@ -7,12 +7,16 @@ from numpy import array
 
 from sic_framework.core import sic_logging
 from sic_framework.core.component_manager_python2 import SICComponentManager
+from sic_framework.core.component_python2 import SICComponent
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import CompressedImageMessage, SICMessage, BoundingBox, BoundingBoxesMessage, \
-    SICConfMessage
+    SICConfMessage, SICRequest, CompressedImageRequest
 from sic_framework.core.service_python2 import SICService
 from sic_framework.services.face_detection_dnn import attempt_load, scale_coords, xyxy2xywh, letterbox
 from sic_framework.services.face_detection_dnn import non_max_suppression
+
+
+
 
 
 class DNNFaceDetectionConf(SICConfMessage):
@@ -47,11 +51,11 @@ https://github.com/derronqi/yolov7-face/tree/main
 """
 
 
-class DNNFaceDetectionService(SICService):
+class DNNFaceDetectionComponent(SICComponent):
     COMPONENT_STARTUP_TIMEOUT = 10
 
     def __init__(self, *args, **kwargs):
-        super(DNNFaceDetectionService, self).__init__(*args, **kwargs)
+        super(DNNFaceDetectionComponent, self).__init__(*args, **kwargs)
 
         # Initialize face recognition data
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -62,7 +66,7 @@ class DNNFaceDetectionService(SICService):
 
     @staticmethod
     def get_inputs():
-        return [CompressedImageMessage]
+        return [CompressedImageMessage, CompressedImageRequest]
 
     @staticmethod
     def get_output():
@@ -71,17 +75,23 @@ class DNNFaceDetectionService(SICService):
     def get_conf(self):
         return DNNFaceDetectionConf()
 
-    def execute(self, inputs):
-        image_original = inputs.get(CompressedImageMessage).image
+    def on_message(self, message):
+        bboxes = self.detect(message.image)
+        self.output_message(bboxes)
 
-        original_shape = image_original.shape
+    def on_request(self, request):
+        return self.detect(request.image)
+
+    def detect(self, image):
+
+        original_shape = image.shape
 
         if self.params.resize_to is not None:
-            image = letterbox(image_original, self.params.resize_to)[0]
+            image_resized = letterbox(image, self.params.resize_to)[0]
         else:
-            image = image_original
+            image_resized = image
 
-        image_tensor = self.tf(image).unsqueeze(0).to(self.device)
+        image_tensor = self.tf(image_resized).unsqueeze(0).to(self.device)
 
         pred = self.model(image_tensor, augment=self.params.augment)[0]
         # Apply NMS
@@ -97,7 +107,7 @@ class DNNFaceDetectionService(SICService):
             self.device)  # normalization gain landmarks
 
         if pred is not None:
-            # batch should be one, so squeeze
+            # batch is be one, so squeeze
             det = pred[0]
             if self.params.resize_to is not None:
                 scale_coords(image_tensor.shape[2:], det[:, :4], original_shape, kpt_label=False)
@@ -122,10 +132,10 @@ class DNNFaceDetectionService(SICService):
 
 
 class DNNFaceDetection(SICConnector):
-    component_class = DNNFaceDetectionService
+    component_class = DNNFaceDetectionComponent
 
 
 if __name__ == '__main__':
-    mod = DNNFaceDetectionService()
+    mod = DNNFaceDetectionComponent()
     mod._start()
     # SICComponentManager([DNNFaceDetectionService])

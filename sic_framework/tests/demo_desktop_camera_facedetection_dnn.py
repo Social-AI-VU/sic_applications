@@ -4,7 +4,7 @@ import cv2
 
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.core.utils_cv2 import draw_on_image
+from sic_framework.core.utils_cv2 import draw_bbox_on_image
 from sic_framework.devices.desktop.desktop_camera import DesktopCamera
 from sic_framework.services.face_detection_dnn.face_detection_dnn_service import DNNFaceDetection
 
@@ -50,7 +50,7 @@ while True:
     faces = faces_buffer.get()
 
     for face in faces:
-        draw_on_image(face, img)
+        draw_bbox_on_image(face, img)
 
     cv2.imshow('', img)
     cv2.waitKey(1)

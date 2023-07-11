@@ -14,7 +14,7 @@ camera1 = NaoqiTopCamera(ip="192.168.0.180")
 camera2 = NaoqiBottomCamera(ip="192.168.0.180")
 
 
-conf = MergeImageConf(NaoqiTopCamera, NaoqiBottomCamera)
+conf = MergeImageConf(source_a=NaoqiTopCamera, source_b=NaoqiBottomCamera)
 merger = MergeImages(conf=conf)
 
 merger.connect(camera1)

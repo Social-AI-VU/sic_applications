@@ -37,7 +37,7 @@ def display(image_message):
     try:
         faces = faces_buffer.get_nowait()
         for face in faces:
-            utils_cv2.draw_on_image(face, image)
+            utils_cv2.draw_bbox_on_image(face, image)
             last_seen_face_id = face.identifier
     except queue.Empty:
         pass

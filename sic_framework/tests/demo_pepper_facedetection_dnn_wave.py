@@ -4,7 +4,7 @@ import cv2
 
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.core.utils_cv2 import draw_on_image
+from sic_framework.core.utils_cv2 import draw_bbox_on_image
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoBasicAwarenessRequest, NaoBackgroundMovingRequest, \
     NaoWakeUpRequest
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera, NaoqiCameraConf
@@ -51,14 +51,14 @@ pepper = Pepper("192.168.0.148", top_camera_conf=conf)
 pepper.autonomous.request(NaoWakeUpRequest())
 
 # Connect to the services
-face_rec = DNNFaceDetection()
+face_det = DNNFaceDetection()
 
 # Feed the camera images into the face recognition component
-face_rec.connect(pepper.top_camera)
+face_det.connect(pepper.top_camera)
 
 # Send back the outputs to this program
 pepper.top_camera.register_callback(on_image)
-face_rec.register_callback(on_faces)
+face_det.register_callback(on_faces)
 
 
 recording = NaoqiMotionRecording.load("wave.motion")
@@ -75,8 +75,9 @@ while True:
     faces = faces_buffer.get()
 
     for face in faces:
-        draw_on_image(face, img)
+        draw_bbox_on_image(face, img)
 
+        # TODO test less magic number (face.w / img.shape[0]) > .125
         if face.w > 80:
             print("WAVE")
             pepper.stiffness.request(Stiffness(.95, chain))

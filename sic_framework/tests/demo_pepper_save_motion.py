@@ -1,10 +1,7 @@
 import time
 
-from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
-from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotion, NaoPostureRequest, NaoqiIdlePostureRequest
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, StartRecording, \
-    StopRecording, \
-    PlayRecording, NaoqiMotionRecorderConf, NaoqiMotionRecording
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiIdlePostureRequest
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import StartRecording, StopRecording, PlayRecording, NaoqiMotionRecorderConf, NaoqiMotionRecording
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.pepper import Pepper
 
@@ -19,6 +16,7 @@ print("Set robot to start position")
 
 chain = ["RArm"]
 
+# Disable "alive" activity for the whole body and set stiffness of the arm to zero
 pepper.motion.request(NaoqiIdlePostureRequest("Body", False))
 pepper.stiffness.request(Stiffness(0.0, chain))
 

@@ -4,7 +4,7 @@ import tqdm
 from sic_framework import SICApplication
 from sic_framework.core.message_python2 import CompressedImageMessage, BoundingBoxesMessage, BoundingBox
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, NaoqiCameraConf
-from sic_framework.services.face_detection.face_detection_service import FaceDetectionService
+from sic_framework.services.face_detection.face_detection_service import FaceDetectionComponent
 
 """ 
 This demo tests face recognition
@@ -19,7 +19,7 @@ class FaceDetectionApp(SICApplication):
         cam_conf = NaoqiCameraConf(cam_id=0, res_id=2)
         cam = self.start_service(NaoqiTopCameraSensor, device_id='nao', conf=cam_conf)
 
-        face = self.start_service(FaceDetectionService, device_id='local', inputs_to_service=[cam])
+        face = self.start_service(FaceDetectionComponent, device_id='local', inputs_to_service=[cam])
 
         self.faces = []
 
@@ -33,7 +33,7 @@ class FaceDetectionApp(SICApplication):
         image = image_message.image
 
         for face in self.faces:
-            face.draw_on_image(image)
+            face.draw_bbox_on_image(image)
 
         cv2.imshow('', image[:,:,::-1])
         cv2.waitKey(1)

@@ -50,7 +50,7 @@ while True:
     faces = faces_buffer.get()
 
     for face in faces:
-        utils_cv2.draw_on_image(face, img)
+        utils_cv2.draw_bbox_on_image(face, img)
 
     cv2.imshow('', img)
     cv2.waitKey(1)

@@ -322,6 +322,14 @@ class CompressedImageMessage(SICMessage):
         self.image = image
 
 
+class CompressedImageRequest(SICRequest, CompressedImageMessage):
+    """
+    A request variant of a compressed image. Used when you want a component to process a specific image and
+    get the result.
+    See CompressedImageMessage for more details about this class
+    """
+    pass
+
 class UncompressedImageMessage(SICMessage):
     """
     Message class to send images/np array without JPEG compression. The data is

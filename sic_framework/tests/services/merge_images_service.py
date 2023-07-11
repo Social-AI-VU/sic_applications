@@ -14,7 +14,7 @@ class MergeImageConf(SICConfMessage):
         camera1 = TopNaoCamera(ip="192.168.0.180")
         camera2 = BottomNaoCamera(ip="192.168.0.180")
 
-        conf = MergeImageConf(TopNaoCamera, BottomNaoCamera)
+        conf = MergeImageConf(source_a=NaoqiTopCamera, source_b=NaoqiBottomCamera)
         merger = MergeImages(conf=conf)
 
         merger.connect(camera1)
