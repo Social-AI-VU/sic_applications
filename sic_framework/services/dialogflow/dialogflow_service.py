@@ -213,7 +213,7 @@ class DialogflowService(SICComponent):
             # unset flag for next loop
             self.message_was_final.clear()
         except Exception as e:
-            # log the message in stead of gRPC hiding the error, but do crash
+            # log the message instead of gRPC hiding the error, but do crash
             self.logger.exception("Exception in request iterator")
             raise e
 
@@ -237,7 +237,7 @@ class DialogflowService(SICComponent):
 
         requests = self.request_generator(session_path)  # get bi-directional request iterator
 
-        # responses is a bi-directional iterator object, providing after
+        # responses is a bidirectional iterator object, providing after
         # consuming each yielded request in the requests generator
         responses = self.session_client.streaming_detect_intent(requests)
 
