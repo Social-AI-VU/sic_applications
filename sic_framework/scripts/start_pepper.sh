@@ -20,7 +20,11 @@ shift "$(( OPTIND - 1 ))"
 : ${host:?Missing robot ip adress -r}
 
 # Redis should be running on this device
-redis_host=$(hostname -I | cut -d' ' -f1)
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     redis_host=$(hostname -I | cut -d' ' -f1);;
+    Darwin*)    redis_host=$(ipconfig getifaddr en0);;
+esac
 
 echo "Connecting to redis at ip $redis_host (should be the ip of your laptop/desktop)"
 
@@ -35,7 +39,7 @@ ssh nao@$host " \
     cd ~/framework/sic_framework/devices; \
     pwd; \
     echo 'Starting robot (due to a bug output may or may not be produced until you connect a SICApplication)';\
-    python2 pepper.py; \
+    python2 pepper.py --redis_ip=${redis_host}; \
 "
 
 echo "Done!"
