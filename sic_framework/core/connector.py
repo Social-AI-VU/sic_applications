@@ -163,6 +163,9 @@ class SICConnector(object):
         :return: the SICMessage reply from the device, or none if blocking=False
         :rtype: SICMessage | None
         """
+        if isinstance(request, type):
+            print("You probably forgot to initiate the class. For example, use NaoRestRequest() instead of NaoRestRequest.")
+
         assert utils.isinstance_pickle(request, SICRequest), "Cannot send requests that do not inherit from " \
                                                              "SICRequest (type: {req})".format(req=type(request))
 
