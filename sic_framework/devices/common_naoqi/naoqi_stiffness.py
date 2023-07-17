@@ -41,7 +41,7 @@ class NaoqiStiffnessActuator(SICActuator, NaoqiMotionTools):
         self.motion = self.session.service('ALMotion')
 
         # According to the API you should not set stiffness on these joints. The call fails silently if you do.
-        self.forbidden_pepper_joints = {'Leg', 'HipRoll', 'HipPitch', 'KneePitch'} if self.robot_type == "pepper" else {}
+        self.forbidden_pepper_joints = {'Leg', 'HipRoll', 'HipPitch', 'KneePitch'} if self.robot_type == "pepper" else set()
 
 
     @staticmethod
