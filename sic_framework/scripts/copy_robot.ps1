@@ -15,5 +15,5 @@ Write-Host "Installing robot on ip $host_name";
 
 cd ../..; # cd to docker/sic/
 
-scp -r . nao@${host_name}:~/sic;
+scp -r . nao@${host_name}:~/framework;
 

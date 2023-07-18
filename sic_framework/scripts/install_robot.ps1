@@ -19,7 +19,7 @@ $host_name = $args[0]
 ###############################################
 
 ssh nao@$host_name "
-  cd ~/sic/lib/redis;                                   \
+  cd ~/framework/lib/redis;                             \
   pip install --user redis-3.5.3-py2.py3-none-any.whl;  \
   cd ../libtubojpeg/PyTurboJPEG-master;                 \
   pip install  --user . ;                               \
