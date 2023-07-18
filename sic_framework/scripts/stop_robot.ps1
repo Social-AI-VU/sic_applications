@@ -21,9 +21,8 @@ if (-not $robot_type) {
 # Start SIC!                                  #
 ###############################################
 
-$sshCommand = "ssh nao@$host `"
-    pkill -f `"python2 ${robot_type}.py`"`""
-
-Invoke-Expression -Command $sshCommand
+ssh nao@$host "
+    pkill -f 'python2 ${robot_type}.py';
+    "
 
 Write-Host "Done!"
