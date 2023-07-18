@@ -17,6 +17,6 @@ ssh nao@$host_name " \
     export LD_LIBRARY_PATH=/opt/aldebaran/lib/naoqi; \
     cd ~/framework/sic_framework/devices; \
     echo 'Starting robot (due to a bug output may or may not be produced until you connect a SICApplication)';\
-    python2 pepper.py; \
+    python2 pepper.py --redis_ip=${redis_host}; \
 "
 
