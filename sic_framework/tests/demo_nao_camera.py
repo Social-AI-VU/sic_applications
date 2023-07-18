@@ -1,8 +1,7 @@
 import queue
 import cv2
-
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera
+from sic_framework.devices import Nao
 
 
 imgs = queue.Queue()
@@ -11,8 +10,8 @@ def on_image(image_message: CompressedImageMessage):
     imgs.put(image_message.image)
 
 
-camera = NaoqiTopCamera(ip="192.168.0.210")
-camera.register_callback(on_image)
+nao = Nao(ip="192.168.0.210")
+nao.top_camera.register_callback(on_image)
 
 while True:
     img = imgs.get()
