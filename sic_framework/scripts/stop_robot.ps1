@@ -1,17 +1,13 @@
 $robot_type = $args[0]
-$host = $args[1]
+$host_name = $args[1]
 
 ###############################################
 # Get hostname and robot name from arguments  #
 ###############################################
 
-if (-not $host) {
-    Write-Host "Missing robot ip address -h"
-    exit 1
-}
-
-if (-not $robot_type) {
-    Write-Host "Missing robot type -t (nao or pepper)"
+if (-not $robot_type -or -not $host) {
+    Write-Host "Missing robot type (nao or pepper) or robot ip address"
+    Write-Host "Usage example: ./stop_robot.ps1 nao 192.168.0.123"
     exit 1
 }
 
