@@ -1,7 +1,5 @@
-param (
-    [string]$robot_type = "",
-    [string]$host = ""
-)
+$robot_type = $args[0]
+$host = $args[1]
 
 ###############################################
 # Get hostname and robot name from arguments  #
