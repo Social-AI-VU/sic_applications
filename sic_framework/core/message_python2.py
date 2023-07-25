@@ -310,7 +310,7 @@ class SICIgnoreRequestMessage(SICControlMessage):
 #                             Common data formats                                    #
 ######################################################################################
 
-class CompressedImageMessage(SICMessage):
+class CompressedImage(object):
     """
     Compress WxHx3 np arrays using libturbo-jpeg to speed up network transfer of
     images. This is LOSSY JPEG compression, which means the image is not exactly the same.
@@ -322,13 +322,23 @@ class CompressedImageMessage(SICMessage):
         self.image = image
 
 
-class CompressedImageRequest(SICRequest, CompressedImageMessage):
+class CompressedImageMessage(CompressedImage, SICMessage):
     """
-    A request variant of a compressed image. Used when you want a component to process a specific image and
-    get the result.
-    See CompressedImageMessage for more details about this class
+    See CompressedImage
     """
-    pass
+    def __init__(self, *args, **kwargs):
+        CompressedImage.__init__(self, *args, **kwargs)
+        SICMessage.__init__(self)
+
+
+class CompressedImageRequest(CompressedImage, SICRequest):
+    """
+    See CompressedImage
+    """
+    def __init__(self, *args, **kwargs):
+        CompressedImage.__init__(self, *args, **kwargs)
+        SICRequest.__init__(self)
+
 
 class UncompressedImageMessage(SICMessage):
     """
@@ -342,7 +352,7 @@ class UncompressedImageMessage(SICMessage):
         self.image = image
 
 
-class AudioMessage(SICMessage):
+class Audio(object):
     """
     A message that should contain _byte representation_ of pulse-code modulated (PCM) 16-bit signed little endian
     integer waveform audio data. The integers are represented as a python byte array because this is the expected and
@@ -357,6 +367,24 @@ class AudioMessage(SICMessage):
     def __init__(self, waveform, sample_rate):
         self.sample_rate = sample_rate
         self.waveform = waveform
+
+
+class AudioMessage(Audio, SICMessage):
+    """
+    See Audio
+    """
+    def __init__(self, *args, **kwargs):
+        Audio.__init__(self, *args, **kwargs)
+        SICMessage.__init__(self)
+
+
+class AudioRequest(Audio, SICRequest):
+    """
+    See Audio
+    """
+    def __init__(self, *args, **kwargs):
+        Audio.__init__(self, *args, **kwargs)
+        SICRequest.__init__(self)
 
 
 class BoundingBox(object):
