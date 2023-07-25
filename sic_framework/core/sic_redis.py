@@ -21,14 +21,15 @@ Blocking:
     ## DEVICE B
         reply = r.request("my_channel", NamedRequest("req_handling"), timeout=5)
 
-Note: You can send a non blocking request by sending with send_message("channel", SICRequest()), but this
+Note: You can send a non-blocking request by sending with send_message("channel", SICRequest()), but this
 is somewhat discouraged as it may lead to harder to understand behaviour. The same goes for sending messages
 to request handlers with
 
 """
-
+import atexit
 import os
 import threading
+import time
 
 import redis
 import six
@@ -43,6 +44,24 @@ class CallbackThread:
         self.function = function
         self.pubsub = pubsub
         self.thread = thread
+
+
+
+# keep track of all redis instances, so we can close them on exit
+_sic_redis_instances = []
+def cleanup_on_exit():
+    for s in _sic_redis_instances:
+        s.close()
+
+    time.sleep(.2)
+    print("Left over threads:")
+    for thread in threading.enumerate():
+        if thread.is_alive() and thread.name != "SICRedisCleanup":
+            print(thread.name, " is still alive")
+
+
+atexit.register(cleanup_on_exit)
+
 
 
 class SICRedis:
@@ -84,6 +103,8 @@ class SICRedis:
 
         # service name (assigned to thread to help debugging)
         self.service_name = parent_name
+
+        _sic_redis_instances.append(self)
 
     def register_message_handler(self, channels, callback, ignore_requests=True):
         """
@@ -127,7 +148,7 @@ class SICRedis:
 
         # sleep_time is how often the thread checks if the connection is still alive (and checks the stop condition),
         # if it is 0.0 it can never time out. It can receive messages much faster, so be nice to the CPU.
-        thread = pubsub.run_in_thread(sleep_time=0.1)
+        thread = pubsub.run_in_thread(sleep_time=0.1, daemon=True)
 
         if self.service_name:
             thread.name = "{}_callback_thread".format(self.service_name)

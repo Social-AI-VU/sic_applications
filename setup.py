@@ -7,5 +7,5 @@ setup(
   author='Koen Hindriks',
   author_email='k.v.hindriks@vu.nl',
   packages=['sic_framework'],
-  install_requires=['numpy', 'redis', 'Pillow', 'six'],
+  install_requires=['numpy', 'redis', 'Pillow', 'six', "paramiko"],
 )

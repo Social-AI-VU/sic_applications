@@ -45,8 +45,9 @@ class Naoqi(SICDevice):
                  motion_stream_conf=None,
                  stiffness_conf=None,
                  speaker_conf=None,
+                 username=None, password=None,
                  ):
-        super().__init__(ip)
+        super().__init__(ip, username=username, password=password)
 
         self.configs[NaoqiTopCamera] = top_camera_conf
         self.configs[NaoqiBottomCamera] = bottom_camera_conf

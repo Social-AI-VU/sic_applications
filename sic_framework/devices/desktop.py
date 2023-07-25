@@ -1,4 +1,7 @@
 import argparse
+import atexit
+import threading
+import time
 
 from sic_framework import SICComponentManager
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCamera, \
@@ -9,6 +12,19 @@ from sic_framework.devices.common_desktop.desktop_speakers import DesktopSpeaker
     DesktopSpeakersActuator
 from sic_framework.devices.device import SICDevice
 
+desktop_active = False
+
+def start_desktop_components():
+    manager = SICComponentManager([DesktopMicrophoneSensor, DesktopCameraSensor, DesktopSpeakersActuator],
+                                  auto_serve=False)
+
+    atexit.register(manager.stop)
+
+
+    from contextlib import redirect_stderr
+    with redirect_stderr(None):
+        manager.serve()
+
 
 class Desktop(SICDevice):
     def __init__(self, camera_conf=None, mic_conf=None, speakers_conf=None):
@@ -17,6 +33,15 @@ class Desktop(SICDevice):
         self.configs[DesktopCamera] = camera_conf
         self.configs[DesktopMicrophone] = mic_conf
         self.configs[DesktopSpeakers] = speakers_conf
+
+        global desktop_active
+
+        if not desktop_active:
+            # run the component manager in a thread
+            thread = threading.Thread(target=start_desktop_components, name="DesktopComponentManager-singelton")
+            thread.start()
+
+            desktop_active = True
 
     @property
     def camera(self):

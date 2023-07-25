@@ -59,7 +59,7 @@ class SICConnector(object):
         if not self._ping():
             self._start_component()
 
-        # subscribe the component to a channel that the user is able send a message on if needed
+        # subscribe the component to a channel that the user is able to send a message on if needed
         self.input_channel = "{}:input:{}".format(self.component_class.get_component_name(), self._ip)
         self.request(ConnectRequest(self.input_channel), timeout=self._PING_TIMEOUT)
 
@@ -90,7 +90,8 @@ class SICConnector(object):
         :param device_id: The id of the device we wat to start a component on
 
         """
-        print("Component not already alive, requesting", self.component_class.get_component_name(), "from manager ", self._ip)
+        print("Component not already alive, requesting", self.component_class.get_component_name(), "from manager ",
+              self._ip)
 
         if issubclass(self.component_class, SICSensor) and self._conf:
             print("Warning: setting configuration for SICSensors only works the first time connecting (sensor "
@@ -108,13 +109,13 @@ class SICConnector(object):
             component_info = self._redis.request(self._ip, component_request,
                                                  timeout=self.component_class.COMPONENT_STARTUP_TIMEOUT)
             if is_sic_instance(component_info, SICNotStartedMessage):
-
                 raise ComponentNotStartedError(
                     "\n\nComponent did not start, error should be logged above. ({})".format(component_info.message))
 
         except TimeoutError as e:
-            six.raise_from(TimeoutError("Could not connect to component. Is SIC running on the device (ip:{})?".format(self._ip)), None)
-
+            six.raise_from(
+                TimeoutError("Could not connect to component. Is SIC running on the device (ip:{})?".format(self._ip)),
+                None)
 
     def register_callback(self, callback):
         """
@@ -164,10 +165,11 @@ class SICConnector(object):
         :rtype: SICMessage | None
         """
         if isinstance(request, type):
-            print("You probably forgot to initiate the class. For example, use NaoRestRequest() instead of NaoRestRequest.")
+            print(
+                "You probably forgot to initiate the class. For example, use NaoRestRequest() instead of NaoRestRequest.")
 
         assert utils.is_sic_instance(request, SICRequest), "Cannot send requests that do not inherit from " \
-                                                             "SICRequest (type: {req})".format(req=type(request))
+                                                           "SICRequest (type: {req})".format(req=type(request))
 
         # Update the timestamp, as it is not yet set (normally be set by the device of origin, e.g a camera)
         request._timestamp = self._get_timestamp()
