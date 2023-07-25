@@ -15,7 +15,7 @@ if (-not $robot_type -or -not $host) {
 # Start SIC!                                  #
 ###############################################
 
-ssh nao@$host "
+ssh nao@$host_name "
     pkill -f 'python2 ${robot_type}.py';
     "
 
