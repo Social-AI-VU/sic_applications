@@ -1,23 +1,19 @@
-import argparse
-from sic_framework import SICComponentManager, SICService, SICMessage, SICConfMessage, utils
+from sic_framework import SICComponentManager, SICMessage, utils
+from sic_framework.core.connector import SICConnector
+from sic_framework.core.component_python2 import SICComponent
+
 if utils.PYTHON_VERSION_IS_2:
     from naoqi import ALProxy
     import qi
 
-
-# @dataclass
-class NaoqiLoadUrl(SICMessage):
+class UrlMessage(SICMessage):
     def __init__(self, url):
-        super(NaoqiLoadUrl, self).__init__()
+        super(UrlMessage, self).__init__()
         self.url = url
 
-
-
-
-# make it service because we don't want it to be notified if the url has received or not
-class NaoqiTabletService(SICService):
+class NaoqiTabletComponent(SICComponent):
     def __init__(self, *args, **kwargs):
-        super(NaoqiTabletService, self).__init__(*args, **kwargs)
+        super(NaoqiTabletComponent, self).__init__(*args, **kwargs)
 
         self.session = qi.Session()
         self.session.connect('tcp://127.0.0.1:9559')
@@ -26,20 +22,20 @@ class NaoqiTabletService(SICService):
 
     @staticmethod
     def get_inputs():
-        return [NaoqiLoadUrl]
+        return [UrlMessage]
 
     @staticmethod
     def get_output():
         return SICMessage
 
-    def execute(self, message):
-        # display a webview on a pepper's tablet given a url
-        self.tablet_service.showWebview(message.get(NaoqiLoadUrl).url)
-        return SICMessage()
 
+    def on_message(self, message):
+        # print("url is ", message.url)
+        self.tablet_service.showWebview(message.url)
+
+
+class NaoqiTablet(SICConnector):
+    component_class = NaoqiTabletComponent
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('robot_name')
-    args = parser.parse_args()
-    SICComponentManager([NaoqiTabletService], args.robot_name)
+    SICComponentManager([NaoqiTabletComponent])

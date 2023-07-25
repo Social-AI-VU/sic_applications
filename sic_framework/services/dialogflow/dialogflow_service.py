@@ -8,6 +8,7 @@ https://github.com/googleapis/python-dialogflow/blob/main/samples/snippets/detec
 import threading
 import time
 
+import google
 from google.cloud import dialogflow
 from google.oauth2.service_account import Credentials
 from sic_framework import SICComponentManager
@@ -113,11 +114,11 @@ class QueryResult(SICMessage):
 
         # some helper variables that extract useful data
         self.intent = None
-        if response.query_result.intent:
+        if "query_result" in response and response.query_result.intent:
             self.intent = response.query_result.intent.display_name
 
         self.fulfillment_message = None
-        if len(response.query_result.fulfillment_messages):
+        if "query_result" in response and len(response.query_result.fulfillment_messages):
             self.fulfillment_message = str(response.query_result.fulfillment_messages[0].text.text[0])
 
 
@@ -161,6 +162,10 @@ class DialogflowService(SICComponent):
         self.responses = None
         super().__init__(*args, **kwargs)
 
+        self.dialogflow_is_init = False
+        self.init_dialogflow()
+
+    def init_dialogflow(self):
         # Setup session client
         credentials = Credentials.from_service_account_info(self.params.keyfile_json)
         self.session_client = dialogflow.SessionsClient(credentials=credentials)
@@ -186,6 +191,8 @@ class DialogflowService(SICComponent):
         self.message_was_final = threading.Event()
         self.audio_buffer = queue.Queue(maxsize=1)
 
+        self.dialogflow_is_init = True
+
     def on_message(self, message):
         if is_sic_instance(message, AudioMessage):
             self.logger.debug_framework_verbose("Received audio message")
@@ -200,8 +207,14 @@ class DialogflowService(SICComponent):
             # force the request generator to break, which indicates to dialogflow we want an intent for the
             # audio sent so far.
             self.message_was_final.set()
+            # time.sleep(1)
+            del self.session_client
+            self.dialogflow_is_init = False
 
     def on_request(self, request):
+        if not self.dialogflow_is_init:
+            self.init_dialogflow()
+
         if is_sic_instance(request, GetIntentRequest):
             reply = self.get_intent(request)
             return reply
@@ -250,7 +263,10 @@ class DialogflowService(SICComponent):
 
         # responses is a bidirectional iterator object, providing after
         # consuming each yielded request in the requests generator
-        responses = self.session_client.streaming_detect_intent(requests)
+        try:
+            responses = self.session_client.streaming_detect_intent(requests)
+        except google.api_core.exceptions.InvalidArgument as e:
+            return QueryResult(dict())
 
         for response in responses:
             if response.recognition_result:
