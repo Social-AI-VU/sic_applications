@@ -11,7 +11,7 @@ from sic_framework.devices.common_naoqi.naoqi_motion import NaoPostureRequest, N
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCameraSensor, NaoqiCameraConf
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
-from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone
+from sic_framework.devices.common_desktop.desktop_microphone import DesktopMicrophone
 from sic_framework.devices.nao import Nao
 
 from sic_framework.services.dialogflow.dialogflow import DialogflowComponent, DialogflowConf, GetIntentRequest, \

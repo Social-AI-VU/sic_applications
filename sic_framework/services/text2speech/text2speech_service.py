@@ -1,4 +1,5 @@
 from sic_framework.core.actuator_python2 import SICActuator
+from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICConfMessage, SICMessage, SICRequest, SICStopRequest, AudioMessage
 from sic_framework import SICComponentManager
 from google.cloud import texttospeech as tts
@@ -67,14 +68,14 @@ class SpeechResult(AudioMessage):
 
 
 
-class Text2Speech(SICActuator):
+class Text2SpeechService(SICActuator):
     """
     SIC implementation of the Google Text-to-Speech API (https://cloud.google.com/text-to-speech/).
     This SICAction responds to GetSpeechRequest requests and returns a SpeechResult.
     The parameters can be set using Text2SpeechConf.
     """
     def __init__(self, *args, **kwargs):
-        super(Text2Speech, self).__init__(*args, **kwargs)
+        super(Text2SpeechService, self).__init__(*args, **kwargs)
 
         # Instantiates a client
         credentials = Credentials.from_service_account_file(self.params.keyfile)
@@ -118,6 +119,9 @@ class Text2Speech(SICActuator):
         return SpeechResult(wav_audio=response.audio_content)
 
 
+class Text2Speech(SICConnector):
+    component_class = Text2SpeechService
+
+
 if __name__ == '__main__':
-    # Request the service to start using the SICServiceManager on this device (id: local)
-    SICComponentManager([Text2Speech], "local")
+    SICComponentManager([Text2SpeechService])

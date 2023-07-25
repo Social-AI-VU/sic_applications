@@ -1,36 +1,32 @@
-import threading
-from sic_framework import SICComponentManager, SICService
-from sic_framework.core.actuator_python2 import SICActuator
-from sic_framework.core.message_python2 import SICConfMessage, SICMessage, SICRequest
+from sic_framework import SICComponentManager
+from sic_framework.core.connector import SICConnector
+from sic_framework.core.component_python2 import SICComponent
+from sic_framework.core.message_python2 import SICConfMessage, SICMessage
 
 import os  
 from flask import Flask, render_template, render_template_string
 import threading
 
 
-class GetWebText(SICMessage):
+class WebText(SICMessage):
     def __init__(self, text):
         self.text = text
 
-
-
 class WebserverConf(SICConfMessage):
-    def __init__(self, host, port):
+    def __init__(self, host: str, port: int):
         """
         :param host         the hostname that a server listens on
         :param port         the port to listen on 
         """
-        SICConfMessage.__init__(self)
-
+        super(WebserverConf, self).__init__()
         self.host = host
         self.port = port
 
-class WebserverService(SICService):
+class WebserverComponent(SICComponent):
 
     def __init__(self, *args, **kwargs):
 
-        super(WebserverService, self).__init__(*args, **kwargs)
-        # self.input_text = "Initial text"
+        super(WebserverComponent, self).__init__(*args, **kwargs)
         #FIXME this getcwd depends on where the program is executed so it's not flexible. 
         template_dir = os.path.join(os.path.abspath(os.getcwd()), "webserver/templates")
         
@@ -40,11 +36,13 @@ class WebserverService(SICService):
         # app should be terminated automatically when the main thread exits
         thread.daemon = True
         thread.start()
-     
+
     def start_web_app(self):
+        """
+        start the web server
+        """
         self.render_template_string_routes()
         self.app.run(host=self.params.host, port=self.params.port)
-
 
     @staticmethod
     def get_conf():
@@ -62,9 +60,12 @@ class WebserverService(SICService):
         self.input_text = str(inputs.get(GetWebText).text)
         return SICMessage()
 
+    # when the WebText message arrives, feed it to self.input_text
+    def on_message(self, message):
+        self.input_text = message.text
 
     def render_template_string_routes(self):
-        # render a html with bootstrap and a css file
+        # render a html with bootstrap and a css file once a client is connected
         @self.app.route("/")
         def index():
             return render_template_string(self.input_text)
@@ -82,8 +83,9 @@ class WebserverService(SICService):
             dialogflow=self.input_text
             return dialogflow
 
-        
+class Webserver(SICConnector):
+    component_class = WebserverComponent
 
 
 if __name__ == '__main__':
-    SICComponentManager([WebserverService], "web")
+    SICComponentManager([WebserverComponent])

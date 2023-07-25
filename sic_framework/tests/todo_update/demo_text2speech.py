@@ -2,7 +2,7 @@ import logging
 import time
 
 from sic_framework.core.connector import SICApplication
-from sic_framework.devices.desktop.desktop_speakers import DesktopSpeakers
+from sic_framework.devices.common_desktop.desktop_speakers import DesktopSpeakers
 from sic_framework.services.text2speech.text2speech_service import GetSpeechRequest, Text2SpeechConf, Text2Speech, SpeechResult
 
 

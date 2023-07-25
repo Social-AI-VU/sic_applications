@@ -10,8 +10,8 @@ from sic_framework import SICApplication
 import tqdm
 from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophoneSensor
-from sic_framework.devices.desktop.desktop_speakers import DesktopSpeakers
-from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone
+from sic_framework.devices.common_desktop.desktop_speakers import DesktopSpeakers
+from sic_framework.devices.common_desktop.desktop_microphone import DesktopMicrophone
 
 """ This demo should display a camera image
 """
