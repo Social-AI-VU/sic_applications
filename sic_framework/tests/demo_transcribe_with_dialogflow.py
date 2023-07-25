@@ -10,7 +10,7 @@ from sic_framework.services.dialogflow.dialogflow import DialogflowConf, GetInte
 
 # Read the wav file
 
-wavefile = wave.open('office_top_short.wav', 'rb')
+wavefile = wave.open('test_sound_dialogflow.wav', 'rb')
 samplerate = wavefile.getframerate()
 
 print("Audio file specs:")
