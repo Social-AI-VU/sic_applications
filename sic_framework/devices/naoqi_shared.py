@@ -51,12 +51,12 @@ class Naoqi(SICDevice):
         self.configs[NaoqiTopCamera] = top_camera_conf
         self.configs[NaoqiBottomCamera] = bottom_camera_conf
         self.configs[NaoqiMicrophone] = mic_conf
-        self.configs[NaoqiMotionActuator] = motion_conf
-        self.configs[NaoqiTextToSpeechActuator] = tts_conf
+        self.configs[NaoqiMotion] = motion_conf
+        self.configs[NaoqiTextToSpeech] = tts_conf
         self.configs[NaoqiMotionRecorder] = motion_record_conf
         self.configs[NaoqiMotionStreamer] = motion_stream_conf
-        self.configs[NaoqiStiffnessActuator] = stiffness_conf
-        self.configs[NaoqiSpeakerComponent] = speaker_conf
+        self.configs[NaoqiStiffness] = stiffness_conf
+        self.configs[NaoqiSpeaker] = speaker_conf
 
     @property
     def top_camera(self):

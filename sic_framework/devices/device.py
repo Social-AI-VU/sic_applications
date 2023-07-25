@@ -21,7 +21,7 @@ class SICDevice(object):
 
     def _get_connector(self, component_connector):
         """
-        Get the active connection the the component, or initialize it if it is not yet connected to.
+        Get the active connection the component, or initialize it if it is not yet connected to.
 
         :param component_connector: The component connector class to start, e.g. NaoCamera
         :return: SICConnector
@@ -35,7 +35,7 @@ class SICDevice(object):
             try:
                 self.connectors[component_connector] = component_connector(self.ip, conf=conf)
             except TimeoutError as e:
-                raise TimeoutError("Could not connect to {} on device {}.".format(component_connector.get_component_name(), self.ip))
+                raise TimeoutError("Could not connect to {} on device {}.".format(component_connector.component_class.get_component_name(), self.ip))
         return self.connectors[component_connector]
 
     """ja t
