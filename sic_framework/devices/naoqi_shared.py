@@ -83,7 +83,7 @@ class Naoqi(SICDevice):
         return self._get_connector(NaoqiMotionRecorder)
 
     @property
-    def motion_stream(self):
+    def motion_streaming(self):
         return self._get_connector(NaoqiMotionStreamer)
 
     @property
