@@ -2,6 +2,7 @@ import pyaudio
 
 from sic_framework import SICActuator, SICComponentManager
 from sic_framework.core.connector import SICConnector
+from sic_framework.core.message import SICMessage
 from sic_framework.core.message_python2 import SICConfMessage, AudioMessage
 
 
@@ -9,9 +10,9 @@ class SpeakersConf(SICConfMessage):
     """
     Parameters for speakers go here.
     """
-    def __init__(self):
-        self.sample_rate = 44100
-        self.channels = 1
+    def __init__(self, sample_rate=44100, channels=1):
+        self.sample_rate = sample_rate
+        self.channels = channels
 
 
 class DesktopSpeakersActuator(SICActuator):
@@ -38,10 +39,11 @@ class DesktopSpeakersActuator(SICActuator):
 
     @staticmethod
     def get_output():
-        return None
+        return SICMessage
 
     def on_request(self, request):
         self.stream.write(request.waveform)
+        return SICMessage()
 
     def on_message(self, message):
         self.stream.write(message.waveform)
