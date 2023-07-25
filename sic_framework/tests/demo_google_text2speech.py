@@ -1,8 +1,8 @@
 from sic_framework.core.message_python2 import AudioMessage, AudioRequest
 from sic_framework.devices import Nao
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+from sic_framework.devices.desktop import Desktop
 from sic_framework.services.text2speech.text2speech_service import Text2Speech, Text2SpeechConf, GetSpeechRequest, SpeechResult
-from sic_framework.devices import Desktop
 
 # nao = Nao("192.168.0.191")
 

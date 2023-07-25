@@ -6,7 +6,7 @@ from typing import io
 
 import pyaudio
 
-from sic_framework.core.message_python2 import AudioMessage
+from sic_framework.core.message_python2 import AudioMessage, AudioRequest
 from sic_framework.devices import Pepper
 from sic_framework.services.dialogflow.dialogflow import DialogflowConf, GetIntentRequest, Dialogflow, \
     StopListeningMessage
@@ -31,11 +31,12 @@ pepper = Pepper(ip="192.168.0.197")
 
 print("Sending audio!")
 
-sound = wavefile.readframes(wavefile.getnframes())
-message = AudioRequest(sample_rate=samplerate, waveform=sound)
-pepper.speaker.send_message(message)
+# bugged
+# sound = wavefile.readframes(wavefile.getnframes())
+# message = AudioRequest(sample_rate=samplerate, waveform=sound)
+# pepper.speaker.request(message)
 
-print("Audio sent!")
+# print("Audio is done playing!")
 
 
 sound = wavefile.readframes(wavefile.getnframes())
