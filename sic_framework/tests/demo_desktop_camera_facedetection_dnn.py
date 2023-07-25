@@ -5,7 +5,7 @@ import cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.core.utils_cv2 import draw_bbox_on_image
-from sic_framework.devices.desktop.desktop_camera import DesktopCamera
+from sic_framework.devices.common_desktop.desktop_camera import DesktopCamera
 from sic_framework.services.face_detection_dnn.face_detection_dnn_service import DNNFaceDetection
 
 """ 
