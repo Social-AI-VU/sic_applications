@@ -4,6 +4,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import time
 import zipfile
 from datetime import date
 
@@ -34,16 +35,47 @@ class SICDevice(object):
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.ssh.connect(self.ip, port=22, username=username, password=password, timeout=5)
 
+
+    def get_last_modified(self, root, paths):
+        last_modified = 0
+
+        for file_or_folder in paths:
+            file_or_folder = root + file_or_folder
+            if os.path.isdir(file_or_folder):
+                sub_last_modified = max(os.path.getmtime(root) for root, _, _ in os.walk(file_or_folder))
+                print(file_or_folder, time.ctime(sub_last_modified))
+                last_modified = max(sub_last_modified, last_modified)
+            elif os.path.isfile(file_or_folder):
+                last_modified = max(os.path.getmtime(file_or_folder), last_modified)
+
+        assert last_modified > 0, "Could not find any files to transfer."
+        last_modified = time.ctime(last_modified)
+
     def auto_install(self):
         """
         Install the SICFramework on the device.
         :return:
         """
+        # Find framework root folder
+        root = str(pathlib.Path(__file__).parent.parent.parent.resolve())
+        assert os.path.basename(root) == "framework", "Could not find SIC 'framework' directory."
 
-        framework_signature = "/tmp/sic_version_signature_{}_{}".format(utils.get_ip_adress(), date.today())
+        # List of selected files and directories to be zipped and transferred
+        selected_files = [
+            "/setup.py",
+            "/conf",
+            "/lib",
+            "/sic_framework/core",
+            "/sic_framework/devices"
+        ]
+
+        last_modified = self.get_last_modified(root, selected_files)
+
+        # Create a signature for the framework
+        framework_signature = "/tmp/sic_version_signature_{}_{}".format(utils.get_ip_adress(), last_modified)
 
         # Check if the framework signature file exists
-        stdin, stdout, stderr = self.self.ssh.exec_command('ls {}'.format(framework_signature))
+        stdin, stdout, stderr = self.ssh.exec_command('ls {}'.format(framework_signature))
         file_exists = len(stdout.readlines()) > 0
 
         def progress(filename, size, sent):
@@ -57,17 +89,7 @@ class SICDevice(object):
             with SCPClient(self.ssh.get_transport(), progress=progress) as scp:
 
                 # Copy the framework to the remote computer
-                root = str(pathlib.Path(__file__).parent.parent.parent.resolve())
-                assert os.path.basename(root) == "framework", "Could not find SIC 'framework' directory."
 
-                # List of selected files and directories to be zipped
-                selected_files = [
-                    "/setup.py",
-                    "/conf",
-                    "/lib",
-                    "/sic_framework/core",
-                    "/sic_framework/devices"
-                ]
 
                 with tempfile.NamedTemporaryFile(suffix='_sic_files.tar.gz') as f:
                     with tarfile.open(fileobj=f, mode='w:gz') as tar:
@@ -138,3 +160,4 @@ class SICDevice(object):
                 raise TimeoutError("Could not connect to {} on device {}.".format(
                     component_connector.component_class.get_component_name(), self.ip))
         return self.connectors[component_connector]
+

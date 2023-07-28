@@ -54,10 +54,11 @@ def cleanup_on_exit():
         s.close()
 
     time.sleep(.2)
-    print("Left over threads:")
-    for thread in threading.enumerate():
-        if thread.is_alive() and thread.name != "SICRedisCleanup":
-            print(thread.name, " is still alive")
+    if len([x.is_alive() for x in threading.enumerate()]) > 1:
+        print("Left over threads:")
+        for thread in threading.enumerate():
+            if thread.is_alive() and thread.name != "SICRedisCleanup":
+                print(thread.name, " is still alive")
 
 
 atexit.register(cleanup_on_exit)

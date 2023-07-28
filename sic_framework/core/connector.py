@@ -77,6 +77,8 @@ class SICConnector(object):
         This abstract property should be set by the subclass creating a connector for the specific component.
         e.g.
         component_class = NaoCamera
+        :return: The component class this connector is for
+        :rtype: type[SICComponent]
         """
         raise NotImplementedError("Abstract member component_class not set.")
 
