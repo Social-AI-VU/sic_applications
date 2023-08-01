@@ -7,7 +7,7 @@ import pyaudio
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
 from sic_framework.devices.nao import Nao
 
-from sic_framework.services.dialogflow.dialogflow_service import DialogflowConf, \
+from sic_framework.services.dialogflow.dialogflow import DialogflowConf, \
     GetIntentRequest, RecognitionResult, QueryResult, Dialogflow
 
 FORMAT = pyaudio.paInt16

@@ -14,8 +14,8 @@ from sic_framework.devices.common_naoqi.naoqi_motion import NaoPostureRequest, N
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest, NaoqiTextToSpeech
-from sic_framework.services.dialogflow.dialogflow_service import Dialogflow, DialogflowConf, GetIntentRequest
-from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognition
+from sic_framework.services.dialogflow.dialogflow import Dialogflow, DialogflowConf, GetIntentRequest
+from sic_framework.services.face_recognition_dnn.face_recognition import DNNFaceRecognition
 
 
 """

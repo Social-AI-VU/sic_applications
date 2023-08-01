@@ -13,7 +13,13 @@ $host_name = $args[0]
 
 Write-Host "Installing robot on ip $host_name";
 
-cd ../..; # cd to docker/sic/
+# Copy framework folder (without sic_framework as we cannot exclude sub dirs)
+robocopy ../.. framework_tmp /xd venv /xd .git /xd sic_framework /s; 
 
-scp -r . nao@${host_name}:~/sic;
+# Copy sic_framework folder
+robocopy .. framework_tmp\sic_framework /xd services /xd scripts /s; 
 
+scp -r framework_tmp/. nao@${host_name}:framework/;
+
+# detelete framework_tmp
+Remove-Item -Path framework_tmp -Recurse -Force;

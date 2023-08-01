@@ -12,7 +12,7 @@ from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiIdlePostureRequ
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, NaoqiMotionRecording, PlayRecording
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.pepper import Pepper
-from sic_framework.services.face_detection_dnn.face_detection_dnn_service import DNNFaceDetection
+from sic_framework.services.face_detection_dnn.face_detection_dnn import DNNFaceDetection
 
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.

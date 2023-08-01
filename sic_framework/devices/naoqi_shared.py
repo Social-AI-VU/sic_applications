@@ -9,7 +9,8 @@ from sic_framework.devices.common_naoqi.naoqi_microphone import \
     NaoqiMicrophone, NaoqiMicrophoneSensor
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorderActuator, NaoqiMotionRecorder
 from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoqiMotionStreamerService, NaoqiMotionStreamer
-from sic_framework.devices.common_naoqi.naoqi_stiffness import NaoqiStiffness, NaoqiStiffnessActuator
+from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiSpeakerComponent, NaoqiSpeaker
+from sic_framework.devices.common_naoqi.naoqi_stiffness import NaoqiStiffnessActuator, NaoqiStiffness
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import \
     NaoqiTextToSpeechActuator, NaoqiTextToSpeech
 from sic_framework.devices.device import SICDevice
@@ -27,6 +28,7 @@ shared_naoqi_components = [
     NaoqiStiffnessActuator,
     NaoqiAutonomousActuator,
     NaoqiLEDsActuator,
+    NaoqiSpeakerComponent,
 ]
 
 
@@ -42,17 +44,19 @@ class Naoqi(SICDevice):
                  motion_record_conf=None,
                  motion_stream_conf=None,
                  stiffness_conf=None,
+                 speaker_conf=None,
                  ):
         super().__init__(ip)
 
         self.configs[NaoqiTopCamera] = top_camera_conf
         self.configs[NaoqiBottomCamera] = bottom_camera_conf
         self.configs[NaoqiMicrophone] = mic_conf
-        self.configs[NaoqiMotionActuator] = motion_conf
-        self.configs[NaoqiTextToSpeechActuator] = tts_conf
+        self.configs[NaoqiMotion] = motion_conf
+        self.configs[NaoqiTextToSpeech] = tts_conf
         self.configs[NaoqiMotionRecorder] = motion_record_conf
         self.configs[NaoqiMotionStreamer] = motion_stream_conf
         self.configs[NaoqiStiffness] = stiffness_conf
+        self.configs[NaoqiSpeaker] = speaker_conf
 
     @property
     def top_camera(self):
@@ -93,6 +97,11 @@ class Naoqi(SICDevice):
     @property
     def leds(self):
         return self._get_connector(NaoqiLEDs)
+
+    @property
+    def speaker(self):
+        return self._get_connector(NaoqiSpeaker)
+
 
 
 if __name__ == "__main__":

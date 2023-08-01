@@ -2,6 +2,14 @@ import cv2
 
 
 def draw_bbox_on_image(bbox, img, color=(0, 255, 0)):
+    """
+    Draws a bounding box on an image.
+
+    :param bbox: a BoundingBox object
+    :param img: numpy image
+    :param color: tuple (r, g, b) with the color of the bounding box
+    :return:
+    """
 
     cv2.rectangle(img, (bbox.x, bbox.y), (bbox.x + bbox.w, bbox.y + bbox.h), color, 2)
 

@@ -6,7 +6,7 @@ from sic_framework.core import utils_cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCamera
-from sic_framework.services.face_detection.face_detection_service import FaceDetection
+from sic_framework.services.face_detection.face_detection import FaceDetection
 
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.

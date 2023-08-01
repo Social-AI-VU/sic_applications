@@ -142,7 +142,7 @@ class DialogflowConf(SICConfMessage):
         self.audio_encoding = audio_encoding
 
 
-class DialogflowService(SICComponent):
+class DialogflowComponent(SICComponent):
     """
     Notes:
         This service listens to both AudioMessages and GetIntentRequests.
@@ -285,8 +285,8 @@ class DialogflowService(SICComponent):
 
 
 class Dialogflow(SICConnector):
-    component_class = DialogflowService
+    component_class = DialogflowComponent
 
 
 if __name__ == '__main__':
-    SICComponentManager([DialogflowService])
+    SICComponentManager([DialogflowComponent])

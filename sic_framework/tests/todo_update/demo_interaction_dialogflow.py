@@ -14,9 +14,9 @@ from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToS
 from sic_framework.devices.common_desktop.desktop_microphone import DesktopMicrophone
 from sic_framework.devices.nao import Nao
 
-from sic_framework.services.dialogflow.dialogflow_service import DialogflowService, DialogflowConf, GetIntentRequest, \
+from sic_framework.services.dialogflow.dialogflow import DialogflowComponent, DialogflowConf, GetIntentRequest, \
     RecognitionResult, QueryResult
-from sic_framework.services.face_recognition_dnn.face_recognition_service import DNNFaceRecognitionService
+from sic_framework.services.face_recognition_dnn.face_recognition import DNNFaceRecognitionComponent
 """ This demo should display a camera image
 """
 
@@ -65,11 +65,11 @@ class DemoDialogflow(SICApplication):
 
         conf = DialogflowConf(keyfile_json=keyfile_json, project_id='dialogflow-test-project-376814', sample_rate_hertz=16000,)
 
-        dialogflow = self.start_service(DialogflowService, device_id='local', inputs_to_service=[self.nao.mic, self],
+        dialogflow = self.start_service(DialogflowComponent, device_id='local', inputs_to_service=[self.nao.mic, self],
                                         log_level=logging.INFO, conf=conf)
         dialogflow.register_callback(on_dialog)
 
-        face_rec = self.start_service(DNNFaceRecognitionService, device_id='local', inputs_to_service=[self.nao.top_camera],
+        face_rec = self.start_service(DNNFaceRecognitionComponent, device_id='local', inputs_to_service=[self.nao.top_camera],
                                       log_level=logging.INFO)
         face_rec.register_callback(self.on_face_rec)
         self.nao.top_camera.register_callback(self.display)
