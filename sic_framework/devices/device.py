@@ -1,19 +1,66 @@
+from __future__ import print_function
+
 import os.path
-import pathlib
-import shutil
-import sys
 import tarfile
 import tempfile
 import time
-import zipfile
-from datetime import date
 
-import paramiko
-from scp import SCPClient
+import six
 
 from sic_framework.core import utils
-from sic_framework.core.actuator_python2 import SICActuator
 from sic_framework.core.connector import SICConnector
+
+if six.PY3:
+    import paramiko
+    import pathlib
+    from scp import SCPClient
+
+
+
+class _SICLibrary(object):
+    """
+    A library to be installed on a remote device.
+    """
+
+    def __init__(self, name, lib_path, lib_install_cmd):
+        self.name = name
+        self.lib_path = lib_path
+        self.lib_install_cmd = lib_install_cmd
+
+    def check_if_installed(self, pip_freeze):
+        for lib in pip_freeze:
+            if self.name in lib:
+                return True
+        return False
+
+    def install(self, ssh):
+        print("Installing {} on remote device ".format(self.name), end="")
+        stdin, stdout, stderr = ssh.exec_command("cd {} && {}".format(self.lib_path, self.lib_install_cmd))
+
+        # print a dot every line to indicate progress
+        while True:
+            line = stdout.readline()
+            # empty line means command is done
+            if len(line) == 0:
+                break
+
+            print(".", end="")
+
+        err = stderr.readlines()
+        if len(err) > 0:
+            print("".join(err))
+            print("Command:", "cd {} && {}".format(self.lib_path, self.lib_install_cmd))
+            raise RuntimeError(
+                "Error while installing library on remote device. Please consult manual installation instructions.")
+        else:
+            print(" done.")
+
+
+_LIBS_TO_INSTALL = [
+    _SICLibrary("redis", "~/framework/lib/redis", "pip install --user redis-3.5.3-py2.py3-none-any.whl"),
+    _SICLibrary("PyTurboJPEG", "~/framework/lib/libtubojpeg/PyTurboJPEG-master", "pip install --user ."),
+    _SICLibrary("sic-framework", "~/framework", "pip install --user -e .")
+]
 
 
 class SICDevice(object):
@@ -33,8 +80,9 @@ class SICDevice(object):
         if username is not None:
             self.ssh = paramiko.SSHClient()
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.ssh.connect(self.ip, port=22, username=username, password=password, timeout=5)
-
+            # allow_agent=False, look_for_keys=False to disable asking for keyring (just use the password)
+            self.ssh.connect(self.ip, port=22, username=username, password=password, timeout=5, allow_agent=False,
+                             look_for_keys=False)
 
     def get_last_modified(self, root, paths):
         last_modified = 0
@@ -43,13 +91,13 @@ class SICDevice(object):
             file_or_folder = root + file_or_folder
             if os.path.isdir(file_or_folder):
                 sub_last_modified = max(os.path.getmtime(root) for root, _, _ in os.walk(file_or_folder))
-                print(file_or_folder, time.ctime(sub_last_modified))
                 last_modified = max(sub_last_modified, last_modified)
             elif os.path.isfile(file_or_folder):
                 last_modified = max(os.path.getmtime(file_or_folder), last_modified)
 
         assert last_modified > 0, "Could not find any files to transfer."
-        last_modified = time.ctime(last_modified)
+        last_modified = time.ctime(last_modified).replace(" ", "_").replace(":", "-")
+        return last_modified
 
     def auto_install(self):
         """
@@ -72,74 +120,61 @@ class SICDevice(object):
         last_modified = self.get_last_modified(root, selected_files)
 
         # Create a signature for the framework
-        framework_signature = "/tmp/sic_version_signature_{}_{}".format(utils.get_ip_adress(), last_modified)
+        framework_signature = "~/framework/sic_version_signature_{}_{}".format(utils.get_ip_adress(), last_modified)
 
         # Check if the framework signature file exists
         stdin, stdout, stderr = self.ssh.exec_command('ls {}'.format(framework_signature))
         file_exists = len(stdout.readlines()) > 0
 
+        if file_exists:
+            print("Up to date framework is installed on the remote device.")
+            return
+
+        # prefetch slow pip freeze command
+        _, stdout_pip_freeze, _ = self.ssh.exec_command("pip freeze")
+
         def progress(filename, size, sent):
             print("\r {} progress: {}".format(filename.decode("utf-8"), round(float(sent) / float(size) * 100, 2)),
                   end="")
 
-        if file_exists:
-            print("Up to date framework is installed on the remote device.")
-        else:
-            print("Copying framework to the remote device.")
-            with SCPClient(self.ssh.get_transport(), progress=progress) as scp:
+        print("Copying framework to the remote device.")
+        with SCPClient(self.ssh.get_transport(), progress=progress) as scp:
 
-                # Copy the framework to the remote computer
+            # Copy the framework to the remote computer
+            with tempfile.NamedTemporaryFile(suffix='_sic_files.tar.gz') as f:
+                with tarfile.open(fileobj=f, mode='w:gz') as tar:
+                    for file in selected_files:
+                        tar.add(root + file, arcname=file)
 
+                f.flush()
+                self.ssh.exec_command("mkdir ~/framework")
+                scp.put(f.name, remote_path="~/framework/sic_files.tar.gz")
+                print()  # newline after progress bar
 
-                with tempfile.NamedTemporaryFile(suffix='_sic_files.tar.gz') as f:
-                    with tarfile.open(fileobj=f, mode='w:gz') as tar:
-                        for file in selected_files:
-                            tar.add(root + file, arcname=file)
+            # Unzip the file on the remote server
+            stdin, stdout, stderr = self.ssh.exec_command("cd framework && tar -xvf sic_files.tar.gz")
 
-                    f.flush()
-                    self.ssh.exec_command("mkdir ~/framework")
-                    scp.put(f.name, remote_path="~/framework/sic_files.tar.gz")
-                # Unzip the file on the remote server
-                stdin, stdout, stderr = self.ssh.exec_command("cd framework && tar -xvf sic_files.tar.gz")
+            err = stderr.readlines()
+            if len(err) > 0:
+                print("".join(err))
+                raise RuntimeError(
+                    "\n\nError while extracting library on remote device. Please consult manual installation instructions.")
 
-                err = stderr.readlines()
-                if len(err) > 0:
-                    print("".join(err))
-                    raise RuntimeError(
-                        "\n\nError while extracting library on remote device. Please consult manual installation instructions.")
+            # Remove the zipped file
+            self.ssh.exec_command("rm ~/framework/sic_files.zip")
 
-                # Remove the zipped file
-                self.ssh.exec_command("rm ~/framework/sic_files.zip")
+        # Check and/or install the framework and libraries on the remote computer
+        print("Checking if libraries are installed on the remote device.")
+        # stdout_pip_freeze is prefetched above because it is slow
+        remote_libs = stdout_pip_freeze.readlines()
+        for lib in _LIBS_TO_INSTALL:
+            if not lib.check_if_installed(remote_libs):
+                lib.install(self.ssh)
 
-            # Install the framework and libraries on the remote computer
-            lib_paths = ["~/framework/lib/redis",
-                         "~/framework/lib/libtubojpeg/PyTurboJPEG-master",
-                         "~/framework",
-                         ]
-
-            lib_install = ["pip install --user redis-3.5.3-py2.py3-none-any.whl",
-                           "pip install --user .",
-                           "pip install --user -e .",
-                           ]
-
-            for path, target in zip(lib_paths, lib_install):
-                stdin, stdout, stderr = self.ssh.exec_command("cd {} && {}".format(path, target))
-
-                out = stdout.readlines()
-                if len(out) > 0:
-                    print(out[-1], end="")
-
-                err = stderr.readlines()
-                if len(err) > 0:
-                    print("".join(err))
-                    print("Command:", "cd {} && {}".format(path, target))
-                    raise RuntimeError(
-                        "Error while installing library on remote device. Please consult manual installation instructions.")
-
-            # Remove signatures from the remote computer
-            # add own signature to the remote computer
-            self.ssh.exec_command('rm /tmp/sic_version_signature_*')
-            self.ssh.exec_command('touch {}'.format(framework_signature))
+        # Remove signatures from the remote computer
+        # add own signature to the remote computer
+        self.ssh.exec_command('rm ~/framework/sic_version_signature_*')
+        self.ssh.exec_command('touch {}'.format(framework_signature))
 
     def _get_connector(self, component_connector):
         """
@@ -161,3 +196,22 @@ class SICDevice(object):
                     component_connector.component_class.get_component_name(), self.ip))
         return self.connectors[component_connector]
 
+
+if __name__ == '__main__':
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # allow_agent=False, look_for_keys=False to disable asking for keyring (just use the password)
+    ssh.connect("192.168.0.151", port=22, username="nao", password="nao", timeout=5, allow_agent=False,
+                look_for_keys=False)
+
+    # Unzip the file on the remote server
+    stdin, stdout, stderr = ssh.exec_command("apt update")
+
+    for i in range(10):
+        line = stdout.readline()
+        print(line)
+        print(stderr.readline())
+        # empty line means command is done
+        if len(line) == 0:
+            break
+        time.sleep(1)

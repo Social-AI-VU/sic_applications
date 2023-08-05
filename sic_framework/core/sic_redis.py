@@ -46,9 +46,10 @@ class CallbackThread:
         self.thread = thread
 
 
-
 # keep track of all redis instances, so we can close them on exit
 _sic_redis_instances = []
+
+
 def cleanup_on_exit():
     for s in _sic_redis_instances:
         s.close()
@@ -63,6 +64,14 @@ def cleanup_on_exit():
 
 atexit.register(cleanup_on_exit)
 
+
+def get_redis_db_ip_password():
+    """
+    Get the redis db ip and password from environment variables. If not set, use default values.
+    """
+    host = os.getenv('DB_IP', "127.0.0.1")
+    password = os.getenv('DB_PASS', "changemeplease")
+    return host, password
 
 
 class SICRedis:
@@ -82,8 +91,7 @@ class SICRedis:
         self._running_callbacks = []
 
         # we assume that a password is required
-        host = os.getenv('DB_IP', "127.0.0.1")
-        password = os.getenv('DB_PASS', "changemeplease")
+        host, password = get_redis_db_ip_password()
 
         # Let's try to connect first without TLS / working without TLS facilitates simple use of redis-cli
         try:

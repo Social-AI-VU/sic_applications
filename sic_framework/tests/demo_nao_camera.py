@@ -10,7 +10,7 @@ def on_image(image_message: CompressedImageMessage):
     imgs.put(image_message.image)
 
 
-nao = Nao(ip="192.168.0.210")
+nao = Nao(ip="192.168.0.151")
 nao.top_camera.register_callback(on_image)
 
 while True:

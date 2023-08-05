@@ -61,12 +61,14 @@ class SICComponentManager(object):
         # to wait for this. New messages will be buffered by redis. The component manager listens to
         self.redis.register_request_handler(self.ip, self._handle_request)
 
-        self.logger.info('Starting component manager on ip "{}" with components:'.format(self.ip))
+        # TODO FIXME
+        # self._sync_time()
+
+
+        self.logger.info('Started component manager on ip "{}" with components:'.format(self.ip))
         for c in self.component_classes.values():
             self.logger.info(" - {}".format(c.get_component_name()))
 
-        # TODO FIXME
-        # self._sync_time()
 
         self.ready_event.set()
         if auto_serve:
@@ -158,8 +160,9 @@ class SICComponentManager(object):
                                         )
             self.active_components.append(component)
 
-            # TODO daemon could be set to true, but then the component cannot clean up properly
-            thread = threading.Thread(target=component._start, daemon=False)
+            # TODO daemon=False could be set to true, but then the component cannot clean up properly
+            # but also not available in python2
+            thread = threading.Thread(target=component._start)
             thread.name = component_class.get_component_name()
             thread.start()
 
