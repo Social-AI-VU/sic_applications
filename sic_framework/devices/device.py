@@ -114,8 +114,10 @@ class SICDevice(object):
             "/conf",
             "/lib",
             "/sic_framework/core",
-            "/sic_framework/devices"
+            "/sic_framework/devices",
+            "/sic_framework/__init__.py",
         ]
+
 
         last_modified = self.get_last_modified(root, selected_files)
 
@@ -161,7 +163,7 @@ class SICDevice(object):
                     "\n\nError while extracting library on remote device. Please consult manual installation instructions.")
 
             # Remove the zipped file
-            self.ssh.exec_command("rm ~/framework/sic_files.zip")
+            self.ssh.exec_command("rm ~/framework/sic_files.tar.gz")
 
         # Check and/or install the framework and libraries on the remote computer
         print("Checking if libraries are installed on the remote device.")

@@ -17,28 +17,11 @@ class Pepper(Naoqi):
                  stereo_camera_conf=None,
                  depth_camera_conf=None,
                  **kwargs):
-        super(Pepper, self).__init__(ip, username="nao", password="nao", **kwargs)
+        super().__init__(ip, robot_type="pepper", username="nao", password="pepper", **kwargs)
 
         self.configs[StereoPepperCamera] = stereo_camera_conf
         self.configs[DepthPepperCamera] = depth_camera_conf
 
-        self.auto_install()
-
-        stop_cmd = """
-        pkill -f "python2 pepper.py"
-        """
-
-        start_cmd = """
-        export PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages; \
-        export LD_LIBRARY_PATH=/opt/aldebaran/lib/naoqi; \
-        cd ~/framework/sic_framework/devices; \
-        echo 'Starting SIC on NAOv6';\
-        python2 pepper.py --redis_ip={redis_host}; 
-        """.format(redis_host=os.environ['DB_IP'])
-
-        self.ssh.exec_command(stop_cmd)
-        time.sleep(.1)
-        self.ssh.exec_command(start_cmd)
 
     @property
     def stereo_camera(self):
