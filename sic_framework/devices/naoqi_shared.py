@@ -101,6 +101,8 @@ class Naoqi(SICDevice):
 
         print("Starting SIC on {} with redis ip {}".format(robot_type, redis_hostname))
 
+        # Wait 3 seconds for SIC to be started
+        time.sleep(3)
 
         # # wait for SIC to start
         # for i in range(200):
