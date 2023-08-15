@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.devices.common_naoqi.naoqi_camera import StereoPepperCamera, DepthPepperCamera, \
@@ -11,15 +12,16 @@ class Pepper(Naoqi):
     """
     Wrapper for Pepper device to easily access its components (connectors)
     """
+
     def __init__(self, ip,
                  stereo_camera_conf=None,
                  depth_camera_conf=None,
-                 **kwargs
-                 ):
-        super().__init__(ip, **kwargs)
+                 **kwargs):
+        super().__init__(ip, robot_type="pepper", username="nao", password="pepper", **kwargs)
 
         self.configs[StereoPepperCamera] = stereo_camera_conf
         self.configs[DepthPepperCamera] = depth_camera_conf
+
 
     @property
     def stereo_camera(self):

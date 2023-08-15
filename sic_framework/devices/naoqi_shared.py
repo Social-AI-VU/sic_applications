@@ -1,3 +1,10 @@
+from __future__ import print_function
+
+import sys
+import threading
+import time
+
+from sic_framework.core import sic_redis, utils
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoqiAutonomousActuator, NaoqiAutonomous
 from sic_framework.devices.common_naoqi.naoqi_leds import NaoqiLEDs, \
     NaoqiLEDsActuator
@@ -36,6 +43,7 @@ class Naoqi(SICDevice):
     __metaclass__ = ABCMeta
 
     def __init__(self, ip,
+                 robot_type,
                  top_camera_conf=None,
                  bottom_camera_conf=None,
                  mic_conf=None,
@@ -45,8 +53,11 @@ class Naoqi(SICDevice):
                  motion_stream_conf=None,
                  stiffness_conf=None,
                  speaker_conf=None,
+                 username=None, password=None,
                  ):
-        super().__init__(ip)
+        super().__init__(ip, username=username, password=password,)
+
+        # Set the component configs
 
         self.configs[NaoqiTopCamera] = top_camera_conf
         self.configs[NaoqiBottomCamera] = bottom_camera_conf
@@ -57,6 +68,74 @@ class Naoqi(SICDevice):
         self.configs[NaoqiMotionStreamer] = motion_stream_conf
         self.configs[NaoqiStiffness] = stiffness_conf
         self.configs[NaoqiSpeaker] = speaker_conf
+
+        assert robot_type in ["nao", "pepper"], "Robot type must be either 'nao' or 'pepper'"
+
+        self.auto_install()
+
+        redis_hostname, _ = sic_redis.get_redis_db_ip_password()
+
+        if redis_hostname == "127.0.0.1" or redis_hostname == "localhost":
+            # get own public ip address for the device to use
+            redis_hostname = utils.get_ip_adress()
+
+        stop_cmd = """
+                pkill -f "python2 {}.py"
+                """.format(robot_type)
+
+        start_cmd = """
+                export PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages; \
+                export LD_LIBRARY_PATH=/opt/aldebaran/lib/naoqi; \
+                cd ~/framework/sic_framework/devices; \
+                echo 'Robot: Starting SIC';\
+                python2 {robot_type}.py --redis_ip={redis_host}; 
+                """.format(robot_type=robot_type, redis_host=redis_hostname)
+
+        self.ssh.exec_command(stop_cmd)
+        time.sleep(.1)
+
+        # on_windows = sys.platform == 'win32'
+        # use_pty = not on_windows
+
+        stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=False)
+
+        print("Starting SIC on {} with redis ip {}".format(robot_type, redis_hostname))
+
+        # Wait 3 seconds for SIC to be started
+        time.sleep(3)
+
+        # # wait for SIC to start
+        # for i in range(200):
+        #     line = stdout.readline()
+        #
+        #     if "Started component manager" in line:
+        #         break
+        #     time.sleep(.01)
+        # else:
+        #     raise RuntimeError("Could not start SIC")
+
+        def check_if_exit():
+            status = stdout.channel.recv_exit_status()
+            print(status)
+
+            # flush the buffers
+            print("".join(stdout.readlines()))
+            err = "| ".join(stderr.readlines())
+            if len(err) > 0:
+                print(err, end="")
+                print("| Note: Error messages is from remote process")
+            raise RuntimeError("Remote SIC program has stopped unexpectedly")
+
+
+
+
+        thread = threading.Thread(target=check_if_exit)
+        thread.name = "remote_SIC_process_monitor"
+        thread.start()
+
+        print("TODO NO LOGGING OR ERROR HANDLING IS SET WHEN REMOTE PROCESS FAILS")
+
+
 
     @property
     def top_camera(self):

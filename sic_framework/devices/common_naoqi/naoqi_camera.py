@@ -213,4 +213,4 @@ class DepthPepperCamera(SICConnector):
 
 
 if __name__ == '__main__':
-    SICComponentManager([NaoqiTopCameraSensor, NaoqiBottomCameraSensor, StereoPepperCameraSensor, DepthPepperCameraSensor])
+    SICComponentManager([NaoqiTopCameraSensor, NaoqiBottomCameraSensor])

@@ -21,14 +21,15 @@ Blocking:
     ## DEVICE B
         reply = r.request("my_channel", NamedRequest("req_handling"), timeout=5)
 
-Note: You can send a non blocking request by sending with send_message("channel", SICRequest()), but this
+Note: You can send a non-blocking request by sending with send_message("channel", SICRequest()), but this
 is somewhat discouraged as it may lead to harder to understand behaviour. The same goes for sending messages
 to request handlers with
 
 """
-
+import atexit
 import os
 import threading
+import time
 
 import redis
 import six
@@ -43,6 +44,34 @@ class CallbackThread:
         self.function = function
         self.pubsub = pubsub
         self.thread = thread
+
+
+# keep track of all redis instances, so we can close them on exit
+_sic_redis_instances = []
+
+
+def cleanup_on_exit():
+    for s in _sic_redis_instances:
+        s.close()
+
+    time.sleep(.2)
+    if len([x.is_alive() for x in threading.enumerate()]) > 1:
+        print("Left over threads:")
+        for thread in threading.enumerate():
+            if thread.is_alive() and thread.name != "SICRedisCleanup":
+                print(thread.name, " is still alive")
+
+
+atexit.register(cleanup_on_exit)
+
+
+def get_redis_db_ip_password():
+    """
+    Get the redis db ip and password from environment variables. If not set, use default values.
+    """
+    host = os.getenv('DB_IP', "127.0.0.1")
+    password = os.getenv('DB_PASS', "changemeplease")
+    return host, password
 
 
 class SICRedis:
@@ -62,28 +91,33 @@ class SICRedis:
         self._running_callbacks = []
 
         # we assume that a password is required
-        host = os.getenv('DB_IP', "127.0.0.1")
-        password = os.getenv('DB_PASS', "changemeplease")
+        host, password = get_redis_db_ip_password()
 
         # Let's try to connect first without TLS / working without TLS facilitates simple use of redis-cli
         try:
             self._redis = redis.Redis(host=host, ssl=False, password=password)
-            self._redis.ping()
         except redis.exceptions.AuthenticationError:
             # redis is running without a password, do not supply it.
             self._redis = redis.Redis(host=host, ssl=False)
-            self._redis.ping()
         except redis.exceptions.ConnectionError as e:
             # Must be a connection error; so now let's try to connect with TLS
             ssl_ca_certs = os.path.join(os.path.dirname(__file__), 'cert.pem')
             print('TLS required. Looking for certificate here:', ssl_ca_certs, "(Source error {})".format(e))
             self._redis = redis.Redis(host=host, ssl=True, ssl_ca_certs=ssl_ca_certs, password=password)
 
+        try:
+            self._redis.ping()
+        except redis.exceptions.ConnectionError:
+            e = Exception("Could not connect to redis at {} \n\n Have you started redis? Use: `redis-server conf/redis/redis.conf`".format(host))
+            six.raise_from(e, None)
+
         # To be set by any component that requires exceptions in the callback threads to be logged to somewhere
         self.parent_logger = None
 
         # service name (assigned to thread to help debugging)
         self.service_name = parent_name
+
+        _sic_redis_instances.append(self)
 
     def register_message_handler(self, channels, callback, ignore_requests=True):
         """
@@ -127,7 +161,7 @@ class SICRedis:
 
         # sleep_time is how often the thread checks if the connection is still alive (and checks the stop condition),
         # if it is 0.0 it can never time out. It can receive messages much faster, so be nice to the CPU.
-        thread = pubsub.run_in_thread(sleep_time=0.1)
+        thread = pubsub.run_in_thread(sleep_time=0.1, daemon=True)
 
         if self.service_name:
             thread.name = "{}_callback_thread".format(self.service_name)

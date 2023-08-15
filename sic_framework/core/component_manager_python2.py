@@ -37,7 +37,7 @@ class SICComponentManager(object):
     # Number of seconds we wait at most for a component to start
     COMPONENT_START_TIMEOUT = 10
 
-    def __init__(self, component_classes):
+    def __init__(self, component_classes, auto_serve=True):
         """
         A component manager to start components when requested by users.
         :param component_classes: List of SICService components to be started
@@ -61,15 +61,18 @@ class SICComponentManager(object):
         # to wait for this. New messages will be buffered by redis. The component manager listens to
         self.redis.register_request_handler(self.ip, self._handle_request)
 
-        self.logger.info('Starting component manager on ip "{}" with components:'.format(self.ip))
-        for c in self.component_classes.values():
-            self.logger.info(" - {}".format(c.get_component_name()))
-
         # TODO FIXME
         # self._sync_time()
 
+
+        self.logger.info('Started component manager on ip "{}" with components:'.format(self.ip))
+        for c in self.component_classes.values():
+            self.logger.info(" - {}".format(c.get_component_name()))
+
+
         self.ready_event.set()
-        self.serve()
+        if auto_serve:
+            self.serve()
 
     def serve(self):
         """
@@ -84,7 +87,7 @@ class SICComponentManager(object):
         except KeyboardInterrupt:
             pass
 
-        self.shutdown()
+        self.stop()
         print("Stopped component manager.")
 
     def _sync_time(self):
@@ -157,6 +160,8 @@ class SICComponentManager(object):
                                         )
             self.active_components.append(component)
 
+            # TODO daemon=False could be set to true, but then the component cannot clean up properly
+            # but also not available in python2
             thread = threading.Thread(target=component._start)
             thread.name = component_class.get_component_name()
             thread.start()
@@ -180,7 +185,8 @@ class SICComponentManager(object):
                 component.stop()
             return SICNotStartedMessage(e)
 
-    def shutdown(self, *args):
+    def stop(self, *args):
+        self.stop_event.set()
         print('Trying to exit manager gracefully...')
         try:
             self.redis.close()
@@ -189,4 +195,4 @@ class SICComponentManager(object):
                 # component._stop_event.set()
             print('Graceful exit was successful')
         except Exception as err:
-            print('Graceful exit has failed: {}'.format(err.message))
+            print('Graceful exit has failed: {}'.format(err))
