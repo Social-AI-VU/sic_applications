@@ -78,11 +78,18 @@ class SICDevice(object):
         self.configs = dict()
 
         if username is not None:
+            if not utils.ping_server(self.ip, port=22, timeout=3):
+                raise RuntimeError(
+                    "Could not connect to device on ip {}. Please check if it is reachable.".format(self.ip))
+
             self.ssh = paramiko.SSHClient()
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             # allow_agent=False, look_for_keys=False to disable asking for keyring (just use the password)
-            self.ssh.connect(self.ip, port=22, username=username, password=password, timeout=5, allow_agent=False,
-                             look_for_keys=False)
+            try:
+                self.ssh.connect(self.ip, port=22, username=username, password=password, timeout=3, allow_agent=False,
+                                 look_for_keys=False)
+            except paramiko.ssh_exception.AuthenticationException:
+                raise RuntimeError("Could not authenticate to device, please check ip adress and/or credentials. (Username: {} Password: {})". format(username, password))
 
     def get_last_modified(self, root, paths):
         last_modified = 0
