@@ -108,7 +108,7 @@ class SICRedis:
         try:
             self._redis.ping()
         except redis.exceptions.ConnectionError:
-            e = ConnectionError("Could not connect to redis at {} \n\n Have you started redis? Use: `redis-server conf/redis/redis.conf`".format(host))
+            e = Exception("Could not connect to redis at {} \n\n Have you started redis? Use: `redis-server conf/redis/redis.conf`".format(host))
             six.raise_from(e, None)
 
         # To be set by any component that requires exceptions in the callback threads to be logged to somewhere
