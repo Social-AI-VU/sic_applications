@@ -183,11 +183,11 @@ class SICConnector(object):
         Stop the component and disconnect the callback.
         """
         # self._redis.send_message(self._request_reply_channel, SICStopRequest())
-        print("Cleanup")
-        for ct in self._callback_threads:
-            self._redis.unregister_callback(ct)
-
-        self._redis.close()
+        if hasattr(self, "_callback_threads"):
+            for ct in self._callback_threads:
+                self._redis.unregister_callback(ct)
+        if hasattr(self, "_redis"):
+            self._redis.close()
 
     # TODO: maybe put this in constructor to do a graceful exit on crash?
     # register cleanup to disconnect redis if an exception occurs anywhere during exection
