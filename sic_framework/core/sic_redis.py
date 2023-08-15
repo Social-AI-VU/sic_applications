@@ -96,16 +96,20 @@ class SICRedis:
         # Let's try to connect first without TLS / working without TLS facilitates simple use of redis-cli
         try:
             self._redis = redis.Redis(host=host, ssl=False, password=password)
-            self._redis.ping()
         except redis.exceptions.AuthenticationError:
             # redis is running without a password, do not supply it.
             self._redis = redis.Redis(host=host, ssl=False)
-            self._redis.ping()
         except redis.exceptions.ConnectionError as e:
             # Must be a connection error; so now let's try to connect with TLS
             ssl_ca_certs = os.path.join(os.path.dirname(__file__), 'cert.pem')
             print('TLS required. Looking for certificate here:', ssl_ca_certs, "(Source error {})".format(e))
             self._redis = redis.Redis(host=host, ssl=True, ssl_ca_certs=ssl_ca_certs, password=password)
+
+        try:
+            self._redis.ping()
+        except redis.exceptions.ConnectionError:
+            e = ConnectionError("Could not connect to redis at {} \n\n Have you started redis? Use: `redis-server conf/redis/redis.conf`".format(host))
+            six.raise_from(e, None)
 
         # To be set by any component that requires exceptions in the callback threads to be logged to somewhere
         self.parent_logger = None
