@@ -30,7 +30,7 @@ def get_ip_adress():
 
 import socket
 
-def ping_server(server: str, port: int, timeout=3):
+def ping_server(server, port, timeout=3):
     """ping server"""
     try:
         socket.setdefaulttimeout(timeout)
