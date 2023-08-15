@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import threading
 import time
 
 from sic_framework.core import sic_redis, utils
@@ -85,33 +86,48 @@ class Naoqi(SICDevice):
                 export PYTHONPATH=/opt/aldebaran/lib/python2.7/site-packages; \
                 export LD_LIBRARY_PATH=/opt/aldebaran/lib/naoqi; \
                 cd ~/framework/sic_framework/devices; \
-                echo 'Starting SIC on robot';\
+                echo 'Robot: Starting SIC';\
                 python2 {robot_type}.py --redis_ip={redis_host}; 
                 """.format(robot_type=robot_type, redis_host=redis_hostname)
 
         self.ssh.exec_command(stop_cmd)
         time.sleep(.1)
+
+        #  get_pty=True linux
+        #  get_pty=False windows
         stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=True)
 
         print("Starting SIC on {} with redis ip {}".format(robot_type, redis_hostname))
 
-        # wait for SIC to start
-        while True:
-            line = stdout.readline()
-            print(line)
 
-            # empty line means command is done (which should not happen)
-            if len(line) == 0:
-                # flush the buffers
-                print("".join(stdout.readlines()))
-                err = "| ".join(stderr.readlines())
-                if len(err) > 0:
-                    print(err, end="")
-                    print("| Note: Error messages is from remote process")
-                raise RuntimeError("Remote SIC program has stopped unexpectedly")
+        # wait for SIC to start
+        for i in range(200):
+            line = stdout.readline()
 
             if "Started component manager" in line:
                 break
+            time.sleep(.01)
+        else:
+            raise RuntimeError("Could not start SIC")
+
+        def check_if_exit():
+            status = stdout.channel.recv_exit_status()
+            print(status)
+
+            # flush the buffers
+            print("".join(stdout.readlines()))
+            err = "| ".join(stderr.readlines())
+            if len(err) > 0:
+                print(err, end="")
+                print("| Note: Error messages is from remote process")
+            raise RuntimeError("Remote SIC program has stopped unexpectedly")
+
+
+
+
+        thread = threading.Thread(target=check_if_exit)
+        thread.name = "remote_SIC_process_monitor"
+        thread.start()
 
         print("TODO NO LOGGING OR ERROR HANDLING IS SET WHEN REMOTE PROCESS FAILS")
 

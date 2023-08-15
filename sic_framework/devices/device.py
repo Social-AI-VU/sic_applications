@@ -62,6 +62,13 @@ _LIBS_TO_INSTALL = [
     _SICLibrary("sic-framework", "~/framework", "pip install --user -e .")
 ]
 
+def exclude_pyc(tarinfo):
+    if tarinfo.name.endswith(".pyc"):
+        return None
+    else:
+        return tarinfo
+
+
 
 class SICDevice(object):
     """
@@ -153,7 +160,7 @@ class SICDevice(object):
             with tempfile.NamedTemporaryFile(suffix='_sic_files.tar.gz', delete=False) as f:
                 with tarfile.open(fileobj=f, mode='w:gz') as tar:
                     for file in selected_files:
-                        tar.add(root + file, arcname=file)
+                        tar.add(root + file, arcname=file, filter=exclude_pyc)
 
                 f.flush()
                 self.ssh.exec_command("mkdir ~/framework")
@@ -163,7 +170,8 @@ class SICDevice(object):
             os.unlink(f.name)
 
             # Unzip the file on the remote server
-            stdin, stdout, stderr = self.ssh.exec_command("cd framework && tar -xvf sic_files.tar.gz")
+            # use --touch to prevent files from having timestamps of 1970 which intefere with python caching
+            stdin, stdout, stderr = self.ssh.exec_command("cd framework && tar --touch -xvf sic_files.tar.gz")
 
             err = stderr.readlines()
             if len(err) > 0:
