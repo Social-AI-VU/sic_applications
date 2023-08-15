@@ -150,7 +150,7 @@ class SICDevice(object):
         with SCPClient(self.ssh.get_transport(), progress=progress) as scp:
 
             # Copy the framework to the remote computer
-            with tempfile.NamedTemporaryFile(suffix='_sic_files.tar.gz') as f:
+            with tempfile.NamedTemporaryFile(suffix='_sic_files.tar.gz', delete=False) as f:
                 with tarfile.open(fileobj=f, mode='w:gz') as tar:
                     for file in selected_files:
                         tar.add(root + file, arcname=file)
@@ -159,6 +159,8 @@ class SICDevice(object):
                 self.ssh.exec_command("mkdir ~/framework")
                 scp.put(f.name, remote_path="~/framework/sic_files.tar.gz")
                 print()  # newline after progress bar
+            # delete=False for windows compatibility, must delete file manually
+            os.unlink(f.name)
 
             # Unzip the file on the remote server
             stdin, stdout, stderr = self.ssh.exec_command("cd framework && tar -xvf sic_files.tar.gz")
