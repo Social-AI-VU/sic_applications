@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import sys
 import threading
 import time
 
@@ -93,9 +94,10 @@ class Naoqi(SICDevice):
         self.ssh.exec_command(stop_cmd)
         time.sleep(.1)
 
-        #  get_pty=True linux
-        #  get_pty=False windows
-        stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=True)
+        on_windows = sys.platform == 'win32'
+        use_pty = not on_windows
+
+        stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=use_pty)
 
         print("Starting SIC on {} with redis ip {}".format(robot_type, redis_hostname))
 
