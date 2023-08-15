@@ -94,23 +94,23 @@ class Naoqi(SICDevice):
         self.ssh.exec_command(stop_cmd)
         time.sleep(.1)
 
-        on_windows = sys.platform == 'win32'
-        use_pty = not on_windows
+        # on_windows = sys.platform == 'win32'
+        # use_pty = not on_windows
 
-        stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=use_pty)
+        stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=False)
 
         print("Starting SIC on {} with redis ip {}".format(robot_type, redis_hostname))
 
 
-        # wait for SIC to start
-        for i in range(200):
-            line = stdout.readline()
-
-            if "Started component manager" in line:
-                break
-            time.sleep(.01)
-        else:
-            raise RuntimeError("Could not start SIC")
+        # # wait for SIC to start
+        # for i in range(200):
+        #     line = stdout.readline()
+        #
+        #     if "Started component manager" in line:
+        #         break
+        #     time.sleep(.01)
+        # else:
+        #     raise RuntimeError("Could not start SIC")
 
         def check_if_exit():
             status = stdout.channel.recv_exit_status()
