@@ -5,7 +5,7 @@ requirements = ['numpy', 'redis', 'Pillow', 'six',]
 
 if six.PY3:
     # cannot be installed on nao
-    requirements += ["paramiko", ]
+    requirements += ["paramiko", "scp"]
 
 setup(
     name='sic_framework',
