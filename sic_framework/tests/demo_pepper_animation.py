@@ -1,22 +1,24 @@
 import time
 
+from sic_framework.devices import Pepper, Nao
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoRestRequest, NaoqiAutonomous
 from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotion, NaoPostureRequest, NaoqiAnimationRequest
 
-motion = NaoqiMotion(ip="192.168.0.148")
+
+robot = Pepper(ip="10.15.3.226")
+
 
 a = NaoPostureRequest("Stand", .5)
 
-reply = motion.request(a)
+reply = robot.motion.request(a)
 
 
 print("Saying yes!")
-motion.request(NaoqiAnimationRequest("animations/Stand/Gestures/Hey_3"))
+robot.motion.request(NaoqiAnimationRequest("animations/Stand/Gestures/Hey_3"))
 
 
 
 
-autonomous = NaoqiAutonomous(ip="192.168.0.148")
-
+# set the robot to rest mode.
 a = NaoRestRequest()
-autonomous.request(a)
+robot.autonomous.request(a)
