@@ -97,7 +97,6 @@ class Naoqi(SICDevice):
 
         # wait for SIC to start
         while True:
-            print("-")
             line = stdout.readline()
             print(line)
 
@@ -115,7 +114,6 @@ class Naoqi(SICDevice):
                 break
 
         print("TODO NO LOGGING OR ERROR HANDLING IS SET WHEN REMOTE PROCESS FAILS")
-        print(f"break py2")
 
 
 
