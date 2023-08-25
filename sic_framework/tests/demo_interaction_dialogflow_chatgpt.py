@@ -15,9 +15,9 @@ from sic_framework.devices.common_naoqi.naoqi_motion import NaoPostureRequest, N
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest, NaoqiTextToSpeech
-from sic_framework.services.dialogflow.dialogflow import Dialogflow, DialogflowConf, GetIntentRequest
+from sic_framework.services.dialogflow.dialogflow import Dialogflow, DialogflowConf, GetIntentRequest, RecognitionResult, QueryResult
 from sic_framework.services.face_recognition_dnn.face_recognition import DNNFaceRecognition
-
+from sic_framework.services.openai_gpt.gpt import GPTConf, GPT, GPTRequest, GPTResponse
 
 """
 Data buffers. We need to store the data received in callbacks somewhere.
@@ -47,12 +47,6 @@ def display(image_message):
     cv2.imshow('TopCamera', image)
     cv2.waitKey(1)
 
-def on_dialog(message):
-    if message.response:
-        # print(message.response.recognition_result.transcript)
-        if message.response.recognition_result.is_final:
-            print("Transcript:", message.response.recognition_result.transcript)
-
 
 
 def on_faces(message: BoundingBoxesMessage):
@@ -80,8 +74,11 @@ keyfile_json = json.load(open("dialogflow-test-project-wiggers.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000,)
 
 dialogflow = Dialogflow(ip='localhost', conf=conf)
-dialogflow.register_callback(on_dialog)
 dialogflow.connect(robot.mic)
+
+# Setup GPT
+conf = GPTConf(openai_key=openai_key)
+gpt = GPT(conf=conf)
 
 
 
@@ -92,17 +89,20 @@ face_rec.connect(robot.top_camera)
 print(" -- Ready -- ")
 
 x = np.random.randint(10000)
+context = ["You are a robot called pepper. You can help people to do things, like help them find the coffee machine. Only reply as if you were replying to them."
+           "The coffee machine is in the hall next to the sink."]
 
-for i in range(1000):
+for i in range(10):
     print(" ----- Conversation turn", i)
     reply = dialogflow.request(GetIntentRequest(x))
 
-    if reply.response.query_result.fulfillment_messages:
-        text = str(reply.response.query_result.fulfillment_messages[0].text.text[0])
+    transcript = reply.response.query_result.query_text
+    print("Transcript:", transcript)
 
-        print("REPLY", text)
+    text = gpt.request(GPTRequest(transcript, context_messages=context))
+    print("Reply:", text.response)
 
-        robot.tts.request(NaoqiTextToSpeechRequest(text))
+    robot.tts.request(NaoqiTextToSpeechRequest(text.response))
 
 
 

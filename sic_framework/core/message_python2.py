@@ -366,6 +366,7 @@ class Audio(object):
 
     def __init__(self, waveform, sample_rate):
         self.sample_rate = sample_rate
+        assert isinstance(waveform, bytes) or isinstance(waveform, bytearray), "Waveform must be a byte array"
         self.waveform = waveform
 
 

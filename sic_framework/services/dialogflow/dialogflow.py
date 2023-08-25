@@ -232,6 +232,10 @@ class DialogflowComponent(SICComponent):
 
             while not self.message_was_final.is_set():
                 chunk = self.audio_buffer.get()
+
+                if isinstance(chunk, bytearray):
+                    chunk = bytes(chunk)
+
                 yield dialogflow.StreamingDetectIntentRequest(input_audio=chunk)
 
             # unset flag for next loop
