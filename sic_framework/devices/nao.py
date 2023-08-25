@@ -18,7 +18,7 @@ class Nao(Naoqi):
     """
 
     def __init__(self, ip, **kwargs):
-        super(Nao, self).__init__(ip, robot_type="nao", username="nao", password="nao", **kwargs)
+        super(Nao, self).__init__(ip, robot_type="nao", username="nao", passwords="nao", **kwargs)
 
 
 

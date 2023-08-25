@@ -1,10 +1,10 @@
 from __future__ import print_function
 
-import sys
 import threading
 import time
 
 from sic_framework.core import sic_redis, utils
+from sic_framework.core.utils import MAGIC_STARTED_COMPONENT_MANAGER_TEXT
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoqiAutonomousActuator, NaoqiAutonomous
 from sic_framework.devices.common_naoqi.naoqi_leds import NaoqiLEDs, \
     NaoqiLEDsActuator
@@ -53,9 +53,9 @@ class Naoqi(SICDevice):
                  motion_stream_conf=None,
                  stiffness_conf=None,
                  speaker_conf=None,
-                 username=None, password=None,
+                 username=None, passwords=None,
                  ):
-        super().__init__(ip, username=username, password=password,)
+        super().__init__(ip, username=username, passwords=passwords, )
 
         # Set the component configs
 
@@ -97,41 +97,48 @@ class Naoqi(SICDevice):
         # on_windows = sys.platform == 'win32'
         # use_pty = not on_windows
 
-        stdin, stdout, stderr = self.ssh.exec_command(start_cmd, get_pty=False)
+        stdin, stdout, _ = self.ssh.exec_command(start_cmd, get_pty=False)
+        # merge stderr to stdout to simplify (and prevent potential deadlock as stderr is not read)
+        stdout.channel.set_combine_stderr(True)
 
         print("Starting SIC on {} with redis ip {}".format(robot_type, redis_hostname))
+        self.logfile = open("sic.log", "w")
 
-
-        # # wait for SIC to start
-        # for i in range(200):
-        #     line = stdout.readline()
-        #
-        #     if "Started component manager" in line:
-        #         break
-        #     time.sleep(.01)
-        # else:
-        #     raise RuntimeError("Could not start SIC")
-
+        # Set up error monitoring
         def check_if_exit():
+            # wait for the process to exit
             status = stdout.channel.recv_exit_status()
-            print(status)
+            # if remote threads exits before local main thread, report to user.
+            if threading.main_thread().is_alive():
+                raise RuntimeError("Remote SIC program has stopped unexpectedly.\nSee sic.log for details")
 
-            # flush the buffers
-            print("".join(stdout.readlines()))
-            err = "| ".join(stderr.readlines())
-            if len(err) > 0:
-                print(err, end="")
-                print("| Note: Error messages is from remote process")
-            raise RuntimeError("Remote SIC program has stopped unexpectedly")
-
-
-
-
-        thread = threading.Thread(target=check_if_exit)
+        thread = threading.Thread(target=check_if_exit, daemon=True)
         thread.name = "remote_SIC_process_monitor"
         thread.start()
 
-        print("TODO NO LOGGING OR ERROR HANDLING IS SET WHEN REMOTE PROCESS FAILS")
+        # wait for 3 seconds for SIC to start
+        for i in range(300):
+            line = stdout.readline()
+            self.logfile.write(line)
+
+            if MAGIC_STARTED_COMPONENT_MANAGER_TEXT in line:
+                break
+            time.sleep(.01)
+        else:
+            raise RuntimeError("Could not start SIC on remote device\nSee sic.log for details")
+
+        # write the remaining output to the logfile
+        def write_logs():
+            for line in stdout:
+                self.logfile.write(line)
+
+        thread = threading.Thread(target=write_logs, daemon=True)
+        thread.name = "remote_SIC_process_log_writer"
+        thread.start()
+
+
+
+
 
 
 
@@ -179,6 +186,8 @@ class Naoqi(SICDevice):
     def speaker(self):
         return self._get_connector(NaoqiSpeaker)
 
+    def __del__(self):
+        self.logfile.close()
 
 
 if __name__ == "__main__":
