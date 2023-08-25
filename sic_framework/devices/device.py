@@ -76,7 +76,13 @@ class SICDevice(object):
     This way components of a device can easily be used without initializing all device components manually.
     """
 
-    def __init__(self, ip, username=None, password=None):
+    def __init__(self, ip, username=None, passwords=None):
+        """
+        Connect to the device and ensure an up to date version of the framework is installed
+        :param ip: the ip adress of the device
+        :param username: the ssh login name
+        :param passwords: the (list) of passwords to use
+        """
         self.ip = ip
 
         # TODO ping device manager to quickly fail if ip is incorrect
@@ -85,6 +91,10 @@ class SICDevice(object):
         self.configs = dict()
 
         if username is not None:
+
+            if not isinstance(passwords, list):
+                passwords = [passwords]
+
             if not utils.ping_server(self.ip, port=22, timeout=3):
                 raise RuntimeError(
                     "Could not connect to device on ip {}. Please check if it is reachable.".format(self.ip))
@@ -92,11 +102,17 @@ class SICDevice(object):
             self.ssh = paramiko.SSHClient()
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             # allow_agent=False, look_for_keys=False to disable asking for keyring (just use the password)
-            try:
-                self.ssh.connect(self.ip, port=22, username=username, password=password, timeout=3, allow_agent=False,
-                                 look_for_keys=False)
-            except paramiko.ssh_exception.AuthenticationException:
-                raise RuntimeError("Could not authenticate to device, please check ip adress and/or credentials. (Username: {} Password: {})". format(username, password))
+            for p in passwords:
+                try:
+                    self.ssh.connect(self.ip, port=22, username=username, password=p, timeout=3, allow_agent=False,
+                                     look_for_keys=False)
+                    break
+                except (paramiko.ssh_exception.AuthenticationException, paramiko.ssh_exception.BadAuthenticationType):
+                    pass
+            else:
+                raise paramiko.ssh_exception.AuthenticationException(
+                    "Could not authenticate to device, please check ip adress and/or credentials. (Username: {} Passwords: {})".format(
+                        username, passwords))
 
     def get_last_modified(self, root, paths):
         last_modified = 0

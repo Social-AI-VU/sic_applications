@@ -8,6 +8,7 @@ import six
 
 PYTHON_VERSION_IS_2 = sys.version_info[0] < 3
 
+MAGIC_STARTED_COMPONENT_MANAGER_TEXT = "Started component manager"
 
 def get_ip_adress():
     """

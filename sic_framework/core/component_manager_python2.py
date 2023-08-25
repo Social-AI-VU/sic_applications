@@ -5,7 +5,7 @@ from signal import signal, SIGTERM, SIGINT
 from sys import exit
 
 import sic_framework.core.sic_logging
-from sic_framework.core.utils import is_sic_instance
+from sic_framework.core.utils import is_sic_instance, MAGIC_STARTED_COMPONENT_MANAGER_TEXT
 
 from . import utils, sic_logging
 from .message_python2 import SICMessage, SICStopRequest, SICRequest, SICIgnoreRequestMessage, SICSuccessMessage
@@ -64,11 +64,9 @@ class SICComponentManager(object):
         # TODO FIXME
         # self._sync_time()
 
-
-        self.logger.info('Started component manager on ip "{}" with components:'.format(self.ip))
+        self.logger.info(MAGIC_STARTED_COMPONENT_MANAGER_TEXT + ' on ip "{}" with components:'.format(self.ip))
         for c in self.component_classes.values():
             self.logger.info(" - {}".format(c.get_component_name()))
-
 
         self.ready_event.set()
         if auto_serve:
@@ -147,7 +145,7 @@ class SICComponentManager(object):
         :return: the SICStartedServiceInformation with the information to connect to the started component.
         """
 
-        component_class = self.component_classes[request.component_name] # SICComponent
+        component_class = self.component_classes[request.component_name]  # SICComponent
 
         component = None
         try:
@@ -171,7 +169,8 @@ class SICComponentManager(object):
 
             if component._ready_event.is_set() is False:
                 self.logger.error(
-                    "Component {} refused to start within {} seconds!".format(component.get_component_name(), component.COMPONENT_STARTUP_TIMEOUT))
+                    "Component {} refused to start within {} seconds!".format(component.get_component_name(),
+                                                                              component.COMPONENT_STARTUP_TIMEOUT))
                 # Todo do something!
 
             # inform the user their component has started
@@ -180,7 +179,7 @@ class SICComponentManager(object):
             return reply
 
         except Exception as e:
-            self.logger.exception(e) # maybe not needed if already sending back a not started message
+            self.logger.exception(e)  # maybe not needed if already sending back a not started message
             if component is not None:
                 component.stop()
             return SICNotStartedMessage(e)

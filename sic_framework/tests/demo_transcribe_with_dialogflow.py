@@ -6,7 +6,17 @@ import pyaudio
 
 from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.services.dialogflow.dialogflow import DialogflowConf, GetIntentRequest, Dialogflow, \
-    StopListeningMessage
+    StopListeningMessage, RecognitionResult
+
+
+"""
+NOTE: This is not the best way to transcribe audio.This demo is here for two reasons:
+
+To provide a platform independent way to test your dialogflow setup
+
+To demonstrate how to work with audio and dialogflow in the framework
+
+"""
 
 # Read the wav file
 

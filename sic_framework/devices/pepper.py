@@ -17,7 +17,7 @@ class Pepper(Naoqi):
                  stereo_camera_conf=None,
                  depth_camera_conf=None,
                  **kwargs):
-        super().__init__(ip, robot_type="pepper", username="nao", password="pepper", **kwargs)
+        super().__init__(ip, robot_type="pepper", username="nao", passwords=["pepper", "nao"], **kwargs)
 
         self.configs[StereoPepperCamera] = stereo_camera_conf
         self.configs[DepthPepperCamera] = depth_camera_conf

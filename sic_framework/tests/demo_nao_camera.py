@@ -11,11 +11,11 @@ def on_image(image_message: CompressedImageMessage):
 
 
 # nao = Nao(ip="10.15.3.90")
-nao = Pepper(ip="10.15.3.226")
+nao = Pepper(ip="192.168.0.165")
 # top_camera = NaoqiTopCamera(ip="10.15.3.226")
 nao.top_camera.register_callback(on_image)
 
-while True:
+for i in range(100):
     img = imgs.get()
     cv2.imshow('', img)
     cv2.waitKey(1)
