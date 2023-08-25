@@ -83,12 +83,9 @@ class SICDevice(object):
         :param username: the ssh login name
         :param passwords: the (list) of passwords to use
         """
-        self.ip = ip
-
-        # TODO ping device manager to quickly fail if ip is incorrect
-
         self.connectors = dict()
         self.configs = dict()
+        self.ip = ip
 
         if username is not None:
 
