@@ -23,7 +23,6 @@ from sic_framework.devices.common_naoqi.naoqi_text_to_speech import \
 from sic_framework.devices.device import SICDevice
 from abc import ABCMeta
 
-
 shared_naoqi_components = [
     NaoqiTopCameraSensor,
     NaoqiBottomCameraSensor,
@@ -135,12 +134,6 @@ class Naoqi(SICDevice):
         thread = threading.Thread(target=write_logs, daemon=True)
         thread.name = "remote_SIC_process_log_writer"
         thread.start()
-
-
-
-
-
-
 
     @property
     def top_camera(self):
