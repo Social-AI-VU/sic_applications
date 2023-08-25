@@ -57,7 +57,6 @@ class Naoqi(SICDevice):
         super().__init__(ip, username=username, passwords=passwords, )
 
         # Set the component configs
-
         self.configs[NaoqiTopCamera] = top_camera_conf
         self.configs[NaoqiBottomCamera] = bottom_camera_conf
         self.configs[NaoqiMicrophone] = mic_conf
@@ -180,7 +179,8 @@ class Naoqi(SICDevice):
         return self._get_connector(NaoqiSpeaker)
 
     def __del__(self):
-        self.logfile.close()
+        if hasattr(self, "logfile"):
+            self.logfile.close()
 
 
 if __name__ == "__main__":
