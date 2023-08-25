@@ -1,7 +1,7 @@
 from sic_framework.services.openai_gpt.gpt import GPT, GPTResponse, GPTConf, GPTRequest
 
 # Read OpenAI key from file
-with open("../../../openai_key", "rb") as f:
+with open("openai_key", "rb") as f:
     openai_key = f.read()
     openai_key = openai_key.decode("utf-8").strip()  # Decode bytes to string and remove new line character
 

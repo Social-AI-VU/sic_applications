@@ -10,7 +10,8 @@ import pyaudio
 
 from sic_framework.core import utils_cv2
 from sic_framework.core.message_python2 import CompressedImageMessage, BoundingBoxesMessage
-from sic_framework.devices.common_naoqi.naoqi_motion import NaoPostureRequest, NaoWakeUpRequest, NaoRestRequest, NaoqiMotion
+from sic_framework.devices import Pepper
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoPostureRequest, NaoqiMotion
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest, NaoqiTextToSpeech
@@ -64,30 +65,28 @@ def on_faces(message: BoundingBoxesMessage):
 
 
 
-robot_ip = '192.168.0.210'
+robot_ip = '192.168.0.165'
 
-nao_tts = NaoqiTextToSpeech(ip=robot_ip)
-motion = NaoqiMotion(ip=robot_ip)
-camera = NaoqiTopCamera(ip=robot_ip)
-camera.register_callback(display)
+robot = Pepper(robot_ip)
 
-microphone = NaoqiMicrophone(ip=robot_ip)
+robot.top_camera.register_callback(display)
 
+with open("openai_key", "r") as f:
+    openai_key = f.read().strip() #  remove new line character
 
 
 
 keyfile_json = json.load(open("dialogflow-test-project-wiggers.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000,)
 
-
 dialogflow = Dialogflow(ip='localhost', conf=conf)
 dialogflow.register_callback(on_dialog)
-dialogflow.connect(microphone)
+dialogflow.connect(robot.mic)
 
 
 
 face_rec = DNNFaceRecognition(ip='localhost')
-face_rec.connect(camera)
+face_rec.connect(robot.top_camera)
 
 
 print(" -- Ready -- ")
@@ -103,41 +102,9 @@ for i in range(1000):
 
         print("REPLY", text)
 
-        nao_tts.request(NaoqiTextToSpeechRequest(text))
+        robot.tts.request(NaoqiTextToSpeechRequest(text))
 
-    if reply.response.query_result.intent:
-        intent_name = reply.response.query_result.intent.display_name
-        print(f"INTENT '{intent_name}'")
 
-        if intent_name == "get_up":
-            motion.request(NaoPostureRequest("Stand"))
-            motion.request(NaoWakeUpRequest())
-        if intent_name == "sit_down":
-            motion.request(NaoRestRequest())
 
-        if intent_name == "remember_name":
-            name = reply.response.query_result.parameters["given-name"]
-
-            if last_seen_face_id is not None:
-                print(last_seen_face_id, "=", name)
-                face_name_memory[last_seen_face_id] = name
-            else:
-                nao_tts.request(NaoqiTextToSpeechRequest("Sorry, i cant see you"))
-
-        if intent_name == "greet":
-            if last_seen_face_id in face_name_memory:
-                text = f"Hi there {face_name_memory[last_seen_face_id]}"
-                nao_tts.request(NaoqiTextToSpeechRequest(text))
-
-            elif last_seen_face_id is not None:
-                text = f"I dont know your name, but you are person {last_seen_face_id}"
-                nao_tts.request(NaoqiTextToSpeechRequest(text))
-
-            else:
-                nao_tts.request(NaoqiTextToSpeechRequest("Sorry, i cant see you"))
-
-        if intent_name == "count_people":
-            nao_tts.request(NaoqiTextToSpeechRequest(f"I think {len(face_name_memory)}"))
-
-nao_tts.request(NaoqiTextToSpeechRequest("Nice talking to you!"))
+robot.tts.request(NaoqiTextToSpeechRequest("Nice talking to you!"))
 
