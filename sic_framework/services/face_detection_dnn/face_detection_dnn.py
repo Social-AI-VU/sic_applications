@@ -136,6 +136,6 @@ class DNNFaceDetection(SICConnector):
 
 
 if __name__ == '__main__':
-    mod = DNNFaceDetectionComponent()
-    mod._start()
-    # SICComponentManager([DNNFaceDetectionService])
+    # mod = DNNFaceDetectionComponent()
+    # mod._start()
+    SICComponentManager([DNNFaceDetectionComponent])
