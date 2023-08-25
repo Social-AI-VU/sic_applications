@@ -42,7 +42,7 @@ def on_faces(message: BoundingBoxesMessage):
 
 conf = NaoqiCameraConf(cam_id=0, res_id=2)
 
-pepper = Pepper("192.168.0.148", top_camera_conf=conf)
+pepper = Pepper("192.168.0.165", top_camera_conf=conf)
 
 #
 # pepper.motion.request(NaoqiIdlePostureRequest("Body", True))
@@ -77,9 +77,7 @@ while True:
     for face in faces:
         draw_bbox_on_image(face, img)
 
-        # TODO test less magic number (face.w / img.shape[0]) > .125
-        if face.w > 80:
-            print("WAVE")
+        if face.w > (face.w / img.shape[0]) > .125:
             pepper.stiffness.request(Stiffness(.95, chain))
             pepper.motion_record.request(PlayRecording(recording))
             pepper.stiffness.request(Stiffness(.1, chain))
