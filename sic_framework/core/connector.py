@@ -116,7 +116,7 @@ class SICConnector(object):
 
         except TimeoutError as e:
             six.raise_from(
-                TimeoutError("Could not connect to component. Is SIC running on the device (ip:{})?".format(self._ip)),
+                TimeoutError("Could not connect to {}. Is SIC running on the device (ip:{})?".format(self.component_class.get_component_name(), self._ip)),
                 None)
 
     def register_callback(self, callback):

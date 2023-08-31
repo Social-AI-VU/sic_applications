@@ -1,3 +1,6 @@
+import queue
+import pathlib
+
 import cv2
 import numpy as np
 import torch
@@ -60,9 +63,22 @@ class DNNFaceDetectionComponent(SICComponent):
         # Initialize face recognition data
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        self.model = attempt_load("yolov7-face.pt", map_location=self.device)
+        root = str(pathlib.Path(__file__).parent.resolve())
+        self.model = attempt_load(root + "/yolov7-face.pt", map_location=self.device)
 
         self.tf = torchvision.transforms.ToTensor()
+
+        self.input_message_buffer = queue.Queue()
+
+
+    def start(self):
+        super().start()
+
+        while True:
+            message = self.input_message_buffer.get()
+            bboxes = self.detect(message.image)
+            self.output_message(bboxes)
+
 
     @staticmethod
     def get_inputs():
@@ -76,8 +92,13 @@ class DNNFaceDetectionComponent(SICComponent):
         return DNNFaceDetectionConf()
 
     def on_message(self, message):
-        bboxes = self.detect(message.image)
-        self.output_message(bboxes)
+        try:
+            self.input_message_buffer.get_nowait()  # remove previous message if its still there
+        except queue.Empty:
+            pass
+        self.input_message_buffer.put(message)
+
+
 
     def on_request(self, request):
         return self.detect(request.image)

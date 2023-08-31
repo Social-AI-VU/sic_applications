@@ -8,7 +8,7 @@ from sic_framework.core.utils_cv2 import draw_bbox_on_image
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoBasicAwarenessRequest, NaoBackgroundMovingRequest, \
     NaoWakeUpRequest
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera, NaoqiCameraConf
-from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiIdlePostureRequest
+from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiIdlePostureRequest, NaoqiAnimationRequest
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, NaoqiMotionRecording, PlayRecording
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.pepper import Pepper
@@ -42,7 +42,8 @@ def on_faces(message: BoundingBoxesMessage):
 
 conf = NaoqiCameraConf(cam_id=0, res_id=2)
 
-pepper = Pepper("192.168.0.165", top_camera_conf=conf)
+# pepper = Pepper("192.168.0.165", top_camera_conf=conf)
+pepper = Pepper("10.15.3.226", top_camera_conf=conf)
 
 #
 # pepper.motion.request(NaoqiIdlePostureRequest("Body", True))
@@ -64,6 +65,7 @@ face_det.register_callback(on_faces)
 recording = NaoqiMotionRecording.load("wave.motion")
 chain = ["RArm"]
 
+
 # print("Replaying action")
 
 
@@ -78,9 +80,11 @@ while True:
         draw_bbox_on_image(face, img)
 
         if face.w > (face.w / img.shape[0]) > .125:
-            pepper.stiffness.request(Stiffness(.95, chain))
-            pepper.motion_record.request(PlayRecording(recording))
-            pepper.stiffness.request(Stiffness(.1, chain))
+            # pepper.stiffness.request(Stiffness(.95, chain))
+            # pepper.motion_record.request(PlayRecording(recording), block=False)
+            # pepper.stiffness.request(Stiffness(.1, chain))
+            pepper.motion.request(NaoqiAnimationRequest("animations/Stand/Gestures/Hey_3"), block=False)
+            
 
     cv2.imshow('', img[:,:,::-1])
     cv2.waitKey(1)

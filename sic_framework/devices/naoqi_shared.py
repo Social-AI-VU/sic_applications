@@ -77,7 +77,7 @@ class Naoqi(SICDevice):
             # get own public ip address for the device to use
             redis_hostname = utils.get_ip_adress()
 
-        stop_cmd = """
+        self.stop_cmd = """
                 pkill -f "python2 {}.py"
                 """.format(robot_type)
 
@@ -89,7 +89,7 @@ class Naoqi(SICDevice):
                 python2 {robot_type}.py --redis_ip={redis_host}; 
                 """.format(robot_type=robot_type, redis_host=redis_hostname)
 
-        self.ssh.exec_command(stop_cmd)
+        self.ssh.exec_command(self.stop_cmd)
         time.sleep(.1)
 
         # on_windows = sys.platform == 'win32'
@@ -103,11 +103,12 @@ class Naoqi(SICDevice):
         self.logfile = open("sic.log", "w")
 
         # Set up error monitoring
+        self.stopping = False
         def check_if_exit():
             # wait for the process to exit
             status = stdout.channel.recv_exit_status()
             # if remote threads exits before local main thread, report to user.
-            if threading.main_thread().is_alive():
+            if threading.main_thread().is_alive() and not self.stopping:
                 raise RuntimeError("Remote SIC program has stopped unexpectedly.\nSee sic.log for details")
 
         thread = threading.Thread(target=check_if_exit, daemon=True)
@@ -133,6 +134,11 @@ class Naoqi(SICDevice):
         thread = threading.Thread(target=write_logs, daemon=True)
         thread.name = "remote_SIC_process_log_writer"
         thread.start()
+
+    def stop(self):
+        self.stopping = True
+        self.ssh.exec_command(self.stop_cmd)
+
 
     @property
     def top_camera(self):

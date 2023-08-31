@@ -18,6 +18,7 @@ class NaoqiMicrophoneConf(SICConfMessage):
 
 
 class NaoqiMicrophoneSensor(SICSensor):
+    COMPONENT_STARTUP_TIMEOUT = 4
     def __init__(self, *args, **kwargs):
         super(NaoqiMicrophoneSensor, self).__init__(*args, **kwargs)
 
