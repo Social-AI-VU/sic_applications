@@ -125,6 +125,11 @@ class WhisperComponent(SICComponent):
         else:
             raise NotImplementedError()
             transcript = self.recognizer.recognize_whisper(audio, language="english", model=self.params.model)
+        no_speech_prob = np.mean([segment["no_speech_prob"] for segment in response['segments']])
+
+        if no_speech_prob > .5:
+            print("Whisper heard silence")
+            return Transcript("")
         print("Whisper thinks you said: " + transcript)
 
         # with wave.open(f"audio{self.i}.wav", 'wb') as f:
