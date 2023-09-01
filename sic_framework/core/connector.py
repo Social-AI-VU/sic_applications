@@ -201,4 +201,8 @@ class SICConnector(object):
 
     # TODO: maybe also helps for a graceful exit?
     def __del__(self):
-        self.stop()
+        try:
+            self.stop()
+        except Exception:
+            print("Error in clean shutdown")
+            pass
