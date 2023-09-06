@@ -41,7 +41,9 @@ def on_transcript(message: Transcript):
     print(message.transcript)
 
 
-robot = Nao(ip="192.168.0.151")
+# robot = Nao(ip="192.168.0.151")
+robot = Desktop()
+
 
 whisper = SICWhisper()
 
@@ -57,3 +59,6 @@ for i in range(10):
     transcript = whisper.request(GetTranscript())
     print("transcript", transcript.transcript)
 print("done")
+
+if __name__ == '__main__':
+    pass

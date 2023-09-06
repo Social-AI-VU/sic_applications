@@ -18,13 +18,13 @@ class WhisperConf(SICConfMessage):
     """
     Provide either an openai key or a model name to run locally
     :param openai_key: your secret OpenAI key, see https://platform.openai.com/docs/quickstart
-    :param model: OpenAI model to use, see https://platform.openai.com/docs/models
+    :param local_model: Local OpenAI model to use, see https://github.com/openai/whisper#available-models-and-languages
     """
 
-    def __init__(self, openai_key=None, model="base.en"):
+    def __init__(self, openai_key=None, local_model="base.en"):
         super(SICConfMessage, self).__init__()
         self.openai_key = openai_key
-        self.model = model
+        self.model = local_model
 
 class GetTranscript(SICRequest):
     def __init__(self, timeout=None, phrase_time_limit=None):
@@ -63,7 +63,7 @@ class RemoteAudioDevice(sr.AudioSource):
     def __init__(self, sample_rate=16000, sample_width=2, chunk_size = 2730):
         """
         This class imitates a pyaudio device to use the speech recoginizer API
-        must implement:
+        Default parameters are for NAO and Pepper
         """
         self.SAMPLE_RATE = sample_rate
         self.SAMPLE_WIDTH = sample_width
@@ -88,6 +88,8 @@ class WhisperComponent(SICComponent):
 
         self.source = RemoteAudioDevice()
 
+        self.parameters_are_inferred = False
+
         self.i = 0
 
 
@@ -108,6 +110,13 @@ class WhisperComponent(SICComponent):
 
 
     def on_message(self, message):
+
+        if not self.parameters_are_inferred:
+            self.source.SAMPLE_RATE = message.sample_rate
+            self.source.CHUNK = len(message.waveform)
+            self.parameters_are_inferred = True
+            self.logger.info("Inferred sample rate: {} and chunk size: {}".format(self.source.SAMPLE_RATE, self.source.CHUNK))
+
         self.source.stream.write(message.waveform)
 
     def on_request(self, request):
@@ -118,13 +127,14 @@ class WhisperComponent(SICComponent):
         if self.params.openai_key:
             wav_data = io.BytesIO(audio.get_wav_data())
             wav_data.name = "SpeechRecognition_audio.wav"
-
             response = openai.Audio.transcribe("whisper-1", wav_data, api_key=self.params.openai_key, language="en", response_format="verbose_json")
-            print("FULL RESPONSE", response)
-            transcript = response['text']
+
         else:
-            raise NotImplementedError()
-            transcript = self.recognizer.recognize_whisper(audio, language="english", model=self.params.model)
+            response = self.recognizer.recognize_whisper(audio, language="english", model=self.params.model, show_dict=True)
+
+        print("FULL RESPONSE", response)
+        transcript = response['text']
+
         no_speech_prob = np.mean([segment["no_speech_prob"] for segment in response['segments']])
 
         if no_speech_prob > .5:
@@ -132,12 +142,12 @@ class WhisperComponent(SICComponent):
             return Transcript("")
         print("Whisper thinks you said: " + transcript)
 
-        # with wave.open(f"audio{self.i}.wav", 'wb') as f:
-        #     f.setnchannels(1)
-        #     f.setsampwidth(2)  # number of bytes
-        #     f.setframerate(16000)
-        #     f.writeframesraw(audio.frame_data)
-        # self.i+=1
+        with wave.open(f"audio{self.i}.wav", 'wb') as f:
+            f.setnchannels(1)
+            f.setsampwidth(self.source.SAMPLE_WIDTH)  # number of bytes
+            f.setframerate(self.source.SAMPLE_RATE)
+            f.writeframesraw(audio.frame_data)
+        self.i+=1
 
         return Transcript(transcript)
 

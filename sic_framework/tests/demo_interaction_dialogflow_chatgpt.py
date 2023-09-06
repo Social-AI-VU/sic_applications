@@ -72,7 +72,7 @@ def display(image_message):
 #     faces_buffer.put(message.bboxes)
 
 
-robot_ip = '192.168.0.165'
+robot_ip = '146.50.60.32'
 conf = NaoqiCameraConf(cam_id=0, res_id=2)
 robot = Pepper(robot_ip, top_camera_conf=conf)
 
@@ -122,8 +122,8 @@ def get_google_image():
 
 
 robot.motion.request(NaoqiIdlePostureRequest("Body", True))
-robot.autonomous.request(NaoBasicAwarenessRequest(True))
-robot.autonomous.request(NaoBackgroundMovingRequest(True))
+robot.autonomous.request(NaoBasicAwarenessRequest(False))
+robot.autonomous.request(NaoBackgroundMovingRequest(False))
 robot.autonomous.request(NaoWakeUpRequest())
 
 # robot.motion.request(NaoPostureRequest("Stand"))
