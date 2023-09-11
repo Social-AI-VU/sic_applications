@@ -6,12 +6,12 @@ import time
 
 from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.core.utils import is_sic_instance
-from sic_framework.services.dialogflow.dialogflow_service import DialogflowConf, \
+from sic_framework.services.dialogflow.dialogflow import DialogflowConf, \
     GetIntentRequest, RecognitionResult, QueryResult, Dialogflow
 from sic_framework.services.webserver.webserver_pepper_tablet import Webserver, HtmlMessage, WebserverConf, TranscriptMessage, ButtonClicked
 from sic_framework.devices.common_naoqi.pepper_tablet import NaoqiTablet, UrlMessage
 from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone
-from sic_framework.devices.desktop.desktop_microphone import DesktopMicrophone
+from sic_framework.devices.common_desktop.desktop_microphone import DesktopMicrophone
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest, NaoqiTextToSpeech
 
 
@@ -73,13 +73,13 @@ def extract_and_compare_number(script, x):
             # pepper say
             text = f"The number {number} is higher than {x}, guess lower."
             print(text)
-            # nao_tts.request(NaoqiTextToSpeechRequest(text))
+            nao_tts.request(NaoqiTextToSpeechRequest(text))
             response_flag = True
 
         elif number < x:
             text = f"The number {number} is lower than {x}, guess higher."
             print(text)
-            # nao_tts.request(NaoqiTextToSpeechRequest(text))
+            nao_tts.request(NaoqiTextToSpeechRequest(text))
 
             response_flag = True
 
@@ -87,18 +87,18 @@ def extract_and_compare_number(script, x):
         elif number == x:
             text ="you got the right number"
             print(text)
-            # nao_tts.request(NaoqiTextToSpeechRequest(text))
+            nao_tts.request(NaoqiTextToSpeechRequest(text))
             response_flag = True
 
     elif number == x:
         text ="you already got the right number!!"
         print(text)
-        # nao_tts.request(NaoqiTextToSpeechRequest(text))
+        nao_tts.request(NaoqiTextToSpeechRequest(text))
 
     elif numbers_found:
         text = f"The number {number} is the same you guessed previously."
         print(text)
-        # nao_tts.request(NaoqiTextToSpeechRequest(text))
+        nao_tts.request(NaoqiTextToSpeechRequest(text))
 
     else:
         print("No number found in the script.")
@@ -112,7 +112,7 @@ def on_button_click(message):
     if is_sic_instance(message, ButtonClicked):
         if message.button:
             print("start listening")
-            # nao_tts.request(NaoqiTextToSpeechRequest("Guess a number from 1 to 10"))
+            nao_tts.request(NaoqiTextToSpeechRequest("Guess a number from 1 to 10"))
             time.sleep(2.0)
             x = np.random.randint(10000)
             for i in range(25):
@@ -127,8 +127,8 @@ def on_button_click(message):
 
 
 port = 8080
-machine_ip = '10.15.3.116'
-robot_ip = '192.168.0.165'
+machine_ip = '192.168.0.167'
+robot_ip = '192.168.0.148'
 # the HTML file to be rendered
 html_file = "demo_pepper_guess_number.html"
 web_url = f'https://{machine_ip}:{port}/'
@@ -138,17 +138,17 @@ rand_int = random.randint(1, 10)
 
 # Microphone device setup
 # local
-microphone = DesktopMicrophone(ip='localhost')
+# microphone = DesktopMicrophone(ip='localhost')
 # pepper
-# microphone = NaoqiMicrophone(ip=robot_ip)
+microphone = NaoqiMicrophone(ip=robot_ip)
 
-# NaoqiTextToSpeech setup
-# nao_tts = NaoqiTextToSpeech(ip=robot_ip)
+# # NaoqiTextToSpeech setup
+nao_tts = NaoqiTextToSpeech(ip=robot_ip)
 
 
 # NaoqiTablet setup
-# pepper_tablet = NaoqiTablet(ip=robot_ip)
-# pepper_tablet.send_message(UrlMessage(web_url))
+pepper_tablet = NaoqiTablet(ip=robot_ip)
+pepper_tablet.send_message(UrlMessage(web_url))
 
 # webserver setup
 web_conf = WebserverConf(host="0.0.0.0", port=port)
@@ -161,9 +161,9 @@ web_server.register_callback(on_button_click)
 # dialogflow setup
 keyfile_json = json.load(open("test-free-version.json"))
 # local microphone
-sample_rate_hertz = 44100
+# sample_rate_hertz = 44100
 # pepper's micriphone
-# sample_rate_hertz = 16000
+sample_rate_hertz = 16000
 
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=sample_rate_hertz)
 dialogflow = Dialogflow(ip='localhost', conf=conf)
@@ -175,3 +175,6 @@ with open(html_file) as file:
     data = file.read()
     print("sending-------------")
     web_server.send_message(HtmlMessage(data))
+
+
+time.sleep(50)
