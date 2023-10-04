@@ -5,7 +5,7 @@ import cv2
 from sic_framework.core.message_python2 import BoundingBoxesMessage
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.core.utils_cv2 import draw_bbox_on_image
-from sic_framework.devices.common_desktop.desktop_camera import DesktopCamera
+from sic_framework.devices.desktop import Desktop
 from sic_framework.services.face_detection_dnn.face_detection_dnn import DNNFaceDetection
 
 """ 
@@ -35,14 +35,14 @@ def on_faces(message: BoundingBoxesMessage):
 
 
 # Connect to the services
-camera = DesktopCamera()
+desktop = Desktop()
 face_rec = DNNFaceDetection()
 
 # Feed the camera images into the face recognition component
-face_rec.connect(camera)
+face_rec.connect(desktop.camera)
 
 # Send back the outputs to this program
-camera.register_callback(on_image)
+desktop.camera.register_callback(on_image)
 face_rec.register_callback(on_faces)
 
 while True:
