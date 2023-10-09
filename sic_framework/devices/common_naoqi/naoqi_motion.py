@@ -165,23 +165,20 @@ class NaoqiMotionActuator(SICActuator):
         return SICMessage
 
     def execute(self, request):
-        motion = request
-
-        if motion == NaoPostureRequest:
-            self.goToPosture(motion)
-        if motion == NaoqiAnimationRequest:
-            self.run_animation(motion)
-        elif motion == NaoqiIdlePostureRequest:
-            self.motion.setIdlePostureEnabled(motion.joints, motion.value)
-        elif motion == NaoqiBreathingRequest:
-            self.motion.setBreathEnabled(motion.joints, motion.value)
-
-        elif motion == NaoqiMoveRequest:
-            self.move(motion)
-        elif motion == NaoqiMoveToRequest:
-            self.moveTo(motion)
-        elif motion == NaoqiMoveTowardRequest:
-            self.moveToward(motion)
+        if request == NaoPostureRequest:
+            self.goToPosture(request)
+        if request == NaoqiAnimationRequest:
+            self.run_animation(request)
+        elif request == NaoqiIdlePostureRequest:
+            self.motion.setIdlePostureEnabled(request.joints, request.value)
+        elif request == NaoqiBreathingRequest:
+            self.motion.setBreathEnabled(request.joints, request.value)
+        elif request == NaoqiMoveRequest:
+            self.move(request)
+        elif request == NaoqiMoveToRequest:
+            self.moveTo(request)
+        elif request == NaoqiMoveTowardRequest:
+            self.moveToward(request)
 
         return SICMessage()
 
