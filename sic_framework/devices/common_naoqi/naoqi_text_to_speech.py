@@ -70,8 +70,6 @@ class NaoqiTextToSpeechActuator(SICActuator):
         if self.params.pitch_shift is not None:
             self.tts.setParameter(self.params.pitch_shift)
 
-
-
     @staticmethod
     def get_conf():
         return NaoqiTextToSpeechConf()
