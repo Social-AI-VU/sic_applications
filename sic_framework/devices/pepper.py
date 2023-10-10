@@ -1,11 +1,9 @@
 import argparse
 import os
-import time
-
 from sic_framework.core.component_manager_python2 import SICComponentManager
-from sic_framework.devices.common_naoqi.naoqi_camera import StereoPepperCamera, DepthPepperCamera, \
-    DepthPepperCameraSensor, StereoPepperCameraSensor
-from sic_framework.devices.naoqi_shared import shared_naoqi_components, Naoqi
+from sic_framework.devices.common_naoqi.naoqi_camera import (StereoPepperCamera, DepthPepperCamera,
+                                                             DepthPepperCameraSensor, StereoPepperCameraSensor)
+from sic_framework.devices.naoqi_shared import *
 from sic_framework.devices.common_naoqi.pepper_tablet import NaoqiTabletComponent, NaoqiTablet
 
 
