@@ -1,21 +1,16 @@
 from __future__ import print_function
-
-import threading
-import time
-
 from sic_framework.core import sic_redis, utils
 from sic_framework.core.utils import MAGIC_STARTED_COMPONENT_MANAGER_TEXT
-from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoqiAutonomousActuator, NaoqiAutonomous
-from sic_framework.devices.common_naoqi.naoqi_leds import NaoqiLEDs, NaoqiLEDsActuator
-from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiMotionActuator, NaoqiMotion
-from sic_framework.devices.common_naoqi.naoqi_camera import (NaoqiTopCameraSensor, NaoqiBottomCameraSensor,
-                                                             NaoqiTopCamera, NaoqiBottomCamera)
-from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone, NaoqiMicrophoneSensor
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorderActuator, NaoqiMotionRecorder
-from sic_framework.devices.common_naoqi.naoqi_motion_streamer import NaoqiMotionStreamerService, NaoqiMotionStreamer
-from sic_framework.devices.common_naoqi.naoqi_speakers import NaoqiSpeakerComponent, NaoqiSpeaker
-from sic_framework.devices.common_naoqi.naoqi_stiffness import NaoqiStiffnessActuator, NaoqiStiffness
-from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechActuator, NaoqiTextToSpeech
+from sic_framework.devices.common_naoqi.naoqi_autonomous import *
+from sic_framework.devices.common_naoqi.naoqi_leds import *
+from sic_framework.devices.common_naoqi.naoqi_motion import *
+from sic_framework.devices.common_naoqi.naoqi_camera import *
+from sic_framework.devices.common_naoqi.naoqi_microphone import *
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import *
+from sic_framework.devices.common_naoqi.naoqi_motion_streamer import *
+from sic_framework.devices.common_naoqi.naoqi_speakers import *
+from sic_framework.devices.common_naoqi.naoqi_stiffness import *
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import *
 from sic_framework.devices.device import SICDevice
 from abc import ABCMeta
 
