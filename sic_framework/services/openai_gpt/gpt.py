@@ -1,12 +1,8 @@
-import numpy as np
-
 from sic_framework import SICComponentManager, SICConfMessage
 from sic_framework.core.component_python2 import SICComponent
 from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICMessage, SICRequest
-
 import openai
-import backoff  # for exponential backoff when GPT-3 API rate limit is exceeded
 
 
 class GPTConf(SICConfMessage):
