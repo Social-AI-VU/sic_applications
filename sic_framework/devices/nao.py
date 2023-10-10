@@ -1,15 +1,8 @@
 from __future__ import print_function
-
 import argparse
 import os
-import time
-
-import six
-
-from sic_framework.core import utils, sic_redis
 from sic_framework.core.component_manager_python2 import SICComponentManager
-from sic_framework.devices.naoqi_shared import Naoqi, shared_naoqi_components
-
+from sic_framework.devices.naoqi_shared import *
 
 
 class Nao(Naoqi):
@@ -19,8 +12,6 @@ class Nao(Naoqi):
 
     def __init__(self, ip, **kwargs):
         super(Nao, self).__init__(ip, robot_type="nao", username="nao", passwords="nao", **kwargs)
-
-
 
 
 if __name__ == '__main__':
