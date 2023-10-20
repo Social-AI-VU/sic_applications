@@ -10,16 +10,17 @@ from sic_framework.devices.common_desktop.desktop_microphone import DesktopMicro
     DesktopMicrophoneSensor
 from sic_framework.devices.common_desktop.desktop_speakers import DesktopSpeakers, \
     DesktopSpeakersActuator
+from sic_framework.devices.common_desktop.desktop_text_to_speech import DesktopTextToSpeechActuator, DesktopTextToSpeech
 from sic_framework.devices.device import SICDevice
 
 desktop_active = False
 
+
 def start_desktop_components():
-    manager = SICComponentManager([DesktopMicrophoneSensor, DesktopCameraSensor, DesktopSpeakersActuator],
+    manager = SICComponentManager(desktop_component_list,
                                   auto_serve=False)
 
     atexit.register(manager.stop)
-
 
     from contextlib import redirect_stderr
     with redirect_stderr(None):
@@ -27,12 +28,13 @@ def start_desktop_components():
 
 
 class Desktop(SICDevice):
-    def __init__(self, camera_conf=None, mic_conf=None, speakers_conf=None):
+    def __init__(self, camera_conf=None, mic_conf=None, speakers_conf=None, tts_conf=None):
         super(Desktop, self).__init__(ip="127.0.0.1")
 
         self.configs[DesktopCamera] = camera_conf
         self.configs[DesktopMicrophone] = mic_conf
         self.configs[DesktopSpeakers] = speakers_conf
+        self.configs[DesktopTextToSpeech] = tts_conf
 
         global desktop_active
 
@@ -55,6 +57,13 @@ class Desktop(SICDevice):
     def speakers(self):
         return self._get_connector(DesktopSpeakers)
 
+    @property
+    def tts(self):
+        return self._get_connector(DesktopTextToSpeech)
+
+
+desktop_component_list = [DesktopMicrophoneSensor, DesktopCameraSensor, DesktopSpeakersActuator,
+                          DesktopTextToSpeechActuator]
 
 if __name__ == '__main__':
-    SICComponentManager([DesktopMicrophoneSensor, DesktopCameraSensor, DesktopSpeakersActuator])
+    SICComponentManager(desktop_component_list)
