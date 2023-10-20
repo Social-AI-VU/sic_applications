@@ -388,6 +388,29 @@ class AudioRequest(Audio, SICRequest):
         SICRequest.__init__(self)
 
 
+class Text(object):
+    """
+    A simple object with a string as text.
+    """
+    def __init__(self, text:str):
+        self.text = text
+
+class TextMessage(Text, SICMessage):
+    """
+    See Text
+    """
+    def __init__(self, *args, **kwargs):
+        Text.__init__(self, *args, **kwargs)
+        SICMessage.__init__(self)
+
+class TextRequest(Text, SICRequest):
+    """
+    See Text
+    """
+    def __init__(self, *args, **kwargs):
+        Text.__init__(self, *args, **kwargs)
+        SICRequest.__init__(self)
+
 class BoundingBox(object):
     """
     A generic class representing a single bounding box with optional identifier of the object.
