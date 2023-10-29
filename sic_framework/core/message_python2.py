@@ -392,7 +392,7 @@ class Text(object):
     """
     A simple object with a string as text.
     """
-    def __init__(self, text:str):
+    def __init__(self, text):
         self.text = text
 
 class TextMessage(Text, SICMessage):
