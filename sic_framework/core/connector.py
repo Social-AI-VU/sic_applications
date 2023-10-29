@@ -182,10 +182,10 @@ class SICConnector(object):
         """
         Stop the component and disconnect the callback.
         """
+
+        SIC_LOG_SUBSCRIBER.stop()
+
         # self._redis.send_message(self._request_reply_channel, SICStopRequest())
-        if hasattr(self, "_callback_threads"):
-            for ct in self._callback_threads:
-                self._redis.unregister_callback(ct)
         if hasattr(self, "_redis"):
             self._redis.close()
 

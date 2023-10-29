@@ -102,7 +102,7 @@ class Naoqi(SICDevice):
             if threading.main_thread().is_alive() and not self.stopping:
                 raise RuntimeError("Remote SIC program has stopped unexpectedly.\nSee sic.log for details")
 
-        thread = threading.Thread(target=check_if_exit, daemon=True)
+        thread = threading.Thread(target=check_if_exit)
         thread.name = "remote_SIC_process_monitor"
         thread.start()
 
@@ -121,12 +121,17 @@ class Naoqi(SICDevice):
         def write_logs():
             for line in stdout:
                 self.logfile.write(line)
+                if not threading.main_thread().is_alive() or self.stopping:
+                    break
 
-        thread = threading.Thread(target=write_logs, daemon=True)
+        thread = threading.Thread(target=write_logs)
         thread.name = "remote_SIC_process_log_writer"
         thread.start()
 
     def stop(self):
+        for connector in self.connectors.values():
+            connector.stop()
+
         self.stopping = True
         self.ssh.exec_command(self.stop_cmd)
 

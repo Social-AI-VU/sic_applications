@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import io
 import logging
+import threading
 
 from . import utils
 from .message_python2 import SICMessage
@@ -31,7 +32,8 @@ class SICLogSubscriber(object):
 
     def __init__(self):
         self.redis = None
-        self.started = False
+        # TODO make this a mutex
+        self.running = False
 
     def subscribe_to_log_channel_once(self):
         """
@@ -40,10 +42,10 @@ class SICLogSubscriber(object):
         :return:
         """
 
-        if not self.started:
+        if not self.running:
+            self.running = True
             self.redis = SICRedis(parent_name="SICLogSubscriber")
             self.redis.register_message_handler(get_log_channel(), self._handle_log_message)
-            self.started = True
 
 
     def _handle_log_message(self, message):
@@ -55,6 +57,11 @@ class SICLogSubscriber(object):
 
         if "ERROR" in message.msg.split(":")[1]:
             raise SICRemoteError("Error occurred, see remote stacktrace above.")
+
+    def stop(self):
+        if self.running:
+            self.running = False
+            self.redis.close()
 
 # pseudo singleton object. Does nothing when this file is executed during the import, but can subscribe to the log
 # channel for the user with subscribe_to_log_channel_once
