@@ -1,38 +1,41 @@
 import json
-import time
-
 import numpy as np
-import pyaudio
-# from sic_framework.devices.common_naoqi.nao_motion import NaoPostureRequest, NaoRestRequest
-from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
-from sic_framework.devices.nao import Nao
 
-from sic_framework.services.dialogflow.dialogflow import DialogflowConf, \
-    GetIntentRequest, RecognitionResult, QueryResult, Dialogflow
+from sic_framework.devices import Nao
+from sic_framework.devices.nao import NaoqiTextToSpeechRequest
+from sic_framework.services.dialogflow.dialogflow import (DialogflowConf, GetIntentRequest, RecognitionResult,
+                                                          QueryResult, Dialogflow)
 
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
+""" 
+This demo should have Nao picking up your intent and replying according to your trained agent using dialogflow.
+"""
 
-
+# the callback function
 def on_dialog(message):
     if message.response:
         if message.response.recognition_result.is_final:
             print("Transcript:", message.response.recognition_result.transcript)
 
+# connect to the robot
+nao = Nao(ip='192.168.178.45')
 
-nao = Nao(ip='192.168.0.191')
+# load the key json file
+keyfile_json = json.load(open("../../../dialogflow-tutorial.json"))
 
-keyfile_json = json.load(open("sail-380610-0dea39e1a452.json"))
-conf = DialogflowConf(keyfile_json=keyfile_json,
-                      sample_rate_hertz=16000, )
+# set up the config
+conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
 
+# initiate Dialogflow object
 dialogflow = Dialogflow(ip='localhost', conf=conf)
+
+# register a callback function to act upon arrival of recognition_result
 dialogflow.register_callback(on_dialog)
+
+# connect the output of Naomicrophone as the input of DialogflowComponent
 dialogflow.connect(nao.mic)
 
-nao.tts.request(NaoqiTextToSpeechRequest("Hello!"))
-
+# Demo starts
+nao.tts.request(NaoqiTextToSpeechRequest("Hello, who are you?"))
 print(" -- Ready -- ")
 x = np.random.randint(10000)
 
@@ -46,16 +49,3 @@ for i in range(25):
         text = reply.fulfillment_message
         print("Reply:", text)
         nao.tts.request(NaoqiTextToSpeechRequest(text))
-
-    if reply.intent:
-        print("Intent:", reply.intent)
-        name = reply.response.query_result.intent.display_name
-
-        if name == "Standup":
-            print("Standing up!")
-            # nao.motion.request(NaoPostureRequest("Stand"))
-        if name == "SitDown":
-            print("Sitting down!")
-            # nao.motion.request(NaoRestRequest())
-
-time.sleep(100)
