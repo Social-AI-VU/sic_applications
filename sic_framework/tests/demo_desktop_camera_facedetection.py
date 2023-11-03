@@ -10,6 +10,7 @@ from sic_framework.services.face_detection.face_detection import FaceDetection
 
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.
+
 You should have started the face detection service first with:
 [services/face_detection/] python face_detection.py
 """

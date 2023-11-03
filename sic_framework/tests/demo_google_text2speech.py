@@ -4,6 +4,12 @@ from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.text2speech.text2speech_service import Text2Speech, Text2SpeechConf, GetSpeechRequest, SpeechResult
 
+
+"""
+Google Text2Speech service should be running. You can start it with:
+[services/text2speech] python text2speech_service.py 
+"""
+
 # nao = Nao("192.168.0.191")
 
 tts_conf = Text2SpeechConf(keyfile="/Users/thomasvanorden/Documents/Carrière/Interactive_Robotics/sail-393209-95cba17732fb.json")

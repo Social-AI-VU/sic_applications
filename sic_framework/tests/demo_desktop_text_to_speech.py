@@ -4,6 +4,9 @@ from sic_framework.devices.desktop import Desktop
 
 """ 
 This demo should make your laptop say "Hello world!" with a robotic voice.
+
+Note that you must have install espeak for this demo.
+You can install it with `pip install python-espeak`
 """
 
 tts_conf = TextToSpeechConf(rate=160, pitch=55)
