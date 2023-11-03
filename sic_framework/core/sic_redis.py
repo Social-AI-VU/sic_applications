@@ -88,6 +88,7 @@ class SICRedis:
         :param parent_name: The name of the module that uses this redis connection, for easier debugging
         """
 
+        self.stopping = False
         self._running_callbacks = []
 
         # we assume that a password is required
@@ -160,9 +161,18 @@ class SICRedis:
 
         pubsub.subscribe(**{c: wrapped_callback for c in channels})
 
+        def exception_handler(e, pubsub, thread):
+            # Ignore the exception if the main program is already stopping (which trigger ValueErrors)
+            if not self.stopping:
+                raise e
+
         # sleep_time is how often the thread checks if the connection is still alive (and checks the stop condition),
-        # if it is 0.0 it can never time out. It can receive messages much faster, so be nice to the CPU.
-        thread = pubsub.run_in_thread(sleep_time=0.1, daemon=True)
+        # if it is 0.0 it can never time out. It can receive messages much faster, so lets be nice to the CPU with 0.1.
+        if six.PY2:
+            # python2 does not support exception handler, but it's not as important to provide a clean exit on the robots
+            thread = pubsub.run_in_thread(sleep_time=0.1, daemon=False)
+        else:
+            thread = pubsub.run_in_thread(sleep_time=0.1, daemon=False, exception_handler=exception_handler)
 
         if self.service_name:
             thread.name = "{}_callback_thread".format(self.service_name)
@@ -284,6 +294,7 @@ class SICRedis:
         """
         Cleanup function to stop listening to all callback channels and disconnect redis.
         """
+        self.stopping = True
         for c in self._running_callbacks:
             c.pubsub.unsubscribe()
             c.thread.stop()
