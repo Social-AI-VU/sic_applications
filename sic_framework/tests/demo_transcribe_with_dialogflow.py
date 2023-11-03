@@ -1,12 +1,13 @@
 import json
 import threading
+import time
 import wave
 
 import pyaudio
 
 from sic_framework.core.message_python2 import AudioMessage
-from sic_framework.services.dialogflow.dialogflow import DialogflowConf, GetIntentRequest, Dialogflow, \
-    StopListeningMessage, RecognitionResult
+from sic_framework.services.dialogflow.dialogflow import (DialogflowConf, GetIntentRequest, Dialogflow,
+                                                          StopListeningMessage, RecognitionResult, QueryResult)
 
 
 """
@@ -16,6 +17,8 @@ To provide a platform independent way to test your dialogflow setup
 
 To demonstrate how to work with audio and dialogflow in the framework
 
+The Dialogflow should be running. You can start it with:
+[services/dialogflow] python dialogflow.py
 """
 
 # Read the wav file
@@ -49,7 +52,7 @@ def on_dialog(message):
 
 
 # read you keyfile and connect to dialogflow
-keyfile_json = json.load(open("your_keyfile_here.json"))
+keyfile_json = json.load(open("../../../sail-393209-95cba17732fb.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json,
                       sample_rate_hertz=samplerate, )
 dialogflow = Dialogflow(conf=conf)
@@ -87,6 +90,7 @@ for i in range(wavefile.getnframes() // wavefile.getframerate()):
     message = AudioMessage(sample_rate=samplerate, waveform=chunk)
     dialogflow.send_message(message)
 
+time.sleep(1)
 dialogflow.send_message(StopListeningMessage())
 
 print("\n\n")
@@ -99,5 +103,3 @@ with open('transcript.txt', 'w') as f:
 
 output.close()
 p.terminate()
-
-

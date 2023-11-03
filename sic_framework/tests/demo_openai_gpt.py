@@ -1,5 +1,10 @@
 from sic_framework.services.openai_gpt.gpt import GPT, GPTResponse, GPTConf, GPTRequest
 
+"""
+The GPT service should be running. You can start it with:
+[services/openai_gpt/] python gpt.py 
+"""
+
 # Read OpenAI key from file
 with open("openai_key", "rb") as f:
     openai_key = f.read()

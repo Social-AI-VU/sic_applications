@@ -5,6 +5,11 @@ from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiTopCamera, NaoqiBottomCamera
 from sic_framework.tests.services.merge_images_service import MergeImages, MergeImageConf
 
+"""
+Note that the MergeImages service should be running. You can start it with:
+[tests/services/] python merge_images_service.py  
+"""
+
 imgs = queue.Queue()
 def on_image(image_message: CompressedImageMessage):
     imgs.put(image_message.image)
