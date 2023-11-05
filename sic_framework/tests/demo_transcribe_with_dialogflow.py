@@ -52,7 +52,7 @@ def on_dialog(message):
 
 
 # read you keyfile and connect to dialogflow
-keyfile_json = json.load(open("../../../sail-393209-95cba17732fb.json"))
+keyfile_json = json.load(open("your_keyfile_here"))
 conf = DialogflowConf(keyfile_json=keyfile_json,
                       sample_rate_hertz=samplerate, )
 dialogflow = Dialogflow(conf=conf)
