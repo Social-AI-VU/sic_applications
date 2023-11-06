@@ -23,7 +23,7 @@ def on_dialog(message):
 nao = Nao(ip='192.168.178.45')
 
 # load the key json file
-keyfile_json = json.load(open("../../../dialogflow-tutorial.json"))
+keyfile_json = json.load(open("dialogflow-tutorial.json"))
 
 # set up the config
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
@@ -31,11 +31,11 @@ conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
 # initiate Dialogflow object
 dialogflow = Dialogflow(ip='localhost', conf=conf)
 
+# connect the output of NaoqiMicrophone as the input of DialogflowComponent
+dialogflow.connect(nao.mic)
+
 # register a callback function to act upon arrival of recognition_result
 dialogflow.register_callback(on_dialog)
-
-# connect the output of Naomicrophone as the input of DialogflowComponent
-dialogflow.connect(nao.mic)
 
 # Demo starts
 nao.tts.request(NaoqiTextToSpeechRequest("Hello, who are you?"))
