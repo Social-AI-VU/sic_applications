@@ -5,7 +5,8 @@ from sic_framework.devices.desktop import Desktop
 """ 
 This demo should make your laptop say "Hello world!" with a robotic voice.
 
-Note that you must have install espeak for this demo.
+Note that you must have installed espeak for this demo.
+Note that Mac OS might not be supported.
 
 Linux installation instructions:
 `sudo apt-get install espeak libespeak-dev`
