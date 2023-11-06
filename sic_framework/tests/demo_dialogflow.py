@@ -8,6 +8,9 @@ from sic_framework.services.dialogflow.dialogflow import (DialogflowConf, GetInt
 
 """ 
 This demo should have Nao picking up your intent and replying according to your trained agent using dialogflow.
+
+The Dialogflow should be running. You can start it with:
+[services/dialogflow] python dialogflow.py
 """
 
 # the callback function
