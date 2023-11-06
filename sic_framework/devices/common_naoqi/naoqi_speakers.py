@@ -104,7 +104,7 @@ class NaoqiSpeakerComponent(SICComponent):
         bytestream = message.waveform
         frame_rate = message.sample_rate
 
-        self.logger.warn(bytestream)
+        # self.logger.warn(bytestream)
 
         # Set the parameters for the WAV file
         channels = 1  # 1 for mono audio

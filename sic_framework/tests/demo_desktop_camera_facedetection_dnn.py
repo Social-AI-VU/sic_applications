@@ -10,6 +10,9 @@ from sic_framework.services.face_detection_dnn.face_detection_dnn import DNNFace
 
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.
+
+You should have started the face detection service first with:
+[services/face_detection_dnn/] python face_detection_dnn.py
 """
 
 imgs_buffer = queue.Queue()
