@@ -2,6 +2,7 @@
 *.rdb
 *.p
 *.pyc
+*.log
 
 # Keep some folders
 !.keepme
