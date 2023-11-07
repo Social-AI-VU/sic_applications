@@ -1,8 +1,5 @@
 from sic_framework.core.component_python2 import SICComponent
-
-from sic_framework import utils, SICComponentManager, SICMessage, SICRequest, \
-    SICConfMessage, SICSensor
-
+from sic_framework import utils, SICComponentManager, SICMessage, SICConfMessage
 from sic_framework.core.connector import SICConnector
 
 if utils.PYTHON_VERSION_IS_2:
@@ -16,12 +13,13 @@ class NaoqiButtonMessage(SICMessage):
         http://doc.aldebaran.com/2-4/naoqi/sensors/altouch.html
 
         Examples:
-        [[“Head/Touch/Middle”, True], [“ChestBoard/Button”, True]]
-        [[“Head/Touch/Middle”, False]]
+        [[Head/Touch/Middle, True], [ChestBoard/Button, True]]
+        [[Head/Touch/Middle, False]]
         :param value: The button value
         """
         super(NaoqiButtonMessage, self).__init__()
         self.value = value
+
 
 class NaoqiButtonSensor(SICComponent):
     """
@@ -37,7 +35,6 @@ class NaoqiButtonSensor(SICComponent):
         self.memory_service = self.session.service("ALMemory")
 
         self.ids = []
-
 
     @staticmethod
     def get_conf():
@@ -61,12 +58,10 @@ class NaoqiButtonSensor(SICComponent):
         id = self.touch.signal.connect(self.onTouchChanged)
         self.ids.append(id)
 
-
     def stop(self, *args):
         for id in self.ids:
             self.touch.signal.disconnect(id)
         super(NaoqiButtonSensor, self).stop()
-
 
 
 class NaoqiButton(SICConnector):
