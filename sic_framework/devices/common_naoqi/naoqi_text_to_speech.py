@@ -29,6 +29,8 @@ class NaoqiTextToSpeechConf(SICConfMessage):
     def __init__(self, language="English", volume=None, speed=None, pitch=None, pitch_shift=None, ):
         """
         Set the parameters for the text to speech engine. If None, the default NAOqi values are used.
+        See http://doc.aldebaran.com/2-4/naoqi/audio/altexttospeech-api.html#ALTextToSpeechProxy::setParameter__ssCR.floatCR
+
         :param language: see http://doc.aldebaran.com/2-8/family/nao_technical/languages_naov6.html#language-codes-naov6
         :param volume: Sets the current gain applied to the signal synthesized by the text to speech engine if not None.
         :type volume: float
@@ -58,17 +60,20 @@ class NaoqiTextToSpeechActuator(SICActuator):
         self.tts = self.session.service('ALTextToSpeech')
         self.atts = self.session.service('ALAnimatedSpeech')
 
+        if self.params.language is not None:
+            self.tts.setLanguage(self.params.language)
+
         if self.params.volume is not None:
             self.tts.setVolume(self.params.volume)
 
         if self.params.speed is not None:
-            self.tts.setParameter(self.params.speed)
+            self.tts.setParameter("speed", self.params.speed)
 
         if self.params.pitch is not None:
-            self.tts.setParameter(self.params.pitch)
+            self.tts.setParameter("pitch", self.params.pitch)
 
         if self.params.pitch_shift is not None:
-            self.tts.setParameter(self.params.pitch_shift)
+            self.tts.setParameter("pitchShift", self.params.pitch_shift)
 
     @staticmethod
     def get_conf():
