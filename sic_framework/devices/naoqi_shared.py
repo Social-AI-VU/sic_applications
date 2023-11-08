@@ -2,6 +2,7 @@ from __future__ import print_function
 from sic_framework.core import sic_redis, utils
 from sic_framework.core.utils import MAGIC_STARTED_COMPONENT_MANAGER_TEXT
 from sic_framework.devices.common_naoqi.naoqi_autonomous import *
+from sic_framework.devices.common_naoqi.naoqi_button import NaoqiButtonSensor, NaoqiButton
 from sic_framework.devices.common_naoqi.naoqi_leds import *
 from sic_framework.devices.common_naoqi.naoqi_motion import *
 from sic_framework.devices.common_naoqi.naoqi_camera import *
@@ -26,6 +27,7 @@ shared_naoqi_components = [
     NaoqiAutonomousActuator,
     NaoqiLEDsActuator,
     NaoqiSpeakerComponent,
+    NaoqiButtonSensor,
 ]
 
 
@@ -179,6 +181,10 @@ class Naoqi(SICDevice):
     @property
     def speaker(self):
         return self._get_connector(NaoqiSpeaker)
+
+    @property
+    def buttons(self):
+        return self._get_connector(NaoqiButton)
 
     def __del__(self):
         if hasattr(self, "logfile"):
