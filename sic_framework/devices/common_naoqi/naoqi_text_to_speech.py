@@ -58,17 +58,20 @@ class NaoqiTextToSpeechActuator(SICActuator):
         self.tts = self.session.service('ALTextToSpeech')
         self.atts = self.session.service('ALAnimatedSpeech')
 
+        if self.params.language is not None:
+            self.tts.setLanguage(self.params.language)
+
         if self.params.volume is not None:
             self.tts.setVolume(self.params.volume)
 
         if self.params.speed is not None:
-            self.tts.setParameter(self.params.speed)
+            self.tts.setParameter("speed", self.params.speed)
 
         if self.params.pitch is not None:
-            self.tts.setParameter(self.params.pitch)
+            self.tts.setParameter("pitch", self.params.pitch)
 
         if self.params.pitch_shift is not None:
-            self.tts.setParameter(self.params.pitch_shift)
+            self.tts.setParameter("pitchShift", self.params.pitch_shift)
 
     @staticmethod
     def get_conf():
