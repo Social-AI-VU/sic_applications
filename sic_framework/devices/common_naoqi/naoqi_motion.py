@@ -100,7 +100,7 @@ class NaoPostureRequest(SICRequest):
 
     def __init__(self, target_posture, speed=.4):
         super(NaoPostureRequest, self).__init__()
-        options = ["Crouch", "LyingBack" "LyingBelly", "Sit", "SitRelax", "Stand", "StandInit", "StandZero"]
+        options = ["Crouch", "LyingBack", "LyingBelly", "Sit", "SitRelax", "Stand", "StandInit", "StandZero"]
         assert target_posture in options, "Invalid pose {}".format(target_posture)
         self.target_posture = target_posture
         self.speed = speed
