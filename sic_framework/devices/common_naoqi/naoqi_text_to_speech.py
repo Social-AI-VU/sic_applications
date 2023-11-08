@@ -29,6 +29,8 @@ class NaoqiTextToSpeechConf(SICConfMessage):
     def __init__(self, language="English", volume=None, speed=None, pitch=None, pitch_shift=None, ):
         """
         Set the parameters for the text to speech engine. If None, the default NAOqi values are used.
+        See http://doc.aldebaran.com/2-4/naoqi/audio/altexttospeech-api.html#ALTextToSpeechProxy::setParameter__ssCR.floatCR
+
         :param language: see http://doc.aldebaran.com/2-8/family/nao_technical/languages_naov6.html#language-codes-naov6
         :param volume: Sets the current gain applied to the signal synthesized by the text to speech engine if not None.
         :type volume: float
