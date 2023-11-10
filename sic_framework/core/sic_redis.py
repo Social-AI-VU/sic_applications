@@ -168,11 +168,11 @@ class SICRedis:
 
         # sleep_time is how often the thread checks if the connection is still alive (and checks the stop condition),
         # if it is 0.0 it can never time out. It can receive messages much faster, so lets be nice to the CPU with 0.1.
-        if six.PY2:
+        if six.PY3:
+            thread = pubsub.run_in_thread(sleep_time=0.1, daemon=False, exception_handler=exception_handler)
+        else:
             # python2 does not support exception handler, but it's not as important to provide a clean exit on the robots
             thread = pubsub.run_in_thread(sleep_time=0.1, daemon=False)
-        else:
-            thread = pubsub.run_in_thread(sleep_time=0.1, daemon=False, exception_handler=exception_handler)
 
         if self.service_name:
             thread.name = "{}_callback_thread".format(self.service_name)

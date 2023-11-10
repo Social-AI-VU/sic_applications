@@ -165,7 +165,7 @@ class NaoqiMotionActuator(SICActuator):
         return SICMessage
 
     def execute(self, request):
-        if request == NaoPostureRequest:
+        if request == NaoPostureRequest or request == PepperPostureRequest:
             self.goToPosture(request)
         if request == NaoqiAnimationRequest:
             self.run_animation(request)
