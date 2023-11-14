@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import torch
 import torchvision
-from dataclasses import dataclass
 
 from numpy import array
 from sic_framework.core.connector import SICConnector
@@ -15,8 +14,6 @@ from sic_framework.core.message_python2 import CompressedImageMessage, SICMessag
 from sic_framework.core.service_python2 import SICService
 
 from sklearn.neighbors import KNeighborsClassifier
-
-
 
 
 class DNNFaceRecognitionComponent(SICService):
@@ -31,14 +28,17 @@ class DNNFaceRecognitionComponent(SICService):
         self.img_timestamp = None
 
         # Initialize face recognition data
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cpu'
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        if torch.backends.mps.is_available():
+            self.device = "mps"
 
         # import is relative, so only works when this file is main
         from model import resnet50
 
         self.model = resnet50(include_top=False, num_classes=8631)
-        self.model.load_state_dict(
-            torch.load("resnet50_ft_weight.pt"))
+        self.model.load_state_dict(torch.load("resnet50_ft_weight.pt"))
         self.model.to(self.device)
 
         cascadePath = "haarcascade_frontalface_default.xml"
@@ -63,7 +63,6 @@ class DNNFaceRecognitionComponent(SICService):
     @staticmethod
     def get_output():
         return BoundingBoxesMessage
-
 
     def on_message(self, message):
         bboxes = self.detect(message.image)
@@ -130,9 +129,9 @@ class DNNFaceRecognitionComponent(SICService):
 
         return BoundingBoxesMessage(faces)
 
+
 class DNNFaceRecognition(SICConnector):
     component_class = DNNFaceRecognitionComponent
-
 
 
 if __name__ == '__main__':
