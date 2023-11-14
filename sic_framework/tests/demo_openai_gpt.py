@@ -1,6 +1,9 @@
 from sic_framework.services.openai_gpt.gpt import GPT, GPTResponse, GPTConf, GPTRequest
 
 """
+Please use the 0.28 version of openai, and not the recently updated >1.0 version as this file has not been updated yet.
+pip install openai==0.28.1
+
 The GPT service should be running. You can start it with:
 [services/openai_gpt/] python gpt.py 
 """

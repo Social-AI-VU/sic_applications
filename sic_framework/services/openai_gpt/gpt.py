@@ -4,6 +4,10 @@ from sic_framework.core.connector import SICConnector
 from sic_framework.core.message_python2 import SICMessage, SICRequest
 import openai
 
+"""
+Please use this version of openai, and not the recently updated version as this file has not been updated yet.
+pip install openai==0.28.1
+"""
 
 class GPTConf(SICConfMessage):
     """
