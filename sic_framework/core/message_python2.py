@@ -435,6 +435,9 @@ class BoundingBox(object):
         """
         return np.array([self.x, self.y, self.w, self.h])
 
+    def __str__(self):
+        return "BoundingBox\nxywh: {}\nidentifier: {}\nconfidence: {}".format(self.xywh(), self.identifier, self.confidence)
+
 
 class BoundingBoxesMessage(SICMessage):
     """
