@@ -27,8 +27,11 @@ def on_faces(message: BoundingBoxesMessage):
     faces_buffer.put(message.bboxes)
 
 
+# Create camera configuration using fx and fy to resize the image along x- and y-axis.
+conf = DesktopCameraConf(fx=1.0, fy=1.0)  # You might want to set fx and fy to 0.3 on a slower machine
+
 # Connect to the services
-desktop = Desktop(camera_conf=DesktopCameraConf(fx=0.3, fy=0.3))
+desktop = Desktop(camera_conf=conf)
 face_rec = DNNFaceRecognition()
 
 # Feed the camera images into the face recognition component
