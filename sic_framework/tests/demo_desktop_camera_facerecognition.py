@@ -14,21 +14,18 @@ This demo recognizes faces from your webcam and displays the result on your lapt
 """
 
 imgs_buffer = queue.Queue(maxsize=1)
+faces_buffer = queue.Queue(maxsize=1)
 
 
 def on_image(image_message: CompressedImageMessage):
     imgs_buffer.put(image_message.image)
 
 
-faces_buffer = queue.Queue(maxsize=1)
-
-
 def on_faces(message: BoundingBoxesMessage):
     faces_buffer.put(message.bboxes)
 
-
-# Create camera configuration using fx and fy to resize the image along x- and y-axis.
-conf = DesktopCameraConf(fx=1.0, fy=1.0)  # You might want to set fx and fy to 0.3 on a slower machine
+# Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
+conf = DesktopCameraConf(fx=0.3, fy=0.3, flip=1)  # You might want to set fx and fy to 0.3 on a slower machine
 
 # Connect to the services
 desktop = Desktop(camera_conf=conf)
