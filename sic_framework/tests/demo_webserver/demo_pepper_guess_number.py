@@ -4,17 +4,22 @@ import re
 import random
 import time
 
-from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.core.utils import is_sic_instance
 from sic_framework.services.dialogflow.dialogflow import DialogflowConf, \
     GetIntentRequest, RecognitionResult, QueryResult, Dialogflow
 from sic_framework.services.webserver.webserver_pepper_tablet import Webserver, HtmlMessage, WebserverConf, TranscriptMessage, ButtonClicked
 from sic_framework.devices.common_naoqi.pepper_tablet import NaoqiTablet, UrlMessage
-from sic_framework.devices.common_naoqi.naoqi_microphone import NaoqiMicrophone
-from sic_framework.devices.common_desktop.desktop_microphone import DesktopMicrophone
-from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest, NaoqiTextToSpeech
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
+from sic_framework.devices import Pepper
 
 
+"""
+This demo shows you how to interact with Pepper tablet to play a “guess the number” game
+
+The Dialogflow and Webserver pepper tablet should be running. You can start them with:
+[services/dialogflow] python dialogflow.py
+[services/webserver]  python webserver_pepper_tablet.py
+"""
 
 
 def on_dialog(message):
@@ -22,11 +27,8 @@ def on_dialog(message):
     Callback function to handle dialogflow responses.
     """
     if is_sic_instance(message, RecognitionResult):
-        # print("TranscriptMessage:", message.response.recognition_result.transcript)
-        # if message.response.recognition_result.is_final:
-            # web_server.send_message(TranscriptMessage(message.response.recognition_result.transcript + "/" + str(message.ip)))
             web_server.send_message(TranscriptMessage(message.response.recognition_result.transcript))
-            # extract_and_compare_number(message.response.recognition_result.transcript, rand_int)
+
 
 def extract_and_compare_number(script, x):
     """
@@ -73,13 +75,13 @@ def extract_and_compare_number(script, x):
             # pepper say
             text = f"The number {number} is higher than {x}, guess lower."
             print(text)
-            nao_tts.request(NaoqiTextToSpeechRequest(text))
+            pepper.tts.request(NaoqiTextToSpeechRequest(text))
             response_flag = True
 
         elif number < x:
             text = f"The number {number} is lower than {x}, guess higher."
             print(text)
-            nao_tts.request(NaoqiTextToSpeechRequest(text))
+            pepper.tts.request(NaoqiTextToSpeechRequest(text))
 
             response_flag = True
 
@@ -87,18 +89,18 @@ def extract_and_compare_number(script, x):
         elif number == x:
             text ="you got the right number"
             print(text)
-            nao_tts.request(NaoqiTextToSpeechRequest(text))
+            pepper.tts.request(NaoqiTextToSpeechRequest(text))
             response_flag = True
 
     elif number == x:
         text ="you already got the right number!!"
         print(text)
-        nao_tts.request(NaoqiTextToSpeechRequest(text))
+        pepper.tts.request(NaoqiTextToSpeechRequest(text))
 
     elif numbers_found:
         text = f"The number {number} is the same you guessed previously."
         print(text)
-        nao_tts.request(NaoqiTextToSpeechRequest(text))
+        pepper.tts.request(NaoqiTextToSpeechRequest(text))
 
     else:
         print("No number found in the script.")
@@ -112,7 +114,7 @@ def on_button_click(message):
     if is_sic_instance(message, ButtonClicked):
         if message.button:
             print("start listening")
-            nao_tts.request(NaoqiTextToSpeechRequest("Guess a number from 1 to 10"))
+            pepper.tts.request(NaoqiTextToSpeechRequest("Guess a number from 1 to 10"))
             time.sleep(2.0)
             x = np.random.randint(10000)
             for i in range(25):
@@ -127,28 +129,16 @@ def on_button_click(message):
 
 
 port = 8080
-machine_ip = '192.168.0.167'
-robot_ip = '192.168.0.148'
+machine_ip = '192.168.0.168'
+robot_ip = '192.168.0.181'
 # the HTML file to be rendered
 html_file = "demo_pepper_guess_number.html"
 web_url = f'https://{machine_ip}:{port}/'
 # the random number that an user should guess
 rand_int = random.randint(1, 10)
 
-
-# Microphone device setup
-# local
-# microphone = DesktopMicrophone(ip='localhost')
-# pepper
-microphone = NaoqiMicrophone(ip=robot_ip)
-
-# # NaoqiTextToSpeech setup
-nao_tts = NaoqiTextToSpeech(ip=robot_ip)
-
-
-# NaoqiTablet setup
-pepper_tablet = NaoqiTablet(ip=robot_ip)
-pepper_tablet.send_message(UrlMessage(web_url))
+# Pepper device setup
+pepper = Pepper(ip=robot_ip)
 
 # webserver setup
 web_conf = WebserverConf(host="0.0.0.0", port=port)
@@ -159,7 +149,7 @@ web_server.register_callback(on_button_click)
 
 
 # dialogflow setup
-keyfile_json = json.load(open("test-free-version.json"))
+keyfile_json = json.load(open("dialogflow-tutorial.json"))
 # local microphone
 # sample_rate_hertz = 44100
 # pepper's micriphone
@@ -168,13 +158,14 @@ sample_rate_hertz = 16000
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=sample_rate_hertz)
 dialogflow = Dialogflow(ip='localhost', conf=conf)
 dialogflow.register_callback(on_dialog)
-dialogflow.connect(microphone)
+dialogflow.connect(pepper.mic)
 
 # send html to Webserver
 with open(html_file) as file:
     data = file.read()
     print("sending-------------")
     web_server.send_message(HtmlMessage(data))
-
-
-time.sleep(50)
+    time.sleep(0.5)
+    # once an HTML content has been sent to the web server, a url is sent to Pepper to be displayed
+    print("displaying html on Pepper display")
+    pepper.tablet_display_url.send_message(UrlMessage(web_url))
