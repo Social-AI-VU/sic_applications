@@ -81,7 +81,7 @@ class WebserverComponent(SICComponent):
     # when the HtmlMessage message arrives, feed it to self.input_text
     def on_message(self, message):
         if is_sic_instance(message, HtmlMessage):
-            print("reciving text")
+            print("receiving text")
             self.input_text = message.text
 
         if is_sic_instance(message, TranscriptMessage):

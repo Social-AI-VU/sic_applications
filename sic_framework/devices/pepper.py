@@ -30,9 +30,9 @@ class Pepper(Naoqi):
     def depth_camera(self):
         return self._get_connector(DepthPepperCamera)
 
-    # @property
-    # def tablet_load_url(self):
-    #     return self._get_connector(NaoqiTablet)
+    @property
+    def tablet_display_url(self):
+        return self._get_connector(NaoqiTablet)
 
     pass
 
