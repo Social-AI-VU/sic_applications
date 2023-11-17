@@ -9,7 +9,7 @@ from sic_framework.core.sensor_python2 import SICSensor
 
 
 class DesktopCameraConf(SICConfMessage):
-    def __init__(self, fx=1.0, fy=1.0, device_id=0):
+    def __init__(self, fx=1.0, fy=1.0, flip=None, device_id=0):
         """
         Sets desktop camera configuration parameters.
 
@@ -17,11 +17,16 @@ class DesktopCameraConf(SICConfMessage):
         :param fx: rescaling factor along x-axis (float)
         :param fy: rescaling factor along y-axis (float)
         :param device_id: The device ID of the camera for OpenCV to use. Default: 0
+
+        See https://docs.opencv.org/3.4/d2/de8/group__core__array.html#gaca7be533e3dac7feb70fc60635adf441
+        :param flip: flip code for vertical (0), horizontal (>0), or both (<0) flipping. Default is None (no flipping)
         """
         SICConfMessage.__init__(self)
+
         self.device_id = device_id
         self.fx = fx
         self.fy = fy
+        self.flip = flip
 
 
 class DesktopCameraSensor(SICSensor):
@@ -47,6 +52,10 @@ class DesktopCameraSensor(SICSensor):
     def execute(self):
         ret, frame = self.cam.read()
         frame = cv2.resize(frame, (0, 0), fx=self.params.fx, fy=self.params.fy)
+
+        # Optionally flip image
+        if self.params.flip is not None:
+            frame = cv2.flip(frame, self.params.flip)
 
         if not ret:
             self.logger.warning("Failed to grab frame from video device")
