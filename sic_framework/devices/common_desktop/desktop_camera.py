@@ -9,19 +9,21 @@ from sic_framework.core.sensor_python2 import SICSensor
 
 
 class DesktopCameraConf(SICConfMessage):
-    def __init__(self, fx=1.0, fy=1.0, flip=None):
+    def __init__(self, fx=1.0, fy=1.0, flip=None, device_id=0):
         """
         Sets desktop camera configuration parameters.
 
         See https://docs.opencv.org/4.x/da/d54/group__imgproc__transform.html#ga47a974309e9102f5f08231edc7e7529d
         :param fx: rescaling factor along x-axis (float)
         :param fy: rescaling factor along y-axis (float)
+        :param device_id: The device ID of the camera for OpenCV to use. Default: 0
 
         See https://docs.opencv.org/3.4/d2/de8/group__core__array.html#gaca7be533e3dac7feb70fc60635adf441
         :param flip: flip code for vertical (0), horizontal (>0), or both (<0) flipping. Default is None (no flipping)
         """
         SICConfMessage.__init__(self)
 
+        self.device_id = device_id
         self.fx = fx
         self.fy = fy
         self.flip = flip
@@ -30,11 +32,10 @@ class DesktopCameraConf(SICConfMessage):
 class DesktopCameraSensor(SICSensor):
     def __init__(self, *args, **kwargs):
         super(DesktopCameraSensor, self).__init__(*args, **kwargs)
-
         if platform.system() == "Windows":
-            self.cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.cam = cv2.VideoCapture(self.params.device_id, cv2.CAP_DSHOW)
         else:
-            self.cam = cv2.VideoCapture(0)
+            self.cam = cv2.VideoCapture(self.params.device_id)
 
     @staticmethod
     def get_conf():

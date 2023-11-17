@@ -81,6 +81,8 @@ robot.top_camera.register_callback(display)
 with open("openai_key", "r") as f:
     openai_key = f.read().strip()  # remove new line character
 
+# Please use the 0.28 version of openai, and not the recently updated >1.0 version as this file has not been updated yet.
+# pip install openai==0.28.1
 # Setup GPT
 conf = GPTConf(openai_key=openai_key)
 gpt = GPT(conf=conf)
