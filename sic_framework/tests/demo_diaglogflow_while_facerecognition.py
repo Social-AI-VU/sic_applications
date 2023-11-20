@@ -40,7 +40,7 @@ def on_faces(message: BoundingBoxesMessage):
             global_id += 1
             # Set block to False for a non-blocking request,
             # allowing almost immediate execution of the next instruction
-            reply = nao.motion.request(NaoPostureRequest("StandZero", .5), block=False)
+            nao.motion.request(NaoPostureRequest("StandZero", .5), block=False)
             nao.tts.request(NaoqiTextToSpeechRequest("I see a new face " + str(bbox.identifier)))
 
 # callback function for Dialogflow responses
