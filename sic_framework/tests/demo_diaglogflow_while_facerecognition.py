@@ -54,7 +54,7 @@ nao.top_camera.register_callback(on_image)
 
 # setting up Dialogflow
 keyfile_json = json.load(open("dialogflow-tutorial.json"))
-conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
+conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000) # use 44100Hz for laptop
 dialogflow = Dialogflow(ip='localhost', conf=conf)
 dialogflow.connect(nao.mic)
 dialogflow.register_callback(on_dialog)
