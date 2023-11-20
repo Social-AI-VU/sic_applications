@@ -25,8 +25,8 @@ The Dialogflow and DNNFaceRecognition should be running. You can start them with
 
 imgs_buffer = queue.Queue(maxsize=1)
 faces_buffer = queue.Queue(maxsize=1)
-# global identifier for faces
-global_id = 0
+# set to store detected face IDs
+detected_faces = set()
 
 def on_image(image_message: CompressedImageMessage):
     imgs_buffer.put(image_message.image)
@@ -34,12 +34,10 @@ def on_image(image_message: CompressedImageMessage):
 def on_faces(message: BoundingBoxesMessage):
     faces_buffer.put(message.bboxes)
     for bbox in message.bboxes:
-        global global_id
-        # speak and move only once when detecting a new face
-        if bbox.identifier == global_id:
-            global_id += 1
+        if bbox.identifier not in detected_faces:
+            detected_faces.add(bbox.identifier)
             # Set block to False for a non-blocking request,
-            # allowing almost immediate execution of the next instruction
+            # allowing immediate execution of the next instruction
             nao.motion.request(NaoPostureRequest("StandZero", .5), block=False)
             nao.tts.request(NaoqiTextToSpeechRequest("I see a new face " + str(bbox.identifier)))
 
