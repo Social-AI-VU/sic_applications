@@ -49,7 +49,7 @@ def on_dialog(message):
 
 # setting up Nao and camera conf to flip the image vertically
 conf = NaoqiCameraConf(vflip=1)
-nao = Nao(ip='192.168.0.148', top_camera_conf=conf)
+nao = Nao(ip='192.168.2.7', top_camera_conf=conf)
 nao.top_camera.register_callback(on_image)
 
 # setting up Dialogflow
