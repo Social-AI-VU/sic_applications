@@ -16,7 +16,9 @@ if utils.PYTHON_VERSION_IS_2:
 
 
 class NaoqiCameraConf(SICConfMessage):
-    def __init__(self, naoqi_ip='127.0.0.1', port=9559, cam_id=0, res_id=2, fps=30):
+    def __init__(self, naoqi_ip='127.0.0.1', port=9559, cam_id=0, res_id=2, fps=30, brightness=55, contrast=32,
+                 saturation=128, hue=0, gain=32, hflip=0, vflip=0, auto_exposition=1, auto_white_bal=1, auto_exp_algo=1,
+                 sharpness=0, back_light_comp=1):
         """ params can be found at http://doc.aldebaran.com/2-8/family/nao_technical/video_naov6.html#naov6-video
         Camera ID:
         0 - TopCamera
@@ -35,6 +37,18 @@ class NaoqiCameraConf(SICConfMessage):
         self.res_id = res_id
         self.color_id = 11  # RGB
         self.fps = fps
+        self.brightness = brightness
+        self.contrast = contrast
+        self.saturation = saturation
+        self.hue = hue
+        self.gain = gain
+        self.hflip =hflip
+        self.vflip = vflip
+        self.auto_exposition = auto_exposition
+        self.auto_white_bal = auto_white_bal
+        self.auto_exp_algo = auto_exp_algo
+        self.sharpness = sharpness
+        self.back_light_comp = back_light_comp
 
 
 class BaseNaoqiCameraSensor(SICSensor):
@@ -45,7 +59,21 @@ class BaseNaoqiCameraSensor(SICSensor):
         self.s.connect('tcp://{}:{}'.format(self.params.naoqi_ip, self.params.port))
 
         self.video_service = self.s.service("ALVideoDevice")
+
+        self.video_service.setParameter(self.params.cam_id, 0, self.params.brightness)
+        self.video_service.setParameter(self.params.cam_id, 1, self.params.contrast)
+        self.video_service.setParameter(self.params.cam_id, 2, self.params.saturation)
+        self.video_service.setParameter(self.params.cam_id, 3, self.params.hue)
+        self.video_service.setParameter(self.params.cam_id, 6, self.params.gain)
+        self.video_service.setParameter(self.params.cam_id, 7, self.params.hflip)
+        self.video_service.setParameter(self.params.cam_id, 8, self.params.vflip)
+        self.video_service.setParameter(self.params.cam_id, 11, self.params.auto_exposition)
+        self.video_service.setParameter(self.params.cam_id, 12, self.params.auto_white_bal)
+        self.video_service.setParameter(self.params.cam_id, 22, self.params.auto_exp_algo)
+        self.video_service.setParameter(self.params.cam_id, 24, self.params.sharpness)
+        self.video_service.setParameter(self.params.cam_id, 34, self.params.back_light_comp)
         self.video_service.setParameter(0, 35, 1)  # TODO: do we want to change this? Is this brightness?
+
         self.videoClient = self.video_service.subscribeCamera("Camera_{}".format(random.randint(0, 100000)),
                                                               self.params.cam_id,
                                                               self.params.res_id, self.params.color_id,
