@@ -12,7 +12,7 @@ def on_image(image_message: CompressedImageMessage):
     imgs.put(image_message.image)
 
 # Create camera configuration using vflip to flip the image vertically
-conf = NaoqiCameraConf(vflip=1)
+conf = NaoqiCameraConf(vflip=1) # You can also adjust the brightness, contrast, sharpness, etc. See "NaoqiCameraConf" for more
 
 nao = Nao(ip="192.168.0.0", top_camera_conf=conf)
 nao.top_camera.register_callback(on_image)
