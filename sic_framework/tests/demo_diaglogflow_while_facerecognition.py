@@ -49,9 +49,10 @@ def on_dialog(message):
         if message.response.recognition_result.is_final:
             print("Transcript:", message.response.recognition_result.transcript)
 
-# set the camera conf to flip the image vertically
+# setting up Nao and camera conf to flip the image vertically
 conf = NaoqiCameraConf(vflip=1)
 nao = Nao(ip='192.168.0.148', top_camera_conf=conf)
+nao.top_camera.register_callback(on_image)
 
 # setting up Dialogflow
 keyfile_json = json.load(open("dialogflow-tutorial.json"))
@@ -63,7 +64,6 @@ dialogflow.register_callback(on_dialog)
 # setting up DNNFaceRecognition
 face_rec = DNNFaceRecognition()
 face_rec.connect(nao.top_camera)
-nao.top_camera.register_callback(on_image)
 face_rec.register_callback(on_faces)
 
 # target function1 to run in thread
