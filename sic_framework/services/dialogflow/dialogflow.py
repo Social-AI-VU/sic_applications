@@ -20,14 +20,17 @@ from six.moves import queue
 
 
 class GetIntentRequest(SICRequest):
-    def __init__(self, session_id=0):
+    def __init__(self, session_id=0, contexts_dict={}):
         """
         Every dialogflow conversation must use a (semi) unique conversation id to keep track
         of the conversation. The conversation is forgotten after 20 minutes.
         :param session_id: a (randomly generated) id, but the same one for the whole conversation
+        :param contexts_dict: a dictionary containing context-lifespan pairs, e.g., contexts_dict = {"name": 5, "food": 5}
+        the context name is used for forming the unique identifier of the context
         """
         super().__init__()
         self.session_id = session_id
+        self.contexts_dict = contexts_dict
 
     
 
@@ -190,8 +193,11 @@ class DialogflowComponent(SICComponent):
         self.query_input = dialogflow.QueryInput(audio_config=self.dialogflow_audio_config)
         self.message_was_final = threading.Event()
         self.audio_buffer = queue.Queue(maxsize=1)
-
         self.dialogflow_is_init = True
+
+        # Initialize a collection of contexts to be activated before this query is executed.
+        # See more details at https://cloud.google.com/python/docs/reference/dialogflow/latest/google.cloud.dialogflow_v2.types.Context.
+        self.dialogflow_context = []
 
     def on_message(self, message):
         if is_sic_instance(message, AudioMessage):
@@ -221,12 +227,13 @@ class DialogflowComponent(SICComponent):
 
         raise NotImplementedError("Unknown request type {}".format(type(request)))
 
-    def request_generator(self, session_path):
+    def request_generator(self, session_path, query_params):
         try:
             # first request to Dialogflow needs to be a setup request with the session parameters
             # optional: output_audio_config=self.output_audio_config
             yield dialogflow.StreamingDetectIntentRequest(session=session_path,
-                                                          query_input=self.query_input)
+                                                          query_input=self.query_input,
+                                                          query_params=query_params)
 
             start_time = time.time()
 
@@ -263,7 +270,13 @@ class DialogflowComponent(SICComponent):
         session_path = self.session_client.session_path(self.params.project_id, input.session_id)
         self.logger.debug("Executing dialogflow request with session id {}".format(input.session_id))
 
-        requests = self.request_generator(session_path)  # get bi-directional request iterator
+        for context_name, lifespan in input.contexts_dict.items():
+            context_id = f"projects/{self.params.project_id}/agent/sessions/{input.session_id}/contexts/{context_name}"
+            self.dialogflow_context.append(dialogflow.Context(name=context_id, lifespan_count=lifespan))
+
+        # add parameters for this request
+        query_params = dialogflow.QueryParameters(contexts=self.dialogflow_context)
+        requests = self.request_generator(session_path, query_params)  # get bi-directional request iterator
 
         # responses is a bidirectional iterator object, providing after
         # consuming each yielded request in the requests generator
