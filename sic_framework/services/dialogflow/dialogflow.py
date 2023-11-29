@@ -25,8 +25,9 @@ class GetIntentRequest(SICRequest):
         Every dialogflow conversation must use a (semi) unique conversation id to keep track
         of the conversation. The conversation is forgotten after 20 minutes.
         :param session_id: a (randomly generated) id, but the same one for the whole conversation
-        :param contexts_dict: a dictionary containing context-lifespan pairs, e.g., contexts_dict = {"name": 5, "food": 5}
-        the context name is used for forming the unique identifier of the context
+        :param contexts_dict: a dictionary containing context_name-lifespan pairs, e.g., contexts_dict = {"name": 5, "food": 5}.
+        The context_name is used for forming the unique identifier of the context. lifespan_count is the number of
+        conversational query requests after which the context expires
         """
         super().__init__()
         self.session_id = session_id
