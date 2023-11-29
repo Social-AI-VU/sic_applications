@@ -41,7 +41,8 @@ x = np.random.randint(10000)
 
 for i in range(25):
     print(" ----- Conversation turn", i)
-    reply = dialogflow.request(GetIntentRequest(x))
+    contexts_dict = {"name": 0}
+    reply = dialogflow.request(GetIntentRequest(x, contexts_dict))
 
     print("The detected intent:", reply.intent)
 
