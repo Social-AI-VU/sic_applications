@@ -41,7 +41,9 @@ x = np.random.randint(10000)
 
 for i in range(25):
     print(" ----- Conversation turn", i)
-    reply = dialogflow.request(GetIntentRequest(x))
+    # create context_name-lifespan pairs. If lifespan is set to 0, the context expires immediately
+    contexts_dict = {"name": 1}
+    reply = dialogflow.request(GetIntentRequest(x, contexts_dict))
 
     print("The detected intent:", reply.intent)
 
