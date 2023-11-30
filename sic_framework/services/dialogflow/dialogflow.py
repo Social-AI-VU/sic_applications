@@ -20,7 +20,7 @@ from six.moves import queue
 
 
 class GetIntentRequest(SICRequest):
-    def __init__(self, session_id=0, contexts_dict={}):
+    def __init__(self, session_id=0, contexts_dict=None):
         """
         Every dialogflow conversation must use a (semi) unique conversation id to keep track
         of the conversation. The conversation is forgotten after 20 minutes.
@@ -31,9 +31,8 @@ class GetIntentRequest(SICRequest):
         """
         super().__init__()
         self.session_id = session_id
-        self.contexts_dict = contexts_dict
+        self.contexts_dict = contexts_dict if contexts_dict is not None else {}
 
-    
 
 class StopListeningMessage(SICMessage):
     def __init__(self, session_id=0):
