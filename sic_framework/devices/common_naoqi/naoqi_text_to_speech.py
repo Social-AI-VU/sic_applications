@@ -77,13 +77,13 @@ class NaoqiTextToSpeechActuator(SICActuator):
             self.tts.setVolume(params.volume)
 
         if hasattr(params, "speed") and params.speed is not None:
-            self.tts.setParameter(params.speed)
+            self.tts.setParameter("speed", params.speed)
 
         if hasattr(params, "pitch") and params.pitch is not None:
-            self.tts.setParameter(params.pitch)
+            self.tts.setParameter("pitch", params.pitch)
 
         if hasattr(params, "pitch_shift") and params.pitch_shift is not None:
-            self.tts.setParameter(params.pitch_shift)
+            self.tts.setParameter("pitchShift", params.pitch_shift)
 
     @staticmethod
     def get_conf():
