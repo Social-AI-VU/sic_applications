@@ -11,7 +11,7 @@ if utils.PYTHON_VERSION_IS_2:
 
 # @dataclass
 class NaoqiTextToSpeechRequest(SICRequest):
-    def __init__(self, text, language=None, animated=False):
+    def __init__(self, text, language=None, animated=False, pitch=None, speed=None, pitch_shift=None, volume=None):
         """
         Request the nao to say something
         :param text: object
@@ -20,8 +20,14 @@ class NaoqiTextToSpeechRequest(SICRequest):
         """
         super(NaoqiTextToSpeechRequest, self).__init__()
         self.text = text
-        self.language = language
         self.animated = animated
+
+        # TTS params
+        self.language = language
+        self.pitch = pitch
+        self.speed = speed
+        self.pitch_shift = pitch_shift
+        self.volume = volume
 
 
 # @dataclass
@@ -41,7 +47,7 @@ class NaoqiTextToSpeechConf(SICConfMessage):
         :param speed: sets the current voice speed. The default value is 100.
         :type speed: int [50 - 400]
         """
-        SICConfMessage.__init__(self)
+        super(SICConfMessage, self).__init__()
 
         self.pitch = pitch
         self.speed = speed
@@ -60,20 +66,24 @@ class NaoqiTextToSpeechActuator(SICActuator):
         self.tts = self.session.service('ALTextToSpeech')
         self.atts = self.session.service('ALAnimatedSpeech')
 
-        if self.params.language is not None:
-            self.tts.setLanguage(self.params.language)
+        self.set_params(self.params)
 
-        if self.params.volume is not None:
-            self.tts.setVolume(self.params.volume)
+    def set_params(self, params):
+        # Check for all parameters if they are available and set
+        if hasattr(params, "language") and params.language is not None:
+            self.tts.setLanguage(params.language)
 
-        if self.params.speed is not None:
-            self.tts.setParameter("speed", self.params.speed)
+        if hasattr(params, "volume") and params.volume is not None:
+            self.tts.setVolume(params.volume)
 
-        if self.params.pitch is not None:
-            self.tts.setParameter("pitch", self.params.pitch)
+        if hasattr(params, "speed") and params.speed is not None:
+            self.tts.setParameter("speed", params.speed)
 
-        if self.params.pitch_shift is not None:
-            self.tts.setParameter("pitchShift", self.params.pitch_shift)
+        if hasattr(params, "pitch") and params.pitch is not None:
+            self.tts.setParameter("pitch", params.pitch)
+
+        if hasattr(params, "pitch_shift") and params.pitch_shift is not None:
+            self.tts.setParameter("pitchShift", params.pitch_shift)
 
     @staticmethod
     def get_conf():
@@ -88,6 +98,9 @@ class NaoqiTextToSpeechActuator(SICActuator):
         return SICMessage
 
     def execute(self, message):
+        # Set tts parameters for current request
+        self.set_params(message)
+
         if message.animated:
             self.atts.say(message.text, message.language)
         else:
