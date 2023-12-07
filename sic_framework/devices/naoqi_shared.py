@@ -12,6 +12,7 @@ from sic_framework.devices.common_naoqi.naoqi_motion_streamer import *
 from sic_framework.devices.common_naoqi.naoqi_speakers import *
 from sic_framework.devices.common_naoqi.naoqi_stiffness import *
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import *
+from sic_framework.devices.common_naoqi.naoqi_tracker import NaoqiTracker, NaoqiTrackerActuator
 from sic_framework.devices.device import SICDevice
 from abc import ABCMeta
 
@@ -28,6 +29,7 @@ shared_naoqi_components = [
     NaoqiLEDsActuator,
     NaoqiSpeakerComponent,
     NaoqiButtonSensor,
+    NaoqiTrackerActuator
 ]
 
 
@@ -185,6 +187,10 @@ class Naoqi(SICDevice):
     @property
     def buttons(self):
         return self._get_connector(NaoqiButton)
+
+    @property
+    def tracker(self):
+        return self._get_connector(NaoqiTracker)
 
     def __del__(self):
         if hasattr(self, "logfile"):
