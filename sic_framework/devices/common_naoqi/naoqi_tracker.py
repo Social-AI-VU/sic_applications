@@ -36,7 +36,7 @@ class SetEffectorRequest(SICRequest):
     def __init__(self, effector):
         """
         Request to set the effector mode. Tracker always used the Head.
-        :param effector: Name of the effector. Could be: “Arms”, “LArm”, “RArm” or “None”..
+        :param effector: Name of the effector. Could be: "Arms", "LArm", "RArm" or "None".
         """
         super(SetEffectorRequest, self).__init__()
         self.effector = effector
