@@ -52,7 +52,7 @@ def on_dialog(message):
 
 
 # read you keyfile and connect to dialogflow
-keyfile_json = json.load(open("your_keyfile_here"))
+keyfile_json = json.load(open("dialogflow-test-project-wiggers.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json,
                       sample_rate_hertz=samplerate, )
 dialogflow = Dialogflow(conf=conf)
@@ -103,3 +103,5 @@ with open('transcript.txt', 'w') as f:
 
 output.close()
 p.terminate()
+
+dialogflow.stop()

@@ -31,7 +31,7 @@ class DNNFaceRecognitionComponent(SICService):
         self.device = 'cpu'
         if torch.cuda.is_available():
             self.device = "cuda"
-        if torch.backends.mps.is_available():
+        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
             self.device = "mps"
 
         # import is relative, so only works when this file is main

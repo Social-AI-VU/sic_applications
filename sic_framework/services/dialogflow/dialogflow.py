@@ -214,7 +214,10 @@ class DialogflowComponent(SICComponent):
             # audio sent so far.
             self.message_was_final.set()
             # time.sleep(1)
-            del self.session_client
+            try:
+                del self.session_client
+            except AttributeError:
+                pass
             self.dialogflow_is_init = False
 
     def on_request(self, request):

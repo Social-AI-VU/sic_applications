@@ -42,13 +42,17 @@ nao.tts.request(NaoqiTextToSpeechRequest("Hello, who are you?"))
 print(" -- Ready -- ")
 x = np.random.randint(10000)
 
-for i in range(25):
-    print(" ----- Conversation turn", i)
-    reply = dialogflow.request(GetIntentRequest(x))
+try:
+    for i in range(25):
+        print(" ----- Conversation turn", i)
+        reply = dialogflow.request(GetIntentRequest(x))
 
-    print(reply.intent)
+        print(reply.intent)
 
-    if reply.fulfillment_message:
-        text = reply.fulfillment_message
-        print("Reply:", text)
-        nao.tts.request(NaoqiTextToSpeechRequest(text))
+        if reply.fulfillment_message:
+            text = reply.fulfillment_message
+            print("Reply:", text)
+            nao.tts.request(NaoqiTextToSpeechRequest(text))
+except KeyboardInterrupt:
+    print("Stop the dialogflow component.")
+    dialogflow.stop()

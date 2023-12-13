@@ -73,14 +73,20 @@ class NaoqiMotionRecording(SICMessage):
 
 
 class PlayRecording(SICRequest):
-    def __init__(self, motion_recording_message):
+    def __init__(self, motion_recording_message, playback_speed=1):
         """
         Play a recorded motion.
         :param motion_recording_message: a NaoMotionRecording message
+        :param float playback_speed: The speed at which the motion should be played. 1.5 for 1.5x speed an 0.5 for half speed.
 
         """
         super(PlayRecording, self).__init__()
         self.motion_recording_message = motion_recording_message
+
+        if playback_speed != 1:
+            recorded_times = np.array(self.motion_recording_message.recorded_times)
+            recorded_times = recorded_times / playback_speed
+            self.motion_recording_message.recorded_times = recorded_times.tolist()
 
 
 class NaoqiMotionRecorderConf(SICConfMessage):

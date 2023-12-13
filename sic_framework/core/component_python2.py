@@ -8,7 +8,7 @@ import sic_framework.core.sic_logging
 from sic_framework.core.utils import is_sic_instance
 from . import sic_logging, utils
 from .message_python2 import SICConfMessage, SICRequest, SICMessage, SICSuccessMessage, \
-    SICControlRequest, SICPingRequest, SICPongMessage
+    SICControlRequest, SICPingRequest, SICPongMessage, SICStopRequest
 from .sic_redis import SICRedis
 
 
@@ -98,6 +98,10 @@ class SICComponent:
         :return:
         """
         channel = connection_request.channel
+        if channel in self._input_channels:
+            self.logger.debug_framework("Channel {} is already connected to this component".format(channel))
+            return
+        self._input_channels.append(channel)
         self._redis.register_message_handler(channel, self._handle_message)
 
     def _handle_message(self, message):
@@ -116,9 +120,9 @@ class SICComponent:
         if is_sic_instance(request, SICPingRequest):
             return SICPongMessage()
 
-        # if isinstance_pickle(request, SICStopRequest):
-        #     self._stop_event.set()
-        #     return SICSuccessMessage()
+        if is_sic_instance(request, SICStopRequest):
+            self.stop()
+            return SICSuccessMessage()
 
         if is_sic_instance(request, ConnectRequest):
             self._connect(request)
@@ -245,7 +249,6 @@ class SICComponent:
     def stop(self, *args):
         self.logger.debug('Trying to exit {} gracefully...'.format(self.get_component_name()))
         try:
-            # TODO unregister all listeners
             self._redis.close()
             self._stop_event.set()
             self.logger.debug('Graceful exit was successful')
