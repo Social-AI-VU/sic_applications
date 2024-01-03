@@ -18,9 +18,12 @@ if utils.PYTHON_VERSION_IS_2:
 class NaoqiCameraConf(SICConfMessage):
     def __init__(self, naoqi_ip='127.0.0.1', port=9559, cam_id=0, res_id=2, fps=30, brightness=None, contrast=None,
                  saturation=None, hue=None, gain=None, hflip=None, vflip=None, auto_exposition=None,
-                 auto_white_bal=None, auto_exp_algo=None, sharpness=None, back_light_comp=None, auto_focus=None):
+                 auto_white_bal=None, manual_exposure_val=None, auto_exp_algo=None, sharpness=None, back_light_comp=None, auto_focus=None,
+                 manual_focus_value=None):
         """
         params can be found at http://doc.aldebaran.com/2-8/family/nao_technical/video_naov6.html#naov6-video
+        and also
+        http://doc.aldebaran.com/2-1/family/robots/video_robot.html
 
         Camera ID:
         0 - TopCamera
@@ -46,6 +49,7 @@ class NaoqiCameraConf(SICConfMessage):
         sharpness: 0
         back_light_comp: 1
         auto_focus: 0
+        manual_focus_value: 0
         """
 
         SICConfMessage.__init__(self)
@@ -64,10 +68,12 @@ class NaoqiCameraConf(SICConfMessage):
         self.vflip = vflip
         self.auto_exposition = auto_exposition
         self.auto_white_bal = auto_white_bal
+        self.manual_exposure_val = manual_exposure_val
         self.auto_exp_algo = auto_exp_algo
         self.sharpness = sharpness
         self.back_light_comp = back_light_comp
         self.auto_focus = auto_focus
+        self.manual_focus_value = manual_focus_value
 
 
 class BaseNaoqiCameraSensor(SICSensor):
@@ -89,10 +95,12 @@ class BaseNaoqiCameraSensor(SICSensor):
         if self.params.vflip is not None: self.video_service.setParameter(self.params.cam_id, 8, self.params.vflip)
         if self.params.auto_exposition is not None: self.video_service.setParameter(self.params.cam_id, 11, self.params.auto_exposition)
         if self.params.auto_white_bal is not None: self.video_service.setParameter(self.params.cam_id, 12, self.params.auto_white_bal)
+        if self.params.manual_exposure_val is not None: self.video_service.setParameter(self.params.cam_id, 12, self.params.manual_exposure_val)
         if self.params.auto_exp_algo is not None: self.video_service.setParameter(self.params.cam_id, 22, self.params.auto_exp_algo)
         if self.params.sharpness is not None: self.video_service.setParameter(self.params.cam_id, 24, self.params.sharpness)
         if self.params.back_light_comp is not None: self.video_service.setParameter(self.params.cam_id, 34, self.params.back_light_comp)
-        if self.params.auto_focus is not None: self.video_service.setParameter(self.params.cam_id, 34, self.params.auto_focus)
+        if self.params.auto_focus is not None: self.video_service.setParameter(self.params.cam_id, 40, self.params.auto_focus)
+        if self.params.manual_focus_value is not None: self.video_service.setParameter(self.params.cam_id, 43, self.params.manual_focus_value)
         self.video_service.setParameter(0, 35, 1)  # Keep Alive parameter
 
         self.videoClient = self.video_service.subscribeCamera("Camera_{}".format(random.randint(0, 100000)),
