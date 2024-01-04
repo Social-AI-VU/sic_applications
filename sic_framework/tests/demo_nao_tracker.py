@@ -1,7 +1,6 @@
 import time
 from sic_framework.devices import Nao
 from sic_framework.devices.common_naoqi.naoqi_tracker import StartTrackRequest, StopAllTrackRequest, RemoveTargetRequest
-from sic_framework.devices.common_naoqi.naoqi_motion import NaoPostureRequest
 
 """
 This demo shows you how to make Nao track a face, walk to you given a position relative to the face,
