@@ -1,5 +1,3 @@
-import argparse
-
 from sic_framework import utils
 from sic_framework.core.actuator_python2 import SICActuator
 from sic_framework.core.component_manager_python2 import SICComponentManager
@@ -10,51 +8,28 @@ if utils.PYTHON_VERSION_IS_2:
     import qi
 
 
-class RegisterTargetRequest(SICRequest):
-    def __init__(self, target_name, diameter):
-        """
-        Request to register a tracking target, see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html#tracking-targets
-        :param target_name: name of object to track
-        :param diameter: diameter
-        """
-        super(RegisterTargetRequest, self).__init__()
-        self.target_name = target_name
-        self.diameter = diameter
-
-
-class SetModeRequest(SICRequest):
-    def __init__(self, mode):
-        """
-        Request to set the tracking mode, see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html#tracking-modes
-        :param mode: name of tracking mode
-        """
-        super(SetModeRequest, self).__init__()
-        self.mode = mode
-
-
-class SetEffectorRequest(SICRequest):
-    def __init__(self, effector):
-        """
-        Request to set the effector mode. Tracker always used the Head.
-        :param effector: Name of the effector. Could be: "Arms", "LArm", "RArm" or "None".
-        """
-        super(SetEffectorRequest, self).__init__()
-        self.effector = effector
-
 
 class StartTrackRequest(SICRequest):
-    def __init__(self, target_name):
+    def __init__(self, target_name, size, mode="Head", effector="None", move_rel_position=None):
         """
-        Request to start tracking the target_name
-        :param target_name: name of object to start tracking
+        Request to register a tracking target, see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html#tracking-targets
+        :param target_name: name of object to track , e.g. RedBall, Face
+        :param size: size e.g. diameter of ball, width of face (meter)
+        :param mode: tracking mode, default mode is "Head", other options: "WholeBody", "Move", see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html#tracking-modes
+        :param effector: Name of the effector. Could be: "Arms", "LArm", "RArm" or "None".
+        :param move_rel_position: Set the robot position relative to target in Move mode
         """
         super(StartTrackRequest, self).__init__()
         self.target_name = target_name
+        self.size = size
+        self.mode = mode
+        self.effector = effector
+        self.move_rel_position = move_rel_position
 
 
-class StopTrackRequest(SICRequest):
+class StopAllTrackRequest(SICRequest):
     """
-    Request to stop the tracker
+    Request to stop the tracker, and unregister all targets
     """
     pass
 
@@ -84,6 +59,8 @@ class NaoqiTrackerActuator(SICActuator):
         self.session.connect('tcp://127.0.0.1:9559')
 
         self.tracker = self.session.service('ALTracker')
+        self.posture = self.session.service("ALRobotPosture")
+        self.motion = self.session.service('ALMotion')
 
     @staticmethod
     def get_conf():
@@ -91,26 +68,44 @@ class NaoqiTrackerActuator(SICActuator):
 
     @staticmethod
     def get_inputs():
-        return [RegisterTargetRequest, SetModeRequest, SetEffectorRequest, StartTrackRequest, ]
+        return [StartTrackRequest, StopAllTrackRequest, RemoveTargetRequest, RemoveAllTargetsRequest]
 
     @staticmethod
     def get_output():
         return SICMessage
 
     def execute(self, request):
-        if request == RegisterTargetRequest:
-            self.tracker.registerTarget(request.target_name, request.diameter)
-        elif request == SetModeRequest:
+        if request == StartTrackRequest:
+            self.logger.info("Start TrackRequest for {}".format(request.target_name))
+            # add target to track
+            self.tracker.registerTarget(request.target_name, request.size)
+            # set mode
             self.tracker.setMode(request.mode)
-        elif request == SetEffectorRequest:
+            # for Move and WholeBody modes, the robot must be in a standing posture, ready to move
+            if request.mode == "Move" or request.mode == "WholeBody":
+                self.posture.goToPosture("Stand", 0.5)
+            if request.mode == "Move":
+                self.tracker.setRelativePosition(request.move_rel_position)
+                self.logger.info("Relative position is {}".format(self.tracker.getRelativePosition()))
+                if request.move_rel_position is None:
+                    self.logger.info(
+                        "The relative position is not passed, "
+                        "the value is either the default [0, 0, 0, 0, 0, 0] if never set "
+                        "or the previous value passed"
+                    )
+            # set effector
             self.tracker.setEffector(request.effector)
-        elif request == StartTrackRequest:
+            # start tracker
             self.tracker.track(request.target_name)
-        elif request == StopTrackRequest:
+        elif request == StopAllTrackRequest:
+            self.logger.info("Stop TrackRequest")
             self.tracker.stopTracker()
             self.tracker.unregisterAllTargets()
             self.tracker.setEffector("None")
+            self.posture.goToPosture("Stand", 0.5)
+            self.motion.rest()
         elif request == RemoveTargetRequest:
+            self.logger.info("Unregister target {}".format(request.target_name))
             self.tracker.unregisterTarget(request.target_name)
         elif request == RemoveAllTargetsRequest:
             self.tracker.unregisterAllTargets()
