@@ -85,14 +85,16 @@ class NaoqiTrackerActuator(SICActuator):
             if request.mode == "Move" or request.mode == "WholeBody":
                 self.posture.goToPosture("Stand", 0.5)
             if request.mode == "Move":
-                self.tracker.setRelativePosition(request.move_rel_position)
-                self.logger.info("Relative position is {}".format(self.tracker.getRelativePosition()))
                 if request.move_rel_position is None:
                     self.logger.info(
                         "The relative position is not passed, "
                         "the value is either the default [0, 0, 0, 0, 0, 0] if never set "
                         "or the previous value passed"
                     )
+                    self.logger.info("Get relative position {}".format(self.tracker.getRelativePosition()))
+                else:
+                    self.tracker.setRelativePosition(request.move_rel_position)
+                    self.logger.info("Get relative position {}".format(self.tracker.getRelativePosition()))
             # set effector
             self.tracker.setEffector(request.effector)
             # start tracker
