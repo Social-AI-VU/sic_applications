@@ -12,7 +12,7 @@ if utils.PYTHON_VERSION_IS_2:
 class StartTrackRequest(SICRequest):
     def __init__(self, target_name, size, mode="Head", effector="None", move_rel_position=None):
         """
-        Request to register a tracking target, see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html#tracking-targets
+        Request to register a tracking target and track it, see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html
         :param target_name: name of object to track , e.g. RedBall, Face
         :param size: size e.g. diameter of ball, width of face (meter)
         :param mode: tracking mode, default mode is "Head", other options: "WholeBody", "Move", see http://doc.aldebaran.com/2-5/naoqi/trackers/index.html#tracking-modes

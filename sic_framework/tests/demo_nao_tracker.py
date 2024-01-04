@@ -15,7 +15,7 @@ target_name = "Face"
 # set the robot relative position to target
 # the robot stays a 30 centimeters of target with 10 cm precision
 move_rel_position = [-0.3, 0.0, 0.0, 0.1, 0.1, 0.1]
-nao.tracker.request(StartTrackRequest(target_name, 0.2, "Move", effector="None", move_rel_position=move_rel_position))
+nao.tracker.request(StartTrackRequest(target_name, 0.2, mode="Move", effector="None", move_rel_position=move_rel_position))
 
 # Do some stuff here
 time.sleep(20)
@@ -25,7 +25,7 @@ nao.tracker.request(RemoveTargetRequest(target_name))
 
 # start tracking a red ball
 target_name = "RedBall"
-nao.tracker.request(StartTrackRequest(target_name, 0.06, "Head", effector="Arms"))
+nao.tracker.request(StartTrackRequest(target_name, 0.06, mode="Head", effector="Arms"))
 
 # Do some stuff here
 time.sleep(20)
