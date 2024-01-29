@@ -4,6 +4,7 @@ from sic_framework.core.utils import MAGIC_STARTED_COMPONENT_MANAGER_TEXT
 from sic_framework.devices.common_naoqi.naoqi_autonomous import *
 from sic_framework.devices.common_naoqi.naoqi_button import NaoqiButtonSensor, NaoqiButton
 from sic_framework.devices.common_naoqi.naoqi_leds import *
+from sic_framework.devices.common_naoqi.naoqi_lookat import NaoqiLookAt, NaoqiLookAtComponent
 from sic_framework.devices.common_naoqi.naoqi_motion import *
 from sic_framework.devices.common_naoqi.naoqi_camera import *
 from sic_framework.devices.common_naoqi.naoqi_microphone import *
@@ -29,7 +30,8 @@ shared_naoqi_components = [
     NaoqiLEDsActuator,
     NaoqiSpeakerComponent,
     NaoqiButtonSensor,
-    NaoqiTrackerActuator
+    NaoqiTrackerActuator,
+    NaoqiLookAtComponent,
 ]
 
 
@@ -47,6 +49,7 @@ class Naoqi(SICDevice):
                  motion_stream_conf=None,
                  stiffness_conf=None,
                  speaker_conf=None,
+                 lookat_conf=None,
                  username=None, passwords=None,
                  ):
         super().__init__(ip, username=username, passwords=passwords, )
@@ -61,6 +64,7 @@ class Naoqi(SICDevice):
         self.configs[NaoqiMotionStreamer] = motion_stream_conf
         self.configs[NaoqiStiffness] = stiffness_conf
         self.configs[NaoqiSpeaker] = speaker_conf
+        self.configs[NaoqiLookAt] = lookat_conf
 
         assert robot_type in ["nao", "pepper"], "Robot type must be either 'nao' or 'pepper'"
 
@@ -104,6 +108,7 @@ class Naoqi(SICDevice):
             status = stdout.channel.recv_exit_status()
             # if remote threads exits before local main thread, report to user.
             if threading.main_thread().is_alive() and not self.stopping:
+                self.logfile.flush()
                 raise RuntimeError("Remote SIC program has stopped unexpectedly.\nSee sic.log for details")
 
         thread = threading.Thread(target=check_if_exit)
@@ -191,6 +196,10 @@ class Naoqi(SICDevice):
     @property
     def tracker(self):
         return self._get_connector(NaoqiTracker)
+
+    @property
+    def look_at(self):
+        return self._get_connector(NaoqiLookAt)
 
     def __del__(self):
         if hasattr(self, "logfile"):
