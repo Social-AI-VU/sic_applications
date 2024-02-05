@@ -210,13 +210,16 @@ class StereoPepperCameraSensor(BaseNaoqiCameraSensor):
     def get_conf():
         # TODO: by default read calibration from disk
         return NaoStereoCameraConf(calib_params={'cameramtrx': None, 'K': None, 'D': None, 'H1': None, 'H2': None},
-                                   cam_id=3, res_id=15, convert_bw=True, use_calib=True)
+                                   cam_id=3, res_id=15, convert_bw=True, use_calib=False)
 
     def undistort(self, img):
+        assert self.params.K is not None, "Calibration parameter K not set"
+        assert self.params.D is not None, "Calibration parameter D not set"
         return cv2.undistort(img, self.params.K, self.params.D, None, self.params.cameramtrx)
 
     def warp(self, img, is_left):
         H_matrix = self.params.H1 if is_left else self.params.H2
+        assert H_matrix is not None, "Calibration parameter H1 or H2 not set"
         return cv2.warpPerspective(img, H_matrix, img.shape[::-1])
 
     def rectify(self, img, is_left):
