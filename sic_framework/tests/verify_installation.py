@@ -1,5 +1,5 @@
 from sic_framework.core.message_python2 import TextRequest
-from sic_framework.services.verify_installation.verify_installation import InstallationVerifier
+from sic_framework.services.installation_verifier.installation_verifier import InstallationVerifier
 
 """
 This demo tests the installation of SIC on your machine.
