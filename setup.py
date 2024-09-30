@@ -1,17 +1,44 @@
-from setuptools import setup
-import six
+from setuptools import setup, find_packages
 
-requirements = ['numpy', 'redis', 'Pillow', 'six',]
+# Basic (bare minimum) requirements for local machine
+local_requirements = [
+    'opencv-python',
+    'paramiko',
+    'pyaudio',
+    'pyspacemouse',
+    'scp',
+]
 
-if six.PY3:
-    # cannot be installed on nao
-    requirements += ["paramiko", "scp"]
+# Dependencies specific to each component or server
+extras_require = {
+    'dialogflow': [
+        'google-cloud-dialogflow',
+    ],
+    'face_detection_dnn': [
+        'matplotlib',
+        'pandas',
+        'pyyaml',
+        'torch',
+        'torchvision',
+        'tqdm',
+    ],
+    'local': local_requirements,
+}
+
+# Common requirements for both local machine and robot
+common_requirements = [
+    'numpy',
+    'Pillow',
+    'redis',
+    'six',
+]
 
 setup(
-    name='sic_framework',
-    version='0.0.1',
+    name='social-interaction-cloud',
+    version='2.0.3',
     author='Koen Hindriks',
     author_email='k.v.hindriks@vu.nl',
-    packages=['sic_framework'],
-    install_requires=requirements,
+    packages=find_packages(),
+    install_requires=common_requirements,
+    extras_require=extras_require,
 )
