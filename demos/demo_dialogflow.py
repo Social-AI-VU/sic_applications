@@ -20,7 +20,7 @@ def on_dialog(message):
             print("Transcript:", message.response.recognition_result.transcript)
 
 # connect to the robot
-nao = Nao(ip='192.168.178.45')
+nao = Nao(ip='192.168.178.153')
 
 # load the key json file
 keyfile_json = json.load(open("dialogflow-tutorial.json"))
