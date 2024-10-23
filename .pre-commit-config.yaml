@@ -4,6 +4,7 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
+        args: ["--profile", "black"]  # Ensure isort is compatible with black
 
   - repo: https://github.com/psf/black
     rev: 24.10.0
