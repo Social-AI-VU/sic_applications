@@ -1,7 +1,10 @@
 import time
 
 from sic_framework.devices import Nao
-from sic_framework.devices.common_naoqi.naoqi_leds import NaoLEDRequest, NaoFadeRGBRequest
+from sic_framework.devices.common_naoqi.naoqi_leds import (
+    NaoFadeRGBRequest,
+    NaoLEDRequest,
+)
 
 nao = Nao(ip="192.168.2.7")
 

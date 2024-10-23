@@ -1,10 +1,15 @@
 import json
-import numpy as np
 
+import numpy as np
 from sic_framework.devices import Nao
 from sic_framework.devices.nao import NaoqiTextToSpeechRequest
-from sic_framework.services.dialogflow.dialogflow import (DialogflowConf, GetIntentRequest, RecognitionResult,
-                                                          QueryResult, Dialogflow)
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+    QueryResult,
+    RecognitionResult,
+)
 
 """ 
 This demo should have Nao picking up your intent and replying according to your trained agent using dialogflow.
@@ -13,14 +18,16 @@ The Dialogflow should be running. You can start it with:
 [services/dialogflow] python dialogflow.py
 """
 
+
 # the callback function
 def on_dialog(message):
     if message.response:
         if message.response.recognition_result.is_final:
             print("Transcript:", message.response.recognition_result.transcript)
 
+
 # connect to the robot
-nao = Nao(ip='192.168.178.153')
+nao = Nao(ip="192.168.178.153")
 
 # load the key json file
 keyfile_json = json.load(open("dialogflow-tutorial.json"))
@@ -29,7 +36,7 @@ keyfile_json = json.load(open("dialogflow-tutorial.json"))
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
 
 # initiate Dialogflow object
-dialogflow = Dialogflow(ip='localhost', conf=conf)
+dialogflow = Dialogflow(ip="localhost", conf=conf)
 
 # connect the output of NaoqiMicrophone as the input of DialogflowComponent
 dialogflow.connect(nao.mic)

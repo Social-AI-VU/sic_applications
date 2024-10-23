@@ -1,10 +1,12 @@
 import queue
 
 import cv2
-
+from demo_face_detection_service_extended import CustomFaceDetection
 from sic_framework.core import utils_cv2
-from sic_framework.core.message_python2 import BoundingBoxesMessage
-from sic_framework.core.message_python2 import CompressedImageMessage
+from sic_framework.core.message_python2 import (
+    BoundingBoxesMessage,
+    CompressedImageMessage,
+)
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.face_detection.face_detection import FaceDetection
@@ -27,12 +29,13 @@ def on_image(image_message: CompressedImageMessage):
 def on_faces(message: BoundingBoxesMessage):
     faces_buffer.put(message.bboxes)
 
+
 # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
 conf = DesktopCameraConf(fx=1.0, fy=1.0, flip=1)
 
 # Connect to the services
 desktop = Desktop(camera_conf=conf)
-face_rec = FaceDetection()
+face_rec = CustomFaceDetection()
 
 # Feed the camera images into the face recognition component
 face_rec.connect(desktop.camera)
@@ -48,5 +51,5 @@ while True:
     for face in faces:
         utils_cv2.draw_bbox_on_image(face, img)
 
-    cv2.imshow('', img)
+    cv2.imshow("", img)
     cv2.waitKey(1)

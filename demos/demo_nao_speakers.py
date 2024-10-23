@@ -1,9 +1,10 @@
 import wave
+
 from sic_framework.core.message_python2 import AudioMessage, AudioRequest
 from sic_framework.devices import Nao
 
 # Read the wav file
-wavefile = wave.open('test_sound_dialogflow.wav', 'rb')
+wavefile = wave.open("test_sound_dialogflow.wav", "rb")
 samplerate = wavefile.getframerate()
 
 print("Audio file specs:")

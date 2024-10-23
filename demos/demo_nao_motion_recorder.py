@@ -1,11 +1,15 @@
 import time
 
 import numpy as np
-
 from sic_framework.devices import Nao
 from sic_framework.devices.common_naoqi.common_naoqi_motion import NaoqiMotionTools
-from sic_framework.devices.common_naoqi.naoqi_motion_recorder import NaoqiMotionRecorder, StartRecording, StopRecording, \
-    PlayRecording, NaoqiMotionRecorderConf
+from sic_framework.devices.common_naoqi.naoqi_motion_recorder import (
+    NaoqiMotionRecorder,
+    NaoqiMotionRecorderConf,
+    PlayRecording,
+    StartRecording,
+    StopRecording,
+)
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 
 conf = NaoqiMotionRecorderConf(use_sensors=True)
@@ -15,7 +19,6 @@ nao = Nao("192.168.2.7", motion_record_conf=conf)
 nao.stiffness.request(Stiffness(stiffness=0.0, joints=["LArm"]))
 
 nao.motion_record.request(StartRecording(["LArm"]))
-
 
 
 print("Start moving the robot! (not too fast)")
