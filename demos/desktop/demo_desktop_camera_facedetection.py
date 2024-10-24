@@ -14,8 +14,10 @@ from sic_framework.services.face_detection.face_detection import FaceDetection
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.
 
-You should have started the face detection service first with:
-[services/face_detection/] python face_detection.py
+IMPORTANT
+face-detection service needs to be running:
+1. pip install social-interaction-cloud[face-detection]
+2. run-face-detection
 """
 
 imgs_buffer = queue.Queue(maxsize=1)
