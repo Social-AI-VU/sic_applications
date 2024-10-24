@@ -1,5 +1,5 @@
 echo "Installing package and development dependencies..."
-pip install -e .[dev]
+pip install -e ../.[dev]
 
 echo "Installing pre-commit hooks..."
 pre-commit install
