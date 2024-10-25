@@ -16,7 +16,7 @@ This demo should have Nao picking up your intent and replying according to your 
 
 IMPORTANT
 
-First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code at line 39 can load.
+First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code at line 41 can load.
 How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
 
 Second, the Dialogflow service needs to be running:
