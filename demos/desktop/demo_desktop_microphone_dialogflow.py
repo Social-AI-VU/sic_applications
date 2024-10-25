@@ -36,7 +36,7 @@ def on_dialog(message):
 # local desktop setup
 desktop = Desktop()
 
-# load the key json file
+# load the key json file, you need to get your own keyfile.json
 keyfile_json = json.load(open("dialogflow-tutorial.json"))
 
 # set up the config

@@ -11,11 +11,19 @@ from sic_framework.services.dialogflow.dialogflow import (
     RecognitionResult,
 )
 
-""" 
+"""
 This demo should have Nao picking up your intent and replying according to your trained agent using dialogflow.
 
-The Dialogflow should be running. You can start it with:
-[services/dialogflow] python dialogflow.py
+IMPORTANT
+
+First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code at line 39 can load.
+How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
+
+Second, the Dialogflow service needs to be running:
+
+1. pip install social-interaction-cloud[dialogflow]
+2. run-dialogflow
+
 """
 
 
@@ -29,7 +37,7 @@ def on_dialog(message):
 # connect to the robot
 nao = Nao(ip="192.168.178.153")
 
-# load the key json file
+# load the key json file (you need to get your own keyfile.json)
 keyfile_json = json.load(open("dialogflow-tutorial.json"))
 
 # set up the config
