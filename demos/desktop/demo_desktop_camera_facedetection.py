@@ -15,8 +15,7 @@ This demo recognizes faces from your webcam and displays the result on your lapt
 
 IMPORTANT
 face-detection service needs to be running:
-1. pip install social-interaction-cloud[face-detection]
-2. run-face-detection
+1. run-face-detection
 """
 
 imgs_buffer = queue.Queue(maxsize=1)
