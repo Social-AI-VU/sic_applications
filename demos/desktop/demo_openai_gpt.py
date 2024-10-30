@@ -1,4 +1,8 @@
+from os import environ
+from os.path import abspath, join
+
 from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest, GPTResponse
+from dotenv import load_dotenv
 
 """
 
@@ -13,15 +17,15 @@ OpenAI gpt service needs to be running:
 
 """
 
-# Read OpenAI key from file
-with open("openai_key", "rb") as f:
-    openai_key = f.read()
-    openai_key = openai_key.decode("utf-8").strip()
+# Generate your personal openai api key here: https://platform.openai.com/api-keys
+# Either add your openai key to your systems variables (and comment the next line out) or
+# create a .openai_env file in the conf/openai folder and add your key there like this:
+# OPENAI_API_KEY="your key"
+load_dotenv(abspath(join("..", "..", "conf", "openai", ".openai_env")))
 
 # Setup GPT
-conf = GPTConf(openai_key=openai_key)
+conf = GPTConf(openai_key=environ["OPENAI_API_KEY"])
 gpt = GPT(conf=conf)
-
 
 # Constants
 NUM_TURNS = 5

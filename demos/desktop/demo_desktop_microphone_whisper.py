@@ -1,5 +1,8 @@
 import time
+from os import environ
+from os.path import abspath, join
 
+from dotenv import load_dotenv
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.openai_whisper_speech_to_text.whisper_speech_to_text import (
     GetTranscript,
@@ -28,11 +31,13 @@ def on_transcript(message: Transcript):
 desktop = Desktop()
 
 # if you have a secret OpenAI key, you can pass it here
-# with open("openai_key", "rb") as f:
-#     openai_key = f.read()
-#     openai_key = openai_key.decode("utf-8").strip()
-
-# whisper_conf = WhisperConf(openai_key=openai_key)
+# Generate your personal openai api key here: https://platform.openai.com/api-keys
+# Either add your openai key to your systems variables (and don't uncomment the first line) or
+# create a .openai_env file in the conf/openai folder and add your key there like this:
+# OPENAI_API_KEY="your key"
+# load_dotenv(abspath(join("..", "..", "conf", "openai", ".openai_env")))
+#
+# whisper_conf = WhisperConf(openai_key=environ["OPENAI_API_KEY"])
 # whisper = SICWhisper(conf=whisper_conf)
 
 whisper = SICWhisper()

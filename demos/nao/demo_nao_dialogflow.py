@@ -1,4 +1,5 @@
 import json
+from os.path import abspath, join
 
 import numpy as np
 from sic_framework.devices import Nao
@@ -35,10 +36,10 @@ def on_dialog(message):
 
 
 # connect to the robot
-nao = Nao(ip="192.168.178.153")
+nao = Nao(ip="192.168.0.0")
 
 # load the key json file (you need to get your own keyfile.json)
-keyfile_json = json.load(open("dialogflow-tutorial.json"))
+keyfile_json = json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-tutorial.json"))))
 
 # set up the config
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
