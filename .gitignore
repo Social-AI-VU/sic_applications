@@ -3,6 +3,7 @@
 *.p
 *.pyc
 *.log
+*.egg-info
 
 # Keep some folders
 !.keepme
