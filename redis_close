@@ -1,0 +1,27 @@
+#
+#
+#
+#
+
+PORT=6379
+
+response=$(lsof -i tcp:$PORT | grep LISTEN | awk '{print $2, $9, $5}')
+
+if [ $? -ne 0 ]; then
+    echo "lsof command not found."
+    exit 1
+elif [ -z "$response" ]; then
+    echo "Redis not found with TCP port $PORT."
+    exit 1
+fi
+
+echo "$response" | while read pid ip ipv; do
+    kill -9 $pid
+    if [ $? -eq 0 ]; then
+        echo "Successfully killed process with PID: $pid, IP-Address $ip, IP-Version: $ipv"
+    else
+        echo "Failed to kill process with PID: $pid, IP-Address $ip, IP-Version: $ipv"
+    fi
+done
+
+
