@@ -18,9 +18,17 @@
 # 2. Execute the script by running:
 #    ./redis_connection_verifier.sh
 
-REDIS_HOST="192.168.2.1" # Change this to where your Redis server is running
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "MacOS"
+    if ! command -v gtimeout &> /dev/null; then
+        echo "Installing coreutils"
+        brew install coreutils
+    fi
+fi
+
+REDIS_HOST="localhost" # Change this to where your Redis server is running
 REDIS_PORT="6379"
-REDIS_PASSWORD="changemeplease"
+REDIS_PASSWORD="changemeplease"  # <- DO NOT CHANGE THIS
 
 # Check if the Redis host is even reachable
 if ! ping -c 1 -W 2 $REDIS_HOST > /dev/null 2>&1; then
