@@ -7,7 +7,7 @@ PORT=6379
 
 response=$(lsof -i tcp:$PORT | grep LISTEN | awk '{print $2, $9, $5}')
 
-if [ $? -ne 0 ]; then
+if ! command -v lsof &> /dev/null; then
     echo "lsof command not found."
     exit 1
 elif [ -z "$response" ]; then
@@ -16,11 +16,17 @@ elif [ -z "$response" ]; then
 fi
 
 echo "$response" | while read pid ip ipv; do
-    kill -9 $pid
+    kill -15 $pid
     if [ $? -eq 0 ]; then
-        echo "Successfully killed process with PID: $pid, IP-Address $ip, IP-Version: $ipv"
+        echo "Gracefully stopped  redis with PID: $pid, IP-Address: $ip, IP-Version: $ipv (Port: $PORT)"
     else
-        echo "Failed to kill process with PID: $pid, IP-Address $ip, IP-Version: $ipv"
+        echo "Failed to gracefully stop redis with PID: $pid, IP-Address: $ip, IP-Version: $ipv (Port: $PORT). Attempting forced kill."
+        kill -9 "$pid"
+        if [ $? -eq 0 ]; then
+            echo "Successfully forced termination of redis with PID: $pid, IP-Address: $ip, IP-Version: $ipv (Port: $PORT)"
+        else
+            echo "Failed to stop redis with PID: $pid, IP-Address: $ip, IP-Version: $ipv (Port: $PORT)"
+        fi
     fi
 done
 
