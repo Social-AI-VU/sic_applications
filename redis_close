@@ -1,7 +1,19 @@
-#
-#
-#
-#
+#!/bin/bash
+
+# Redis Close Script
+
+# This script closes the Redis connection if running. Script should
+# be run on the local machine. The script will do this as followed:
+
+# 1. Gracefully try to kill the process.
+# 2. If this does not succeed it will kill the process forcefully. 
+
+# Instructions:
+# 1. Make the script executable by running:
+#    chmod +x redis_close.sh
+
+# 2. Execute the script by running:
+#    ./redis_close.sh
 
 PORT=6379
 
