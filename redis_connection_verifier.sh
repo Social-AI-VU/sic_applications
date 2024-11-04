@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Redis Connection Verifier Script
+# Redis Connection Verifier Script (only for macOS or Linux for now)
+# For Windows users, you can ask a friend with a Mac or Linux to run this script to test if your redis server allows inbound connections.
 
 # This script verifies the connection to your Redis server. It can be run
 # from either your local machine or a remote machine/robot to check the
@@ -12,10 +13,13 @@
 # Note: for testing 3. Remote Reachability, this file should be executed on the remote machine/robot to check connectivity
 
 # Instructions:
-# 1. Make the script executable by running:
+# 1. If you want to test local reachability, you don't need to change REDIS_HOST.
+# If you want to test remote reachability, change REDIS_HOST to the IP address of the Redis server.
+
+# 2. Make the script executable by running:
 #    chmod +x redis_connection_verifier.sh
 
-# 2. Execute the script by running:
+# 3. Execute the script by running:
 #    ./redis_connection_verifier.sh
 
 REDIS_HOST="localhost" # Change this to where your Redis server is running

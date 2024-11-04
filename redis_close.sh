@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Redis Close Script
+# Redis Close Script (only for MacOS or Linux for now)
 
 # This script closes the Redis connection if running. Script should
 # be run on the local machine. The script will do this as followed:
