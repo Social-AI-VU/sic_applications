@@ -18,9 +18,32 @@
 # 2. Execute the script by running:
 #    ./redis_connection_verifier.sh
 
-REDIS_HOST="192.168.2.1" # Change this to where your Redis server is running
+REDIS_HOST="localhost" # Change this to where your Redis server is running
 REDIS_PORT="6379"
-REDIS_PASSWORD="changemeplease"
+REDIS_PASSWORD="changemeplease"  # <- DO NOT CHANGE THIS
+
+# Set the timeout duration (in seconds)
+TIMEOUT_DURATION=10
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Detected MacOS"
+    if ! command -v gtimeout &> /dev/null; then
+        echo "gtimeout not found, installing coreutils for MacOS"
+	if ! brew install coreutils; then
+            echo "Failed to install coreutils"
+            exit 1
+        else
+	    echo -e "\nSuccesfully installed coreutils for MacOS, trying to connect to redis-server\n"
+	fi
+    fi
+    TIMEOUT_CMD="gtimeout $TIMEOUT_DURATION"
+elif [[ "$OSTYPE" == "linux"* ]]; then
+    echo "Detected Linux"
+    TIMEOUT_CMD="timeout $TIMEOUT_DURATION"
+else
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
+fi
 
 # Check if the Redis host is even reachable
 if ! ping -c 1 -W 2 $REDIS_HOST > /dev/null 2>&1; then
@@ -28,11 +51,8 @@ if ! ping -c 1 -W 2 $REDIS_HOST > /dev/null 2>&1; then
     exit 1
 fi
 
-# Set the timeout duration (in seconds)
-TIMEOUT_DURATION=10
-
 # Ping the redis server with password and a timeout
-response=$(timeout $TIMEOUT_DURATION redis-cli -h $REDIS_HOST -p $REDIS_PORT -a $REDIS_PASSWORD ping 2>/dev/null)
+response=$($TIMEOUT_CMD redis-cli -h $REDIS_HOST -p $REDIS_PORT -a $REDIS_PASSWORD ping 2>/dev/null)
 
 if [ $? -eq 124 ]; then
     echo "Connection to Redis server at $REDIS_HOST:$REDIS_PORT timed out after $TIMEOUT_DURATION seconds. Possible reasons: your firewall or vpn is on."
