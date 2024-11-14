@@ -22,7 +22,9 @@ target_name = "Face"
 
 # Enable stiffness so the head joint can be actuated
 nao.stiffness.request(Stiffness(stiffness=1.0, joints=["Head"]))
-nao.tracker.request(StartTrackRequest(target_name, 0.2, mode="Head", effector="None"))
+nao.tracker.request(
+    StartTrackRequest(target_name=target_name, size=0.2, mode="Head", effector="None")
+)
 
 # Do some stuff here
 time.sleep(30)
@@ -31,14 +33,13 @@ time.sleep(30)
 nao.tracker.request(RemoveTargetRequest(target_name))
 
 # Start tracking a red ball using nao's arms
-# set the robot relative position to target
-# the robot stays a 30 centimeters of target with 10 cm precision
-move_rel_position = [-0.3, 0.0, 0.0, 0.1, 0.1, 0.1]
+# Set a robot position relative to target so that the robot stays a 30 centimeters (along x axis) with 10 cm threshold
 target_name = "RedBall"
+move_rel_position = [-0.3, 0.0, 0.0, 0.1, 0.1, 0.1]
 nao.tracker.request(
     StartTrackRequest(
-        target_name,
-        0.06,
+        target_name=target_name,
+        size=0.06,
         mode="Move",
         effector="Arms",
         move_rel_position=move_rel_position,
