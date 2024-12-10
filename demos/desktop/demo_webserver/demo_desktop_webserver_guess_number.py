@@ -26,8 +26,13 @@ from sic_framework.services.webserver.webserver_component import (
 This demo shows you how to interact with a browser to play a “guess the number” game
 
 The Dialogflow and Webserver should be running. You can start them with:
-1. pip install social-interaction-cloud[dialogflow, webserver]
-2. run-dialogflow && run-webserver
+1. pip install social-interaction-cloud[dialogflow,webserver]
+2. In one terminal: run-webserver
+3. In another terminal: run-dialogflow
+
+Or if you want to run both services in one command:
+`run-webserver & run-dialogflow &`
+
 """
 
 
