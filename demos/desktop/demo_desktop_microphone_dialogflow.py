@@ -1,4 +1,5 @@
 import json
+from os.path import abspath, join
 
 import numpy as np
 from sic_framework.devices.desktop import Desktop
@@ -17,6 +18,7 @@ IMPORTANT
 
 First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code at line 39 can load.
 How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
+Save the key in conf/dialogflow/dialogflow-tutorial.json
 
 Second, the Dialogflow service needs to be running:
 
@@ -37,7 +39,7 @@ def on_dialog(message):
 desktop = Desktop()
 
 # load the key json file, you need to get your own keyfile.json
-keyfile_json = json.load(open("dialogflow-tutorial.json"))
+keyfile_json = json.load(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-tutorial.json'))
 
 # set up the config
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en")
