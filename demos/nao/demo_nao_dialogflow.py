@@ -36,7 +36,7 @@ def on_dialog(message):
 
 
 # connect to the robot
-nao = Nao(ip="192.168.0.0")
+nao = Nao(ip="192.168.178.153")
 
 # load the key json file (you need to get your own keyfile.json)
 keyfile_json = json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-tutorial.json"))))
