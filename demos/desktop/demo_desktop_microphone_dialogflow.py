@@ -39,7 +39,10 @@ def on_dialog(message):
 desktop = Desktop()
 
 # load the key json file, you need to get your own keyfile.json
-keyfile_json = json.load(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-tutorial.json'))
+with open(
+    abspath(join("..", "..", "conf", "dialogflow", "dialogflow-tutorial.json"))
+) as f:
+    keyfile_json = json.load(f)
 
 # set up the config
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en")
