@@ -34,21 +34,31 @@ def on_faces(message: BoundingBoxesMessage):
 # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
 conf = DesktopCameraConf(fx=1.0, fy=1.0, flip=1)
 
+print("Creating pipeline")
+
 # Connect to the services
 desktop = Desktop(camera_conf=conf)
 
-desktop_cam_output = desktop.camera
+print("Starting desktop camera")
+
+desktop_cam_output = desktop.camera.output_channel
+
+print("Setting up face detection service")
 
 face_rec = FaceDetection()
-# CUSTOM FACE DETECTION EXAMPLE
-# face_rec = CustomFaceDetection()
+
+print("Connecting face detection service to camera")
 
 # Feed the camera images into the face recognition component
-face_rec_output = face_rec.connect(desktop_cam_output)
+face_rec_output = face_rec.connect(input_channel=desktop_cam_output)
+
+print("Subscribing callback functions")
 
 # Send back the outputs to this program
-desktop.camera.register_callback(on_image, output_channel=desktop_cam_output)
-face_rec.register_callback(on_faces, output_channel=face_rec_output)
+desktop.camera.register_callback(output_channel=desktop_cam_output, callback=on_image)
+face_rec.register_callback(output_channel=face_rec_output, callback=on_faces)
+
+print("Starting main loop")
 
 while True:
     img = imgs_buffer.get()
