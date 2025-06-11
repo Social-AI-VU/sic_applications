@@ -45,22 +45,21 @@ desktop = Desktop(camera_conf=conf)
 
 print("Starting desktop camera")
 
-desktop_cam_output = desktop.camera.get_output_channel()
+desktop_cam = desktop.camera
 
-print("Desktop camera output channel: ", desktop_cam_output)
-
+print("Desktop camera output channel: ", desktop_cam.get_output_channel())
 
 print("Setting up face detection service")
 
-face_dec = FaceDetection(input_channel=desktop_cam_output)
-face_dec_output = face_dec.get_output_channel()
+face_dec = FaceDetection(input_source=desktop_cam)
 
-print("Face detection service output channel: ", face_dec_output)
+print("Face detection service output channel: ", face_dec.get_output_channel())
 
 print("Subscribing callback functions")
+
 # Send back the outputs to this program
-desktop.camera.register_callback(output_channel=desktop_cam_output, callback=on_image)
-face_dec.register_callback(output_channel=face_dec_output, callback=on_faces)
+desktop_cam.register_callback(callback=on_image)
+face_dec.register_callback(callback=on_faces)
 
 print("Starting main loop")
 
