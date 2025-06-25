@@ -136,7 +136,7 @@ def on_button_click(message):
 
 
 port = 8080
-your_ip = "192.168.178.123"
+your_ip = "10.0.0.142"
 # the HTML file to be rendered
 html_file = "demo_guess_number.html"
 web_url = f"http://{your_ip}:{port}/"
@@ -147,23 +147,22 @@ print("initializing Desktop")
 
 # local desktop setup
 desktop = Desktop()
-desktop_mic_output = desktop.mic.get_output_channel()
+desktop_mic = desktop.mic
 
-print("Desktop microphone output channel: ", desktop_mic_output)
+print("Desktop microphone output channel: ", desktop_mic.get_output_channel())
 
 print("initializing Webserver")
 # webserver setup
 web_conf = WebserverConf(host="0.0.0.0", port=port)
 web_server = Webserver(ip="localhost", conf=web_conf)
-web_server_output = web_server.get_output_channel()
 
-print("Webserver output channel: ", web_server_output)
+print("Webserver output channel: ", web_server.get_output_channel())
 
 print("Registering callback function on Webserver output")
 
 # connect the output of webserver by registering it as a callback.
 # the output is a flag to determine if the button has been clicked or not
-web_server.register_callback(web_server_output, on_button_click)
+web_server.register_callback(on_button_click)
 time.sleep(5)
 
 print("initializing Dialogflow")
@@ -179,11 +178,10 @@ keyfile_json = json.load(
 # local microphone
 sample_rate_hertz = 44100
 dialogflow_conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=sample_rate_hertz)
-dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_channel=desktop_mic_output)
-dialogflow_output = dialogflow.get_output_channel()
+dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_source=desktop_mic)
 
 # Register callback function on Dialogflow output
-dialogflow.register_callback(dialogflow_output, on_dialog)
+dialogflow.register_callback(on_dialog)
 
 print("Opening web page")
 

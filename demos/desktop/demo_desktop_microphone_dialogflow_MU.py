@@ -38,9 +38,9 @@ print("initializing Desktop microphone")
 
 # local desktop setup
 desktop = Desktop()
-desktop_mic_output = desktop.mic.get_output_channel()
+desktop_mic = desktop.mic
 
-print("Desktop microphone output channel: ", desktop_mic_output)
+print("Desktop microphone output channel: ", desktop_mic.get_output_channel())
 
 print("loading in Dialogflow keyfile")
 # load the key json file, you need to get your own keyfile.json
@@ -54,13 +54,12 @@ print("initializing Dialogflow")
 dialogflow_conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en")
 
 # initiate Dialogflow object
-dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_channel=desktop_mic_output)
-dialogflow_output = dialogflow.get_output_channel()
+dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_source=desktop_mic)
 
 print("Initialized dialogflow... registering callback function")
 
 # register a callback function to act upon arrival of recognition_result
-dialogflow.register_callback(output_channel=dialogflow_output, callback=on_dialog)
+dialogflow.register_callback(callback=on_dialog)
 
 print("Registered callback")
 
