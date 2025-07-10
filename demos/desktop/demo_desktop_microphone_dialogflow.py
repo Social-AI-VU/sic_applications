@@ -27,7 +27,6 @@ Second, the Dialogflow service needs to be running:
 
 """
 
-
 # the callback function
 def on_dialog(message):
     if message.response:
@@ -35,29 +34,29 @@ def on_dialog(message):
             print("Transcript:", message.response.recognition_result.transcript)
 
 
+print("initializing Desktop microphone")
+
 # local desktop setup
 desktop = Desktop()
+desktop_mic = desktop.mic
 
+print("initializing Dialogflow")
 # load the key json file, you need to get your own keyfile.json
 with open(
-    abspath(join("..", "..", "conf", "dialogflow", "dialogflow-tutorial.json"))
+    abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))
 ) as f:
     keyfile_json = json.load(f)
 
-# set up the config
-conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en")
+dialogflow_conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en")
 
-# initiate Dialogflow object
-dialogflow = Dialogflow(ip="localhost", conf=conf)
+dialogflow = Dialogflow(conf=dialogflow_conf, input_source=desktop_mic)
 
-# connect the output of DesktopMicrophone as the input of DialogflowComponent
-dialogflow.connect(desktop.mic)
-
+print("Initialized dialogflow... registering callback function")
 # register a callback function to act upon arrival of recognition_result
-dialogflow.register_callback(on_dialog)
+dialogflow.register_callback(callback=on_dialog)
 
 # Demo starts
-print(" -- Ready -- ")
+print(" -- Starting Demo -- ")
 x = np.random.randint(10000)
 
 try:
@@ -73,5 +72,5 @@ try:
             text = reply.fulfillment_message
             print("Reply:", text)
 except KeyboardInterrupt:
-    print("Stop the dialogflow component.")
+    print("Stopping dialogflow component.")
     dialogflow.stop()
