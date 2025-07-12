@@ -1,20 +1,3 @@
-import json
-from os import environ
-from os.path import abspath, join
-from subprocess import call
-
-import numpy as np
-from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest
-from dotenv import load_dotenv
-
-from sic_framework.devices.desktop import Desktop
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-)
-
-
 """
 
 This demo shows how to use the dialogflow to get a transcript and an OpenAI GPT model to get responses to user input,
@@ -49,6 +32,21 @@ Fourth, Dialogflow and OpenAI gpt service need to be running:
 
 """
 
+import json
+from os import environ
+from os.path import abspath, join
+from subprocess import call
+
+import numpy as np
+from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest
+from dotenv import load_dotenv
+
+from sic_framework.devices.desktop import Desktop
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+)
 
 class ChatApp:
 
@@ -71,10 +69,7 @@ class ChatApp:
                                          sample_rate_hertz=sample_rate_hertz, language=language)
 
         # initiate Dialogflow object
-        self.dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf)
-
-        # connect the output of DesktopMicrophone as the input of DialogflowComponent
-        self.dialogflow.connect(self.desktop.mic)
+        self.dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_source=self.desktop.mic)
 
         # register a callback function to act upon arrival of recognition_result
         self.dialogflow.register_callback(self.on_dialog)
@@ -102,7 +97,5 @@ class ChatApp:
             self.local_tts(gpt_response.response)
 
 if __name__ == "__main__":
-    chat_app = ChatApp(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-tutorial.json')))
+    chat_app = ChatApp(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-key.json')))
     chat_app.run()
-
-

@@ -1,18 +1,5 @@
-import json
-from os.path import abspath, join
-
-import numpy as np
-from sic_framework.devices.desktop import Desktop
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-    QueryResult,
-    RecognitionResult,
-)
-
 """
-This demo should have Nao picking up your intent and replying according to your trained agent using dialogflow.
+This demo should have your Desktop microphone picking up your intent and replying according to your trained agent using dialogflow.
 
 IMPORTANT
 
@@ -27,12 +14,24 @@ Second, the Dialogflow service needs to be running:
 
 """
 
+import json
+from os.path import abspath, join
+
+import numpy as np
+from sic_framework.devices.desktop import Desktop
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+    QueryResult,
+    RecognitionResult,
+)
+
 # the callback function
 def on_dialog(message):
     if message.response:
         if message.response.recognition_result.is_final:
             print("Transcript:", message.response.recognition_result.transcript)
-
 
 print("initializing Desktop microphone")
 

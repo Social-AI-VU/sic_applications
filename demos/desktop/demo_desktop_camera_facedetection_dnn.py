@@ -1,3 +1,12 @@
+"""
+This demo recognizes faces from your webcam and displays the result on your laptop using the DNN face detection service.
+
+IMPORTANT
+face-detection-dnn dependency needs to be installed and the service needs to be running:
+1. pip install social-interaction-cloud[face-detection-dnn]
+2. run-face-detection-dnn --model xxx.pt
+"""
+
 import queue
 
 import cv2
@@ -11,17 +20,7 @@ from sic_framework.services.face_detection_dnn.face_detection_dnn import (
     DNNFaceDetection,
 )
 
-"""
-This demo recognizes faces from your webcam and displays the result on your laptop using the DNN face detection service.
-
-IMPORTANT
-face-detection-dnn dependency needs to be installed and the service needs to be running:
-1. pip install social-interaction-cloud[face-detection-dnn]
-2. run-face-detection-dnn --model xxx.pt
-"""
-
 imgs_buffer = queue.Queue()
-
 
 def on_image(image_message: CompressedImageMessage):
     try:
@@ -44,10 +43,8 @@ def on_faces(message: BoundingBoxesMessage):
 
 # Connect to the services
 desktop = Desktop()
-face_rec = DNNFaceDetection()
+face_rec = DNNFaceDetection(input_source=desktop.camera)
 
-# Feed the camera images into the face recognition component
-face_rec.connect(desktop.camera)
 
 # Send back the outputs to this program
 desktop.camera.register_callback(on_image)
