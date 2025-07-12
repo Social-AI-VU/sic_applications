@@ -1,3 +1,7 @@
+"""
+This script demonstrates how to use the Nao speakers to play a wav file.
+"""
+
 import wave
 
 from sic_framework.core.message_python2 import AudioMessage, AudioRequest
@@ -15,11 +19,11 @@ print("  number of chanels:", wavefile.getnchannels())
 print()
 
 
-nao = Nao(ip="192.168.0.0")
+nao = Nao(ip="XXX")
 
 print("Sending audio!")
 sound = wavefile.readframes(wavefile.getnframes())
-message = AudioMessage(sample_rate=samplerate, waveform=sound)
-nao.speaker.send_message(message)
+message = AudioRequest(sample_rate=samplerate, waveform=sound)
+nao.speaker.request(message)
 
 print("Audio sent, without waiting for it to complete playing.")

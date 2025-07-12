@@ -1,3 +1,9 @@
+"""
+This demo shows you how to make Nao
+1. Track a face with its head.
+2. Move its end-effector (both arms in this case) to track a red ball, given a position relative to the ball.
+"""
+
 import time
 
 from sic_framework.devices import Nao
@@ -8,14 +14,8 @@ from sic_framework.devices.common_naoqi.naoqi_tracker import (
     StopAllTrackRequest,
 )
 
-"""
-This demo shows you how to make Nao
-1. Track a face with its head.
-2. Move its end-effector (both arms in this case) to track a red ball, given a position relative to the ball.
-"""
-
 # Connect to NAO
-nao = Nao(ip="10.0.0.242")
+nao = Nao(ip="XXX")
 
 # Start tracking a face
 target_name = "Face"

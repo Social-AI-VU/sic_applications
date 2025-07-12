@@ -1,3 +1,6 @@
+"""
+This demo shows how to record and replay a motion on a Nao robot.
+"""
 import time
 
 from sic_framework.devices import Nao
@@ -10,12 +13,9 @@ from sic_framework.devices.common_naoqi.naoqi_motion_recorder import (
 )
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 
-"""
-This demo shows how to record and replay a motion on a Nao robot.
-"""
 
 conf = NaoqiMotionRecorderConf(use_sensors=True)
-nao = Nao("192.168.2.7", motion_record_conf=conf)
+nao = Nao("XXX", motion_record_conf=conf)
 
 chain = ["LArm", "RArm"]
 record_time = 10
