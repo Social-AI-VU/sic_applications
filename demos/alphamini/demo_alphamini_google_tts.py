@@ -1,4 +1,5 @@
 from os.path import abspath, join
+import json
 
 from sic_framework.core.message_python2 import AudioMessage, AudioRequest
 from sic_framework.services.text2speech.text2speech_service import Text2Speech, Text2SpeechConf, GetSpeechRequest, SpeechResult
@@ -14,8 +15,10 @@ See https://console.cloud.google.com/apis/api/texttospeech.googleapis.com/
 save the file in conf/dialogflow/google_tts_keyfile.json
 """
 
-tts_conf = Text2SpeechConf(keyfile=abspath(join('..', '..', 'conf', 'dialogflow', 'google_tts_keyfile.json')))
+tts_conf = Text2SpeechConf(keyfile_json=json.load(open(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-key.json')))))
 tts = Text2Speech(conf=tts_conf)
+
 reply = tts.request(GetSpeechRequest(text="Hi, I am an alphamini", voice_name="en-US-Standard-C", ssml_gender="FEMALE"))
-mini = Alphamini(ip="10.0.0.xxx", mini_id="00xxx", mini_password="alphago", redis_ip="10.0.0.yyy", speaker_conf=MiniSpeakersConf(sample_rate=reply.sample_rate))
-mini.speaker.request(AudioRequest(reply.waveform, reply.sample_rate))
+mini = Alphamini(ip="XXX", mini_id="000XXX", mini_password="mini", redis_ip="XXX", speaker_conf=MiniSpeakersConf(sample_rate=reply.sample_rate))
+
+reply = mini.speaker.request(AudioRequest(reply.waveform, reply.sample_rate))

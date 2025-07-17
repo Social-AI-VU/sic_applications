@@ -46,7 +46,7 @@ def on_dialog(message):
 
 # setup the tts service
 tts_conf = Text2SpeechConf(
-    keyfile=abspath(join("..", "..", "conf", "dialogflow", "google_tts_keyfile.json"))
+    keyfile_json=json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))))
 )
 tts = Text2Speech(conf=tts_conf)
 
@@ -61,17 +61,17 @@ tts_reply = tts.request(
 
 # local desktop setup
 mini = Alphamini(
-    ip="192.168.178.111",
-    mini_id="00297",
+    ip="XXX",
+    mini_id="000XXX",
     mini_password="mini",
-    redis_ip="192.168.178.123",
+    redis_ip="XXX",
     speaker_conf=MiniSpeakersConf(sample_rate=tts_reply.sample_rate),
 )
 
 
 # load the key json file, you need to get your own keyfile.json
 keyfile_json = json.load(
-    open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-tutorial.json")))
+    open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json")))
 )
 # set up the config
 df_conf = DialogflowConf(
@@ -79,10 +79,7 @@ df_conf = DialogflowConf(
 )
 
 # initiate Dialogflow object
-dialogflow = Dialogflow(ip="localhost", conf=df_conf)
-
-# connect the output of DesktopMicrophone as the input of DialogflowComponent
-dialogflow.connect(mini.mic)
+dialogflow = Dialogflow(ip="localhost", conf=df_conf, input_source=mini.mic)
 
 # register a callback function to act upon arrival of recognition_result
 dialogflow.register_callback(on_dialog)
