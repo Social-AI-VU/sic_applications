@@ -1,3 +1,16 @@
+"""
+This demo shows you how to interact with a browser to play a “guess the number” game
+
+The Dialogflow and Webserver should be running. You can start them with:
+1. pip install social-interaction-cloud[dialogflow,webserver]
+2. In one terminal: run-webserver
+3. In another terminal: run-dialogflow
+
+Or if you want to run both services in one command:
+`run-webserver & run-dialogflow &`
+
+"""
+
 import json
 import random
 import re
@@ -21,20 +34,6 @@ from sic_framework.services.webserver.webserver_component import (
     Webserver,
     WebserverConf,
 )
-
-"""
-This demo shows you how to interact with a browser to play a “guess the number” game
-
-The Dialogflow and Webserver should be running. You can start them with:
-1. pip install social-interaction-cloud[dialogflow,webserver]
-2. In one terminal: run-webserver
-3. In another terminal: run-dialogflow
-
-Or if you want to run both services in one command:
-`run-webserver & run-dialogflow &`
-
-"""
-
 
 def on_dialog(message):
     """
@@ -136,39 +135,50 @@ def on_button_click(message):
 
 
 port = 8080
-your_ip = "192.168.178.123"
+your_ip = "127.0.0.1"
 # the HTML file to be rendered
 html_file = "demo_guess_number.html"
 web_url = f"http://{your_ip}:{port}/"
 # the random number that an user should guess
 rand_int = random.randint(1, 10)
 
+print("initializing Desktop")
+
 # local desktop setup
 desktop = Desktop()
+desktop_mic = desktop.mic
 
+print("initializing Webserver")
 # webserver setup
 web_conf = WebserverConf(host="0.0.0.0", port=port)
 web_server = Webserver(ip="localhost", conf=web_conf)
+
+print("Registering callback function on Webserver output")
+
 # connect the output of webserver by registering it as a callback.
 # the output is a flag to determine if the button has been clicked or not
 web_server.register_callback(on_button_click)
 time.sleep(5)
 
+print("initializing Dialogflow")
+
 # dialogflow setup
 keyfile_json = json.load(
     open(
         abspath(
-            join("..", "..", "..", "conf", "dialogflow", "dialogflow-tutorial.json")
+            join("..", "..", "..", "conf", "dialogflow", "dialogflow-key.json")
         )
     )
 )
 # local microphone
 sample_rate_hertz = 44100
+dialogflow_conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=sample_rate_hertz)
+dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_source=desktop_mic)
 
-conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=sample_rate_hertz)
-dialogflow = Dialogflow(ip="localhost", conf=conf)
+# Register callback function on Dialogflow output
 dialogflow.register_callback(on_dialog)
-dialogflow.connect(desktop.mic)
+
+print("Opening web page")
 
 time.sleep(1)
 # send html to Webserver
