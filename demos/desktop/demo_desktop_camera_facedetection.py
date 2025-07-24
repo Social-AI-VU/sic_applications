@@ -1,16 +1,3 @@
-import queue
-import cv2
-from sic_framework.core import utils_cv2
-from sic_framework.core.message_python2 import (
-    BoundingBoxesMessage,
-    CompressedImageMessage,
-)
-from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-from sic_framework.devices.desktop import Desktop
-from sic_framework.services.face_detection.face_detection import FaceDetection
-# CUSTOM FACE DETECTION EXAMPLE
-# from custom_components.custom_face_detection import CustomFaceDetection
-
 """ 
 This demo recognizes faces from your webcam and displays the result on your laptop.
 
@@ -18,6 +5,23 @@ IMPORTANT
 face-detection service needs to be running:
 1. run-face-detection
 """
+
+from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
+from sic_framework.services.face_detection.face_detection import FaceDetection
+from sic_framework.devices.desktop import Desktop
+from sic_framework.core.message_python2 import (
+    BoundingBoxesMessage,
+    CompressedImageMessage,
+)
+from sic_framework.core import utils
+from sic_framework.core import utils_cv2
+import queue
+import cv2
+
+# CUSTOM FACE DETECTION EXAMPLE
+# from custom_components.custom_face_detection import CustomFaceDetection
+
+print(f"IP address of current machine: {utils.get_ip_adress()}")
 
 imgs_buffer = queue.Queue(maxsize=1)
 faces_buffer = queue.Queue(maxsize=1)
@@ -34,19 +38,26 @@ def on_faces(message: BoundingBoxesMessage):
 # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
 conf = DesktopCameraConf(fx=1.0, fy=1.0, flip=1)
 
+print("Creating pipeline...")
+
 # Connect to the services
 desktop = Desktop(camera_conf=conf)
 
-face_rec = FaceDetection()
-# CUSTOM FACE DETECTION EXAMPLE
-# face_rec = CustomFaceDetection()
+print("Starting desktop camera")
 
-# Feed the camera images into the face recognition component
-face_rec.connect(desktop.camera)
+desktop_cam = desktop.camera
+
+print("Setting up face detection service")
+
+face_dec = FaceDetection(input_source=desktop_cam)
+
+print("Subscribing callback functions")
 
 # Send back the outputs to this program
-desktop.camera.register_callback(on_image)
-face_rec.register_callback(on_faces)
+desktop_cam.register_callback(callback=on_image)
+face_dec.register_callback(callback=on_faces)
+
+print("Starting main loop")
 
 while True:
     img = imgs_buffer.get()

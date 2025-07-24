@@ -1,3 +1,7 @@
+"""
+This script demonstrates how to use the Nao TTS to say something.
+"""
+
 from time import sleep
 
 from sic_framework.devices import Nao
@@ -34,7 +38,7 @@ class NaoTalkDemo:
 
 
 if __name__ == '__main__':
-    nao_talk = NaoTalkDemo(ip="10.0.0.?")
+    nao_talk = NaoTalkDemo(ip="XXX")
     nao_talk.wakeup()
     nao_talk.say()
     sleep(2)

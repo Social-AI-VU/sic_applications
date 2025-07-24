@@ -1,17 +1,3 @@
-from os.path import abspath, join
-
-from sic_framework.devices.desktop import Desktop
-from sic_framework.services.nlu.bert_nlu import (
-    NLU,
-    InferenceRequest,
-    InferenceResult,
-    NLUConf,
-)
-from sic_framework.services.openai_whisper_speech_to_text.whisper_speech_to_text import (
-    GetTranscript,
-    SICWhisper,
-)
-
 """
 This demo shows how to create a simple pipeline (ASR + NLU) where Whisper transcribes your speech and
 feeds it into the NLU component to run inference
@@ -26,12 +12,23 @@ The Whisper component and NLU component need to be running:
     The other terminal: run-nlu
 """
 
+from os.path import abspath, join
+
+from sic_framework.devices.desktop import Desktop
+from sic_framework.services.nlu.bert_nlu import (
+    NLU,
+    InferenceRequest,
+    InferenceResult,
+    NLUConf,
+)
+from sic_framework.services.openai_whisper_speech_to_text.whisper_speech_to_text import (
+    GetTranscript,
+    SICWhisper,
+)
 
 desktop = Desktop()
 
-whisper = SICWhisper()
-
-whisper.connect(desktop.mic)
+whisper = SICWhisper(input_source=desktop.mic)
 
 ontology_path = abspath(join("..", "..", "conf", "nlu", "ontology.json"))
 model_path = abspath(join("..", "..", "conf", "nlu", "model_checkpoint.pt"))

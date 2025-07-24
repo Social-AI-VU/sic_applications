@@ -1,29 +1,3 @@
-import json
-import queue
-import threading
-from os.path import abspath, join
-from time import sleep
-from subprocess import call
-
-import cv2
-import numpy as np
-from sic_framework.core import utils_cv2
-from sic_framework.core.message_python2 import (
-    BoundingBoxesMessage,
-    CompressedImageMessage,
-)
-from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-from sic_framework.devices.desktop import Desktop
-from sic_framework.services.face_detection.face_detection import FaceDetection
-
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-    QueryResult,
-    RecognitionResult,
-)
-
 """ 
 This demo showcases how a kiosk robot could function. After detecting a face it will address a potential customer.
 
@@ -55,6 +29,31 @@ Fourth, the face-detection service and dialogflow service need to be running:
 
 """
 
+import json
+import queue
+import threading
+from os.path import abspath, join
+from time import sleep
+from subprocess import call
+
+import cv2
+import numpy as np
+from sic_framework.core import utils_cv2
+from sic_framework.core.message_python2 import (
+    BoundingBoxesMessage,
+    CompressedImageMessage,
+)
+from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
+from sic_framework.devices.desktop import Desktop
+from sic_framework.services.face_detection.face_detection import FaceDetection
+
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+    QueryResult,
+    RecognitionResult,
+)
 
 class KioskApp:
 
@@ -69,10 +68,7 @@ class KioskApp:
 
         # Connect to the services
         self.desktop = Desktop(camera_conf=camera_conf)
-        self.face_rec = FaceDetection()
-
-        # Feed the camera images into the face recognition component
-        self.face_rec.connect(self.desktop.camera)
+        self.face_rec = FaceDetection(input_source=self.desktop.camera)
 
         # Send back the outputs to this program
         self.desktop.camera.register_callback(self.on_image)
@@ -83,10 +79,7 @@ class KioskApp:
                               sample_rate_hertz=sample_rate_hertz, language=language)
 
         # initiate Dialogflow object
-        self.dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf)
-
-        # connect the output of DesktopMicrophone as the input of DialogflowComponent
-        self.dialogflow.connect(self.desktop.mic)
+        self.dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_source=self.desktop.mic)
 
         # register a callback function to act upon arrival of recognition_result
         self.dialogflow.register_callback(self.on_dialog)
@@ -174,16 +167,3 @@ class KioskApp:
 if __name__ == "__main__":
     kiosk_app = KioskApp(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-tutorial.json')))
     kiosk_app.run()
-
-
-
-
-
-
-
-
-
-
-
-
-

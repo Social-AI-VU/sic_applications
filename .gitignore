@@ -4,6 +4,8 @@
 *.pyc
 *.log
 *.egg-info
+*.DS_Store
+*.pt
 
 # Keep some folders
 !.keepme
