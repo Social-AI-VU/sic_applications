@@ -1,3 +1,7 @@
+"""
+This script demonstrates how to use the Nao LEDs.
+"""
+
 import time
 
 from sic_framework.devices import Nao
@@ -6,7 +10,7 @@ from sic_framework.devices.common_naoqi.naoqi_leds import (
     NaoLEDRequest,
 )
 
-nao = Nao(ip="192.168.2.7")
+nao = Nao(ip="XXX")
 
 print("Requesting Eye LEDs to turn on")
 reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))

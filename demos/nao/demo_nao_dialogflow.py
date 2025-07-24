@@ -1,17 +1,3 @@
-import json
-from os.path import abspath, join
-
-import numpy as np
-from sic_framework.devices import Nao
-from sic_framework.devices.nao import NaoqiTextToSpeechRequest
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-    QueryResult,
-    RecognitionResult,
-)
-
 """
 This demo should have Nao picking up your intent and replying according to your trained agent using dialogflow.
 
@@ -27,6 +13,19 @@ Second, the Dialogflow service needs to be running:
 
 """
 
+import json
+from os.path import abspath, join
+
+import numpy as np
+from sic_framework.devices import Nao
+from sic_framework.devices.nao import NaoqiTextToSpeechRequest
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+    QueryResult,
+    RecognitionResult,
+)
 
 # the callback function
 def on_dialog(message):
@@ -34,21 +33,20 @@ def on_dialog(message):
         if message.response.recognition_result.is_final:
             print("Transcript:", message.response.recognition_result.transcript)
 
+print("Initializing Nao...")
+nao = Nao(ip="XXX")
 
-# connect to the robot
-nao = Nao(ip="192.168.178.153")
+nao_mic = nao.mic
 
 # load the key json file (you need to get your own keyfile.json)
-keyfile_json = json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-tutorial.json"))))
+keyfile_json = json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))))
 
 # set up the config
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
 
+print("Initializing Dialogflow...")
 # initiate Dialogflow object
-dialogflow = Dialogflow(ip="localhost", conf=conf)
-
-# connect the output of NaoqiMicrophone as the input of DialogflowComponent
-dialogflow.connect(nao.mic)
+dialogflow = Dialogflow(ip="localhost", conf=conf, input_source=nao_mic)
 
 # register a callback function to act upon arrival of recognition_result
 dialogflow.register_callback(on_dialog)

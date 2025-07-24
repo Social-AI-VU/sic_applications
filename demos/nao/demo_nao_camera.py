@@ -1,3 +1,7 @@
+"""
+This script demonstrates how to use the Nao camera.
+"""
+
 import queue
 
 import cv2
@@ -17,9 +21,13 @@ def on_image(image_message: CompressedImageMessage):
 # See "NaoqiCameraConf" for more options like brightness, contrast, sharpness, etc
 conf = NaoqiCameraConf(vflip=1)
 
-nao = Nao(ip="192.168.0.0", top_camera_conf=conf)
+print("Initializing Nao...")
+nao = Nao(ip="XXX", top_camera_conf=conf)
+
+print("Registering callback...")
 nao.top_camera.register_callback(on_image)
 
+print("Starting demo...")
 while True:
     img = imgs.get()
     cv2.imshow("", img[..., ::-1])  # cv2 is BGR instead of RGB
