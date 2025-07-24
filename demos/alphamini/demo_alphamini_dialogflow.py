@@ -1,21 +1,3 @@
-import json
-from os.path import abspath, join
-
-import numpy as np
-from sic_framework.core.message_python2 import AudioRequest
-from sic_framework.devices.alphamini import Alphamini
-from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-)
-from sic_framework.services.text2speech.text2speech_service import (
-    GetSpeechRequest,
-    Text2Speech,
-    Text2SpeechConf,
-)
-
 """
 Demo: AlphaMini recognizes user intent and replies using Dialogflow and Text-to-Speech.
 
@@ -36,6 +18,23 @@ Instructions:
    $ run-google-tts (in another terminal)
 """
 
+import json
+from os.path import abspath, join
+
+import numpy as np
+from sic_framework.core.message_python2 import AudioRequest
+from sic_framework.devices.alphamini import Alphamini
+from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+)
+from sic_framework.services.text2speech.text2speech_service import (
+    GetSpeechRequest,
+    Text2Speech,
+    Text2SpeechConf,
+)
 
 # the callback function
 def on_dialog(message):

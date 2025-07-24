@@ -1,9 +1,3 @@
-from os import environ
-from os.path import abspath, join
-
-from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest, GPTResponse
-from dotenv import load_dotenv
-
 """
 
 This demo shows how to use the OpenAI GPT model to get responses to user input,
@@ -16,6 +10,13 @@ OpenAI gpt service needs to be running:
 2. run-gpt
 
 """
+
+from os import environ
+from os.path import abspath, join
+
+from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest, GPTResponse
+from dotenv import load_dotenv
+
 
 # Generate your personal openai api key here: https://platform.openai.com/api-keys
 # Either add your openai key to your systems variables (and comment the next line out) or

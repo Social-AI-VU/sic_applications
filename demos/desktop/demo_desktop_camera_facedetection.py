@@ -1,3 +1,11 @@
+""" 
+This demo recognizes faces from your webcam and displays the result on your laptop.
+
+IMPORTANT
+face-detection service needs to be running:
+1. run-face-detection
+"""
+
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.services.face_detection.face_detection import FaceDetection
 from sic_framework.devices.desktop import Desktop
@@ -12,14 +20,6 @@ import cv2
 
 # CUSTOM FACE DETECTION EXAMPLE
 # from custom_components.custom_face_detection import CustomFaceDetection
-
-""" 
-This demo recognizes faces from your webcam and displays the result on your laptop.
-
-IMPORTANT
-face-detection service needs to be running:
-1. run-face-detection
-"""
 
 print(f"IP address of current machine: {utils.get_ip_adress()}")
 
