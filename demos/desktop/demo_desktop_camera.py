@@ -2,12 +2,13 @@
 This demo displays a camera image from your webcam on your laptop.
 """
 
-import queue
+from my_sic import sic_app
 
-import cv2
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.desktop import Desktop
+import queue
+import cv2
 
 imgs = queue.Queue()
 

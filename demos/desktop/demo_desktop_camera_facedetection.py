@@ -6,6 +6,8 @@ face-detection service needs to be running:
 1. run-face-detection
 """
 
+from my_sic import sic_app
+
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.services.face_detection.face_detection import FaceDetection
 from sic_framework.devices.desktop import Desktop
