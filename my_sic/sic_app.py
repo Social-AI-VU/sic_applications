@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 import os
 
 # Initialize logging
-sic_logging.set_log_level(sic_logging.INFO)
+# can be set to DEBUG, INFO, WARNING, ERROR, CRITICAL
+sic_logging.set_log_level(sic_logging.DEBUG)
 
 # set log file path (relative to the sic_app.py file)
 LOG_PATH = "../sic_logs/"

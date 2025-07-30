@@ -1,5 +1,10 @@
 """ 
 This demo displays a camera image from your webcam on your laptop.
+
+NOTE:
+If you want to use cv2 to display an image in a window, you need to call cv2.imshow() in the main thread.
+It is not possible to call cv2.imshow() in a background process (such as the message handler of a Component).
+This is why we need to register a callback function to receive the image and display it in the main thread.
 """
 
 from my_sic import sic_app
