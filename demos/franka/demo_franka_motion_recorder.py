@@ -14,6 +14,8 @@ from sic_framework.devices.common_franka.franka_motion_recorder import (
 
 """
 This demo allows you to enable franka in teaching mode and record the motions you just teach the robot, and replay the motion
+To run this demo, you need to install the correct version of the panda-python dependency. A version mismatch will cause problems.
+See Installation point 3 for instructions on installing the correct version: https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
 """
 
 
