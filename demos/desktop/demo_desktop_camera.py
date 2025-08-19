@@ -8,6 +8,7 @@ import cv2
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.desktop import Desktop
+from sic_framework.core import sic_application
 
 imgs = queue.Queue()
 
