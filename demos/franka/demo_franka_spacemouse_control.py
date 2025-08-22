@@ -17,6 +17,9 @@ from scipy.spatial.transform import Rotation
 This demo allows you to use a space mouse to control the robot arm's end effector (EE),
 and demonstrates the mapping between space mouse input and the end effector's displacement
 
+To run this demo, you need to install the correct version of the panda-python dependency. A version mismatch will cause problems.
+See Installation point 3 for instructions on installing the correct version: https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
+
 Extra installation instruction:
 `pip install scipy pyspacemouse`
 """
@@ -37,10 +40,15 @@ class MouseStateHandler():
             return
         # convert quaternion to rotation matrix
         initial_rotation_matrix = Rotation.from_quat(pose.orientation).as_matrix()
+
+        # scaling factor for spacemount input
+        # smaller values = slower, finer translation; larger = faster, coarser movement
+        translation_gain = 0.05  # gain to scale the displacement
+        orientation_gain = 0.5  # gain to scale the rotation
         # calculate translation displacement in the end-effector (EE) frame based on SpaceMouse input
-        displacement_x = -0.1 * self.mouse_states.x
-        displacement_y = -0.1 * self.mouse_states.y
-        displacement_z = 0.1 * self.mouse_states.z
+        displacement_x = -translation_gain * self.mouse_states.x
+        displacement_y = -translation_gain * self.mouse_states.y
+        displacement_z = translation_gain * self.mouse_states.z
 
         # create a transformation matrix for displacement
         T_ee_displacement = np.identity(4)
@@ -56,9 +64,9 @@ class MouseStateHandler():
         new_ee_pose = new_ee_pose_4D[:3]
 
         # calculate new rotation angles based on SpaceMouse input, scaling them so each rotation along the axes can reach up to a maximum of ±90 degrees
-        angle_x = - np.radians(90) * self.mouse_states.pitch
-        angle_y = - np.radians(90) * self.mouse_states.roll
-        angle_z = np.radians(90) * self.mouse_states.yaw
+        angle_x = - np.radians(90) * self.mouse_states.pitch * orientation_gain
+        angle_y = - np.radians(90) * self.mouse_states.roll * orientation_gain
+        angle_z = np.radians(90) * self.mouse_states.yaw * orientation_gain
 
         # create a rotation matrix from euler angles
         rotation_matrix_displacement = Rotation.from_euler('xyz', [angle_x, angle_y, angle_z]).as_matrix()
