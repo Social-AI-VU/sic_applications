@@ -3,6 +3,8 @@ from sic_framework.devices.common_franka.franka_motion import (
     FrankaMotion,
     FrankaPose,
     FrankaPoseRequest,
+    FrankaGripperGraspRequest,
+    FrankaGripperMoveRequest
 )
 from sic_framework.devices.franka import Franka
 
@@ -79,6 +81,11 @@ class MouseStateHandler():
 
         franka.motion.send_message(FrankaPose(position=new_ee_pose, orientation=new_quaternion))
 
+        # gripper control: left button to close, right button to open
+        if self.mouse_states.buttons[0] == 1:
+            franka.motion.request(FrankaGripperGraspRequest(width=0.0, speed=0.1, force=5, epsilon_inner=0.005, epsilon_outer=0.005))
+        if self.mouse_states.buttons[1] == 1:
+            franka.motion.request(FrankaGripperMoveRequest(width=0.08, speed=0.1))
 
 mouse_handler = MouseStateHandler()
 desktop = Desktop()
