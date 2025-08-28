@@ -42,7 +42,7 @@ desktop_mic = desktop.mic
 print("initializing Dialogflow")
 # load the key json file, you need to get your own keyfile.json
 with open(
-    abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))
+    abspath(join("..", "..", "conf", "google", "google-key.json"))
 ) as f:
     keyfile_json = json.load(f)
 
