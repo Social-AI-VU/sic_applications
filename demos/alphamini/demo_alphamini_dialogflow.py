@@ -2,17 +2,12 @@
 Demo: AlphaMini recognizes user intent and replies using Dialogflow and Text-to-Speech.
 
 Instructions:
-1. Obtain your own Dialogflow keyfile.json. Place it at:
-   conf/dialogflow/dialogflow-tutorial.json
+1. Obtain your own Google Cloud Platform keyfile.json. Make sure to enable the Dialogflow and Text-to-Speech services in the Google Cloud Platform. Place it at:
+   conf/google/google-key.json
    → How to get a key:
-     https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key
+     https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
 
-2. Obtain your own Google Text-to-Speech keyfile.json. Place it at:
-    conf/dialogflow/google_tts_keyfile.json
-    → How to get a key:
-      https://console.cloud.google.com/apis/api/texttospeech.googleapis.com/
-
-3. Ensure Dialogflow and Google Text-to-Speech services are running:
+2. Ensure Dialogflow and Google Text-to-Speech services are running:
    $ pip install social-interaction-cloud[alphamini,dialogflow,google-tts]
    $ run-dialogflow
    $ run-google-tts (in another terminal)
@@ -30,7 +25,7 @@ from sic_framework.services.dialogflow.dialogflow import (
     DialogflowConf,
     GetIntentRequest,
 )
-from sic_framework.services.text2speech.text2speech_service import (
+from sic_framework.services.google_tts.google_tts import (
     GetSpeechRequest,
     Text2Speech,
     Text2SpeechConf,
@@ -45,7 +40,7 @@ def on_dialog(message):
 
 # setup the tts service
 tts_conf = Text2SpeechConf(
-    keyfile_json=json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))))
+    keyfile_json=json.load(open(abspath(join("..", "..", "conf", "google", "google-key.json"))))
 )
 tts = Text2Speech(conf=tts_conf)
 
@@ -70,7 +65,7 @@ mini = Alphamini(
 
 # load the key json file, you need to get your own keyfile.json
 keyfile_json = json.load(
-    open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json")))
+    open(abspath(join("..", "..", "conf", "google", "google-key.json")))
 )
 # set up the config
 df_conf = DialogflowConf(

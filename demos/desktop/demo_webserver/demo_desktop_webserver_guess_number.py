@@ -166,7 +166,7 @@ print("initializing Dialogflow")
 keyfile_json = json.load(
     open(
         abspath(
-            join("..", "..", "..", "conf", "dialogflow", "dialogflow-key.json")
+            join("..", "..", "..", "conf", "google", "google-key.json")
         )
     )
 )
