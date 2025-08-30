@@ -21,7 +21,7 @@ from sic_framework.services.nlu.bert_nlu import (
     InferenceResult,
     NLUConf,
 )
-from sic_framework.services.openai_whisper_speech_to_text.whisper_speech_to_text import (
+from sic_framework.services.openai_whisper_stt.whisper_stt import (
     GetTranscript,
     SICWhisper,
 )

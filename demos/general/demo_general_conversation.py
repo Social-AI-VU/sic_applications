@@ -7,7 +7,7 @@ import numpy as np
 from sic_framework.core.message_python2 import AudioMessage, AudioRequest
 from sic_framework.devices import Nao
 from sic_framework.devices.device import SICDevice
-from sic_framework.services.text2speech.text2speech_service import Text2Speech, Text2SpeechConf, GetSpeechRequest, SpeechResult
+from sic_framework.services.google_tts.google_tts import Text2Speech, Text2SpeechConf, GetSpeechRequest, SpeechResult
 from sic_framework.devices.alphamini import Alphamini
 from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
 
@@ -27,34 +27,29 @@ This is a demo show casing a agent-driven conversation utalizating Google Dialog
 IMPORTANT
 First, you need to set-up Google Cloud Console with dialogflow and Google TTS:
 
-1. Dialogflow: https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key 
-2. TTS: https://console.cloud.google.com/apis/api/texttospeech.googleapis.com/ 
-2a. note: you need to set-up a paid account with a credit card. You get $300,- free tokens, which is more then enough
-for testing this agent. So in practice it will not cost anything.
-3. Create a keyfile as instructed in (1) and save it conf/dialogflow/google_keyfile.json
-3a. note: never share the keyfile online. 
+1. Create a keyfile as instructed here: https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html and save it conf/dialogflow/google_keyfile.json
 
 Secondly you need to configure your dialogflow agent.
-4. In your empty dialogflow agent do the following things:
-4a. remove all default intents
-4b. go to settings -> import and export -> and import the resources/droomrobot_dialogflow_agent.zip into your
+2. In your empty dialogflow agent do the following things:
+    a. remove all default intents
+    b. go to settings -> import and export -> and import the resources/droomrobot_dialogflow_agent.zip into your
 dialogflow agent. That gives all the necessary intents and entities that are part of this example (and many more)
 
 Thirdly, you need an openAI key:
-5. Generate your personal openai api key here: https://platform.openai.com/api-keys
-6. Either add your openai key to your systems variables or
+3. Generate your personal openai api key here: https://platform.openai.com/api-keys
+4. Either add your openai key to your systems variables or
 create a .openai_env file in the conf/openai folder and add your key there like this:
 OPENAI_API_KEY="your key"
 
 Forth, the redis server, Dialogflow, Google TTS and OpenAI gpt service need to be running:
 
-7. pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt,alphamini]
-8. run: conf/redis/redis-server.exe conf/redis/redis.conf
-9. run in new terminal: run-dialogflow 
-10. run in new terminal: run-google-tts
-11. run in new terminal: run-gpt
-12. connect a device e.g. desktop, nao, pepper, alphamini
-13. Run this script
+1. pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt,alphamini]
+2. run: conf/redis/redis-server.exe conf/redis/redis.conf
+3. run in new terminal: run-dialogflow 
+4. run in new terminal: run-google-tts
+5. run in new terminal: run-gpt
+6. connect a device e.g. desktop, nao, pepper, alphamini
+7. Run this script
 """
 
 

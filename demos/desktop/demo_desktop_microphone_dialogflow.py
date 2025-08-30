@@ -4,7 +4,7 @@ This demo should have your Desktop microphone picking up your intent and replyin
 IMPORTANT
 
 First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code at line 39 can load.
-How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
+How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html for more information.
 Save the key in conf/dialogflow/dialogflow-tutorial.json
 
 Second, the Dialogflow service needs to be running:
@@ -42,7 +42,7 @@ desktop_mic = desktop.mic
 print("initializing Dialogflow")
 # load the key json file, you need to get your own keyfile.json
 with open(
-    abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))
+    abspath(join("..", "..", "conf", "google", "google-key.json"))
 ) as f:
     keyfile_json = json.load(f)
 

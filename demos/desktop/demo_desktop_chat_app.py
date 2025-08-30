@@ -7,7 +7,7 @@ and a secret API key is required to run it
 IMPORTANT
 
 First, you need to obtain your own keyfile.json from Dialogflow, place it in conf/dialogflow, and point to it in the main 
-How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
+How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
 
 Second, you need an openAI key:
 Generate your personal openai api key here: https://platform.openai.com/api-keys
@@ -97,5 +97,5 @@ class ChatApp:
             self.local_tts(gpt_response.response)
 
 if __name__ == "__main__":
-    chat_app = ChatApp(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-key.json')))
+    chat_app = ChatApp(abspath(join('..', '..', 'conf', 'google', 'google-key.json')))
     chat_app.run()

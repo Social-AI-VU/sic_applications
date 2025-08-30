@@ -18,7 +18,7 @@ from os.path import abspath, join
 
 from dotenv import load_dotenv
 from sic_framework.devices.desktop import Desktop
-from sic_framework.services.openai_whisper_speech_to_text.whisper_speech_to_text import (
+from sic_framework.services.openai_whisper_stt.whisper_stt import (
     GetTranscript,
     SICWhisper,
     Transcript,

@@ -4,7 +4,7 @@ This demo should have Nao picking up your intent and replying according to your 
 IMPORTANT
 
 First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code at line 41 can load.
-How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
+How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html for more information.
 
 Second, the Dialogflow service needs to be running:
 
@@ -39,7 +39,7 @@ nao = Nao(ip="XXX")
 nao_mic = nao.mic
 
 # load the key json file (you need to get your own keyfile.json)
-keyfile_json = json.load(open(abspath(join("..", "..", "conf", "dialogflow", "dialogflow-key.json"))))
+keyfile_json = json.load(open(abspath(join("..", "..", "conf", "google", "google-key.json"))))
 
 # set up the config
 conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
