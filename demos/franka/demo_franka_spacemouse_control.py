@@ -3,6 +3,8 @@ from sic_framework.devices.common_franka.franka_motion import (
     FrankaMotion,
     FrankaPose,
     FrankaPoseRequest,
+    FrankaGripperGraspRequest,
+    FrankaGripperMoveRequest
 )
 from sic_framework.devices.franka import Franka
 
@@ -45,10 +47,21 @@ class MouseStateHandler():
         # smaller values = slower, finer translation; larger = faster, coarser movement
         translation_gain = 0.05  # gain to scale the displacement
         orientation_gain = 0.5  # gain to scale the rotation
+
+        # there are some micro inputs from the spacemouse even when it is not touched
+        # deadzone to avoid small jitters, the lower the value, the more sensitive the control
+        threshold = 0.05
+        if abs(self.mouse_states.x) <= threshold:
+            self.mouse_states.x = 0.0
+        if abs(self.mouse_states.y) <= threshold:
+            self.mouse_states.y = 0.0
+        if abs(self.mouse_states.z) <= threshold:
+            self.mouse_states.z = 0.0
+
         # calculate translation displacement in the end-effector (EE) frame based on SpaceMouse input
         displacement_x = -translation_gain * self.mouse_states.x
         displacement_y = -translation_gain * self.mouse_states.y
-        displacement_z = translation_gain * self.mouse_states.z
+        displacement_z =  translation_gain * self.mouse_states.z
 
         # create a transformation matrix for displacement
         T_ee_displacement = np.identity(4)
@@ -62,6 +75,15 @@ class MouseStateHandler():
         new_ee_pose_4D = np.dot(T_ee_displacement, old_position_ee)
         # extracts the first three elements
         new_ee_pose = new_ee_pose_4D[:3]
+
+        # avoid small orientation jitters
+        threshold = 0.05
+        if abs(self.mouse_states.pitch) <= threshold:
+            self.mouse_states.pitch = 0.0
+        if abs(self.mouse_states.roll) <= threshold:
+            self.mouse_states.roll = 0.0
+        if abs(self.mouse_states.yaw) <= threshold:
+            self.mouse_states.yaw = 0.0
 
         # calculate new rotation angles based on SpaceMouse input, scaling them so each rotation along the axes can reach up to a maximum of ±90 degrees
         angle_x = - np.radians(90) * self.mouse_states.pitch * orientation_gain
@@ -79,6 +101,11 @@ class MouseStateHandler():
 
         franka.motion.send_message(FrankaPose(position=new_ee_pose, orientation=new_quaternion))
 
+        # gripper control: left button to close, right button to open
+        if self.mouse_states.buttons[0] == 1:
+            franka.motion.request(FrankaGripperGraspRequest(width=0.0, speed=0.1, force=5, epsilon_inner=0.005, epsilon_outer=0.005))
+        if self.mouse_states.buttons[1] == 1:
+            franka.motion.request(FrankaGripperMoveRequest(width=0.08, speed=0.1))
 
 mouse_handler = MouseStateHandler()
 desktop = Desktop()
