@@ -8,9 +8,10 @@ import cv2
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.desktop import Desktop
-from sic_framework.core import sic_application
-from sic_framework.core.sic_application import get_app_logger
+from sic_framework.core.sic_application import get_app_logger, get_shutdown_event
 
+# Get the shutdown event and logger from sic_application
+shutdown_flag = get_shutdown_event()
 logger = get_app_logger()
 
 imgs = queue.Queue()
@@ -26,9 +27,6 @@ desktop_cam = desktop.camera
 
 logger.info("Subscribing callback function")
 desktop_cam.register_callback(callback=on_image)
-
-# Get the shared shutdown event from sic_application
-shutdown_flag = sic_application.get_shutdown_event()
 
 logger.info("Starting main loop")
 try:
