@@ -30,3 +30,5 @@ conf/dialogflow/*.json
 #ignore .openai_env file
 conf/openai/.openai_env
 
+# Ignore dialogflow keyfiles
+conf/google/*.json
