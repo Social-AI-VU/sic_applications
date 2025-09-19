@@ -4,7 +4,7 @@ This demo showcases how a kiosk robot could function. After detecting a face it 
 IMPORTANT
 
 First, you need to obtain your own keyfile.json from Dialogflow, place it in conf/dialogflow, and point to it in the main 
-How to get a key? See https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2205155343/Getting+a+google+dialogflow+key for more information.
+How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
 
 Second, you need to have intents for order_pizza, pizza_type (+entities), look_for_bathroom, and no fallback intents.
 You can find the source for an example dialogflow agent in demos/desktop/SICv2Example_freeflow.zip.
