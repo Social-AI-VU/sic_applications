@@ -25,7 +25,16 @@ from dotenv import load_dotenv
 load_dotenv(abspath(join("..", "..", "conf", "openai", ".openai_env")))
 
 # Setup GPT
-conf = GPTConf(openai_key=environ["OPENAI_API_KEY"])
+# To see all available models, see https://platform.openai.com/docs/models and https://platform.openai.com/docs/api-reference/models/list
+# You may have to make a GET request to https://api.openai.com/v1/models (using curl or postman) to see all available models and their names.
+conf = GPTConf(
+    openai_key=environ["OPENAI_API_KEY"],
+    system_message="You are a rhyming poet. Answer every question with a rhyme."
+    model="gpt-4o-mini",
+    temperature=0.5,
+    max_tokens=100
+)
+
 gpt = GPT(conf=conf)
 
 # Constants
