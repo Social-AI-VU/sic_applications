@@ -22,6 +22,21 @@ from sic_framework.services.google_tts.google_tts import (
     Text2Speech,
     Text2SpeechConf,
 )
+from sic_framework.core.sic_application import (
+    set_log_level,
+    set_log_file,
+    get_app_logger
+)
+from sic_framework.core import sic_logging
+
+# In case you want to use the logger with a neat format as opposed to print statements.
+logger = get_app_logger()
+
+# can be DEBUG, INFO, WARNING, ERROR, CRITICAL
+set_log_level(sic_logging.INFO)
+
+# Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+# set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
 
 # initialize the text2speech service
 tts_conf = Text2SpeechConf(
