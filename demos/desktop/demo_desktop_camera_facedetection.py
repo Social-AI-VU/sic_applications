@@ -13,7 +13,7 @@ from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
-from sic_framework.core.sic_application import get_app_logger, get_shutdown_event
+from sic_framework.core.sic_application import SICApplication
 
 from sic_framework.core import utils
 from sic_framework.core import utils_cv2
@@ -23,8 +23,9 @@ import cv2
 # CUSTOM FACE DETECTION EXAMPLE
 # from custom_components.custom_face_detection import CustomFaceDetection
 
-shutdown_flag = get_shutdown_event()
-logger = get_app_logger()
+app = SICApplication()
+shutdown_flag = app.get_shutdown_event()
+logger = app.get_app_logger()
 
 logger.info(f"IP address of current machine: {utils.get_ip_adress()}")
 
