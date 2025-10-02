@@ -73,3 +73,5 @@ try:
         i += 1
 except Exception as e:
     logger.error("Exception: ", e)
+finally:
+    app.shutdown()

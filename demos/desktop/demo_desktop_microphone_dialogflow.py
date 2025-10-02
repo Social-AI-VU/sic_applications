@@ -88,3 +88,5 @@ try:
             logger.info("Reply: {text}".format(text=text))
 except Exception as e:
     logger.error("Exception: ", e)
+finally:
+    app.shutdown()

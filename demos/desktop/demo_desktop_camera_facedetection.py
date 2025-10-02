@@ -65,12 +65,17 @@ face_dec.register_callback(callback=on_faces)
 
 logger.info("Starting main loop")
 
-while not shutdown_flag.is_set():
-    img = imgs_buffer.get()
-    faces = faces_buffer.get()
+try:
+    while not shutdown_flag.is_set():
+        img = imgs_buffer.get()
+        faces = faces_buffer.get()
 
-    for face in faces:
-        utils_cv2.draw_bbox_on_image(face, img)
+        for face in faces:
+            utils_cv2.draw_bbox_on_image(face, img)
 
-    cv2.imshow("", img)
-    cv2.waitKey(1)
+        cv2.imshow("", img)
+        cv2.waitKey(1)
+except Exception as e:
+    logger.error("Exception: {}".format(e))
+finally:
+    app.shutdown()

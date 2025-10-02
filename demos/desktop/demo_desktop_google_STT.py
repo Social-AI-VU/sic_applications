@@ -76,3 +76,5 @@ try:
         time.sleep(0.1)
 except Exception as e:
     print("Exception: ", e)
+finally:
+    app.shutdown()

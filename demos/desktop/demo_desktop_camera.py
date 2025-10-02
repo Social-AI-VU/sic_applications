@@ -40,15 +40,19 @@ desktop_cam.register_callback(callback=on_image)
 
 logger.info("Starting main loop")
 
-while not shutdown_flag.is_set():
-    try:
-        # Use timeout to make the queue operation non-blocking
-        img = imgs.get(timeout=0.1)  # 100ms timeout
-        cv2.imshow("Camera Feed", img)
-        cv2.waitKey(1)
-    except queue.Empty:
-        # No new image, continue loop to check shutdown flag
-        continue
-
-logger.info("Cleaning up...")
-cv2.destroyAllWindows()
+try:
+    while not shutdown_flag.is_set():
+        try:
+            # Use timeout to make the queue operation non-blocking
+            img = imgs.get(timeout=0.1)  # 100ms timeout
+            cv2.imshow("Camera Feed", img)
+            cv2.waitKey(1)
+        except queue.Empty:
+            # No new image, continue loop to check shutdown flag
+            continue
+    logger.info("Cleaning up...")
+    cv2.destroyAllWindows()
+except Exception as e:
+    logger.error("Exception: {}".format(e))
+finally:
+    app.shutdown()

@@ -62,3 +62,5 @@ try:
         logger.info("transcript: {transcript}".format(transcript=transcript.transcript))
 except Exception as e:
     logger.error("Exception: ", e)
+finally:
+    app.shutdown()
