@@ -16,8 +16,8 @@ from os.path import abspath, join
 
 from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest, GPTResponse
 from dotenv import load_dotenv
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 
 app = SICApplication()
 logger = app.get_app_logger()
