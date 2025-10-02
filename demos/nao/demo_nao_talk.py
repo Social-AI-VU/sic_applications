@@ -10,25 +10,23 @@ from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiAnimationReques
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import (
     NaoqiTextToSpeechRequest,
 )
-from sic_framework.core.sic_application import (
-    set_log_level,
-    set_log_file,
-    get_app_logger, 
-    get_shutdown_event
-)
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
+# Create the SICApplication instance to be able to use the logger and the shutdown event
+app = SICApplication()
+
 # In case you want to use the logger with a neat format as opposed to logger.info statements.
-logger = get_app_logger()
+logger = app.get_app_logger()
 
 # can be DEBUG, INFO, WARNING, ERROR, CRITICAL
-set_log_level(sic_logging.DEBUG)
+app.set_log_level(sic_logging.DEBUG)
 
 # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-# set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+# app.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
 
 # Use the shutdown event as a loop condition.
-shutdown_flag = get_shutdown_event()
+shutdown_flag = app.get_shutdown_event()
 
 
 class NaoTalkDemo:
@@ -37,7 +35,7 @@ class NaoTalkDemo:
         # adjust this to the IP address of your robot.
         # self.nao = Nao(ip="XXX")
         # nao = Nao(ip="10.0.0.222", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
-        self.nao = Nao(ip="10.0.0.222", dev_test=True)
+        self.nao = Nao(ip="10.0.0.241", dev_test=True)
 
 
     def say(self):
@@ -61,12 +59,20 @@ class NaoTalkDemo:
 
 
 if __name__ == '__main__':
-    nao_talk = NaoTalkDemo(ip="XXX")
-    nao_talk.wakeup()
-    nao_talk.say()
-    sleep(2)
-    nao_talk.say_animated()
-    sleep(2)
-    nao_talk.say_with_gesture()
-    sleep(2)
-    nao_talk.rest()
+    try:
+        logger.info("Starting Nao Talk Demo...")
+        nao_talk = NaoTalkDemo(ip="XXX")
+        nao_talk.wakeup()
+        nao_talk.say()
+        sleep(2)
+        nao_talk.say_animated()
+        sleep(2)
+        nao_talk.say_with_gesture()
+        sleep(2)
+        nao_talk.rest()
+        logger.info("Demo completed successfully")
+    except Exception as e:
+        logger.error("Error in demo: {e}".format(e=e))
+    finally:
+        logger.info("Shutting down application")
+        app.shutdown()

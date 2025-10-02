@@ -34,11 +34,22 @@ logger.info("  number of channels: {}".format(wavefile.getnchannels()))
 logger.info("")
 
 
-nao = Nao(ip="XXX")
+try:
+    logger.info("Starting Nao Speakers Demo...")
+    # nao = Nao(ip="XXX")
+    # nao = Nao(ip="10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
+    nao = Nao(ip="10.0.0.241", dev_test=True)
 
-logger.info("Sending audio!")
-sound = wavefile.readframes(wavefile.getnframes())
-message = AudioRequest(sample_rate=samplerate, waveform=sound)
-nao.speaker.request(message)
+    logger.info("Sending audio!")
+    sound = wavefile.readframes(wavefile.getnframes())
+    message = AudioRequest(sample_rate=samplerate, waveform=sound)
+    nao.speaker.request(message)
 
-logger.info("Audio sent, without waiting for it to complete playing.")
+    logger.info("Audio sent, without waiting for it to complete playing.")
+    logger.info("Speakers demo completed successfully")
+except Exception as e:
+    logger.error("Error in speakers demo: {e}".format(e=e))
+finally:
+    wavefile.close()
+    logger.info("Shutting down application")
+    app.shutdown()

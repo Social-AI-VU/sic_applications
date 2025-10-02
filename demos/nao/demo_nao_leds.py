@@ -25,18 +25,24 @@ app.set_log_level(sic_logging.DEBUG)
 # Use the shutdown event as a loop condition.
 shutdown_flag = app.get_shutdown_event()
 
-nao = Nao(ip="10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
+try:
+    logger.info("Starting Nao LEDs Demo...")
+    nao = Nao(ip="10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
 
-logger.info("Requesting Eye LEDs to turn on")
-reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))
-time.sleep(1)
+    logger.info("Requesting Eye LEDs to turn on")
+    reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))
+    time.sleep(1)
 
-logger.info("Setting right Eye LEDs to red")
-reply = nao.leds.request(NaoFadeRGBRequest("RightFaceLeds", 1, 0, 0, 0))
+    logger.info("Setting right Еye LEDs to red")
+    reply = nao.leds.request(NaoFadeRGBRequest("RightFaceLeds", 1, 0, 0, 0))
 
-time.sleep(1)
+    time.sleep(1)
 
-logger.info("Setting left Eye LEDs to blue")
-reply = nao.leds.request(NaoFadeRGBRequest("LeftFaceLeds", 0, 0, 1, 0))
+    logger.info("Setting left Eye LEDs to blue")
+    reply = nao.leds.request(NaoFadeRGBRequest("LeftFaceLeds", 0, 0, 1, 0))
 
-app.shutdown()
+    logger.info("LEDs demo completed successfully")
+except Exception as e:
+    logger.error("Error in LEDs demo: {e}".format(e=e))
+finally:
+    app.shutdown()

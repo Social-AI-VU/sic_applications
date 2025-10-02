@@ -20,12 +20,21 @@ app.set_log_level(sic_logging.DEBUG)
 shutdown_flag = app.get_shutdown_event()
 
 def test_func(a):
-    logger.info("Pressed: ", a.value)
+    logger.info(f"Pressed: {a.value}")
 
 
-nao = Nao(ip="XXX")
+try:
+    logger.info("Starting Nao Button Demo...")
+    nao = Nao(ip="XXX")
 
-nao.buttons.register_callback(test_func)
+    nao.buttons.register_callback(test_func)
+    logger.info("Demo running. Press buttons on the robot...")
 
-while not shutdown_flag.is_set():
-    pass  # Keep script alive
+    while not shutdown_flag.is_set():
+        pass  # Keep script alive
+        
+    logger.info("Button demo completed successfully")
+except Exception as e:
+    logger.error("Error in button demo: {e}".format(e=e))
+finally:
+    app.shutdown()
