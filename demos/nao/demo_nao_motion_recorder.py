@@ -22,9 +22,7 @@ app.set_log_level(sic_logging.DEBUG)
 
 try:
     conf = NaoqiMotionRecorderConf(use_sensors=True)
-    # nao = Nao("10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud", motion_record_conf=conf)
-    nao = Nao("10.0.0.241", dev_test=True, motion_record_conf=conf)
-    # nao = Nao("XXX", motion_record_conf=conf)
+    nao = Nao("XXX", motion_record_conf=conf)
 
     chain = ["LArm", "RArm"]
     record_time = 10

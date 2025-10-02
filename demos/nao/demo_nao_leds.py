@@ -27,7 +27,7 @@ shutdown_flag = app.get_shutdown_event()
 
 try:
     logger.info("Starting Nao LEDs Demo...")
-    nao = Nao(ip="10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
+    nao = Nao(ip="XXX")
 
     logger.info("Requesting Eye LEDs to turn on")
     reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))

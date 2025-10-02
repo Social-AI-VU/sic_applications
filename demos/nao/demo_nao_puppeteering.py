@@ -32,14 +32,14 @@ try:
     logger.info("Initializing puppet master...")
 
     conf = NaoMotionStreamerConf(samples_per_second=30)
-    puppet_master = Nao("10.0.0.241", dev_test=True, motion_stream_conf=conf)
+    puppet_master = Nao("XXX", motion_stream_conf=conf)
     puppet_master.autonomous.request(NaoBasicAwarenessRequest(False))
     puppet_master.autonomous.request(NaoBackgroundMovingRequest(False))
     puppet_master.stiffness.request(Stiffness(stiffness=0.0, joints=JOINTS))
     puppet_master_motion = puppet_master.motion_streaming()
 
     logger.info("Initializing puppet...")
-    puppet = Nao("10.0.0.236", dev_test=True)
+    puppet = Nao("XXX")
     puppet.autonomous.request(NaoBasicAwarenessRequest(False))
     puppet.autonomous.request(NaoBackgroundMovingRequest(False))
     puppet.stiffness.request(Stiffness(0.5, joints=JOINTS))

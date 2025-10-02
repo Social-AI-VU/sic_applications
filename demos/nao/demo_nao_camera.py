@@ -38,8 +38,7 @@ try:
     conf = NaoqiCameraConf(vflip=1)
 
     logger.info("Initializing Nao...")
-    # nao = Nao(ip="XXX", top_camera_conf=conf)
-    nao = Nao(ip="10.0.0.236", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud", top_camera_conf=conf)
+    nao = Nao(ip="XXX", top_camera_conf=conf)
 
     logger.info("Registering callback...")
     nao.top_camera.register_callback(on_image)

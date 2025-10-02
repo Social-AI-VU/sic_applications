@@ -28,9 +28,7 @@ shutdown_flag = app.get_shutdown_event()
 
 try:
     logger.info("Starting Nao Motion Demo...")
-    # nao = Nao(ip="XXX")
-    # nao = Nao(ip="10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
-    nao = Nao(ip="10.0.0.241", dev_test=True)
+    nao = Nao(ip="XXX")
 
     # For a list of postures, see NaoPostureRequest class or
     # http://doc.aldebaran.com/2-4/family/robots/postures_robot.html#robot-postures

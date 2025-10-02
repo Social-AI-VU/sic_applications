@@ -33,9 +33,7 @@ class NaoTalkDemo:
 
     def __init__(self, ip: str):
         # adjust this to the IP address of your robot.
-        # self.nao = Nao(ip="XXX")
-        # nao = Nao(ip="10.0.0.222", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
-        self.nao = Nao(ip="10.0.0.241", dev_test=True)
+        self.nao = Nao(ip="XXX")
 
 
     def say(self):

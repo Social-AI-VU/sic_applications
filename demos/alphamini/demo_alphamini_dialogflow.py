@@ -30,12 +30,19 @@ from sic_framework.services.google_tts.google_tts import (
     Text2Speech,
     Text2SpeechConf,
 )
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Create the SICApplication instance to be able to use the logger and the shutdown event
+app = SICApplication()
+logger = app.get_app_logger()
+app.set_log_level(sic_logging.DEBUG)
 
 # the callback function
 def on_dialog(message):
     if message.response:
         if message.response.recognition_result.is_final:
-            print("Transcript:", message.response.recognition_result.transcript)
+            logger.info("Transcript:", message.response.recognition_result.transcript)
 
 
 # setup the tts service
@@ -80,21 +87,21 @@ dialogflow.register_callback(on_dialog)
 
 # Demo starts
 mini.speaker.request(AudioRequest(tts_reply.waveform, tts_reply.sample_rate))
-print(" -- Ready -- ")
+logger.info(" -- Ready -- ")
 session_id = np.random.randint(10000)
 
 try:
     for i in range(25):
-        print(" ----- Conversation turn", i)
+        logger.info(" ----- Conversation turn {}".format(i))
         # create context_name-lifespan pairs. If lifespan is set to 0, the context expires immediately
         contexts_dict = {"name": 1}
         reply = dialogflow.request(GetIntentRequest(session_id, contexts_dict))
 
-        print("The detected intent:", reply.intent)
+        logger.info("The detected intent: {}".format(reply.intent))
 
         if reply.fulfillment_message:
             text = reply.fulfillment_message
-            print("Reply:", text)
+            logger.info("Reply: {}".format(text))
 
             # send the fulfillment text to TTS for speech synthesis
             reply = tts.request(
@@ -106,6 +113,7 @@ try:
             )
             mini.speaker.request(AudioRequest(reply.waveform, reply.sample_rate))
 
-except KeyboardInterrupt:
-    print("Stop the dialogflow component.")
-    dialogflow.stop()
+except Exception as e:
+    logger.error("Exception: {}".format(e))
+finally:
+    app.shutdown()

@@ -36,9 +36,7 @@ logger.info("")
 
 try:
     logger.info("Starting Nao Speakers Demo...")
-    # nao = Nao(ip="XXX")
-    # nao = Nao(ip="10.0.0.241", dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
-    nao = Nao(ip="10.0.0.241", dev_test=True)
+    nao = Nao(ip="XXX")
 
     logger.info("Sending audio!")
     sound = wavefile.readframes(wavefile.getnframes())
