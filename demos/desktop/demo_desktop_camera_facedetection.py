@@ -13,6 +13,8 @@ from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
+from sic_framework.core.sic_application import SICApplication
+
 from sic_framework.core import utils
 from sic_framework.core import utils_cv2
 import queue
@@ -21,7 +23,11 @@ import cv2
 # CUSTOM FACE DETECTION EXAMPLE
 # from custom_components.custom_face_detection import CustomFaceDetection
 
-print(f"IP address of current machine: {utils.get_ip_adress()}")
+app = SICApplication()
+shutdown_flag = app.get_shutdown_event()
+logger = app.get_app_logger()
+
+logger.info(f"IP address of current machine: {utils.get_ip_adress()}")
 
 imgs_buffer = queue.Queue(maxsize=1)
 faces_buffer = queue.Queue(maxsize=1)
@@ -38,33 +44,38 @@ def on_faces(message: BoundingBoxesMessage):
 # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
 conf = DesktopCameraConf(fx=1.0, fy=1.0, flip=1)
 
-print("Creating pipeline...")
+logger.info("Creating pipeline...")
 
 # Connect to the services
 desktop = Desktop(camera_conf=conf)
 
-print("Starting desktop camera")
+logger.info("Starting desktop camera")
 
 desktop_cam = desktop.camera
 
-print("Setting up face detection service")
+logger.info("Setting up face detection service")
 
 face_dec = FaceDetection(input_source=desktop_cam)
 
-print("Subscribing callback functions")
+logger.info("Subscribing callback functions")
 
 # Send back the outputs to this program
 desktop_cam.register_callback(callback=on_image)
 face_dec.register_callback(callback=on_faces)
 
-print("Starting main loop")
+logger.info("Starting main loop")
 
-while True:
-    img = imgs_buffer.get()
-    faces = faces_buffer.get()
+try:
+    while not shutdown_flag.is_set():
+        img = imgs_buffer.get()
+        faces = faces_buffer.get()
 
-    for face in faces:
-        utils_cv2.draw_bbox_on_image(face, img)
+        for face in faces:
+            utils_cv2.draw_bbox_on_image(face, img)
 
-    cv2.imshow("", img)
-    cv2.waitKey(1)
+        cv2.imshow("", img)
+        cv2.waitKey(1)
+except Exception as e:
+    logger.error("Exception: {}".format(e))
+finally:
+    app.shutdown()
