@@ -9,17 +9,40 @@ from sic_framework.devices.common_naoqi.naoqi_leds import (
     NaoFadeRGBRequest,
     NaoLEDRequest,
 )
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-nao = Nao(ip="XXX")
+app = SICApplication()
+# In case you want to use the logger with a neat format as opposed to logger.info statements.
+logger = app.get_app_logger()
 
-print("Requesting Eye LEDs to turn on")
-reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))
-time.sleep(1)
+# can be DEBUG, INFO, WARNING, ERROR, CRITICAL
+app.set_log_level(sic_logging.DEBUG)
 
-print("Setting right Eye LEDs to red")
-reply = nao.leds.request(NaoFadeRGBRequest("RightFaceLeds", 1, 0, 0, 0))
+# Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+# app.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
 
-time.sleep(1)
+# Use the shutdown event as a loop condition.
+shutdown_flag = app.get_shutdown_event()
 
-print("Setting left Eye LEDs to blue")
-reply = nao.leds.request(NaoFadeRGBRequest("LeftFaceLeds", 0, 0, 1, 0))
+try:
+    logger.info("Starting Nao LEDs Demo...")
+    nao = Nao(ip="XXX")
+
+    logger.info("Requesting Eye LEDs to turn on")
+    reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))
+    time.sleep(1)
+
+    logger.info("Setting right Еye LEDs to red")
+    reply = nao.leds.request(NaoFadeRGBRequest("RightFaceLeds", 1, 0, 0, 0))
+
+    time.sleep(1)
+
+    logger.info("Setting left Eye LEDs to blue")
+    reply = nao.leds.request(NaoFadeRGBRequest("LeftFaceLeds", 0, 0, 1, 0))
+
+    logger.info("LEDs demo completed successfully")
+except Exception as e:
+    logger.error("Error in LEDs demo: {e}".format(e=e))
+finally:
+    app.shutdown()

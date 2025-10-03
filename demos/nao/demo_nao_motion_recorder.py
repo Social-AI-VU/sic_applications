@@ -12,32 +12,43 @@ from sic_framework.devices.common_naoqi.naoqi_motion_recorder import (
     StopRecording,
 )
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
+# Create the SICApplication instance to be able to use the logger and the shutdown event
+app = SICApplication()
+logger = app.get_app_logger()
+app.set_log_level(sic_logging.DEBUG)
 
-conf = NaoqiMotionRecorderConf(use_sensors=True)
-nao = Nao("XXX", motion_record_conf=conf)
+try:
+    conf = NaoqiMotionRecorderConf(use_sensors=True)
+    nao = Nao("XXX", motion_record_conf=conf)
 
-chain = ["LArm", "RArm"]
-record_time = 10
-MOTION_NAME = "my_motion"
+    chain = ["LArm", "RArm"]
+    record_time = 10
+    MOTION_NAME = "my_motion"
 
-# Disable stiffness such that we can move it by hand
-nao.stiffness.request(Stiffness(stiffness=0.0, joints=chain))
+    # Disable stiffness such that we can move it by hand
+    nao.stiffness.request(Stiffness(stiffness=0.0, joints=chain))
 
-# Start recording
-print("Start moving the robot! (not too fast)")
-nao.motion_record.request(StartRecording(chain))
-time.sleep(record_time)
+    # Start recording
+    logger.info("Start moving the robot! (not too fast)")
+    nao.motion_record.request(StartRecording(chain))
+    time.sleep(record_time)
 
-# Save the recording
-print("Saving action")
-recording = nao.motion_record.request(StopRecording())
-recording.save(MOTION_NAME)
+    # Save the recording
+    logger.info("Saving action")
+    recording = nao.motion_record.request(StopRecording())
+    recording.save(MOTION_NAME)
 
-# Replay the recording
-print("Replaying action")
-nao.stiffness.request(
-    Stiffness(stiffness=0.7, joints=chain)
-)  # Enable stiffness for replay
-recording = NaoqiMotionRecording.load(MOTION_NAME)
-nao.motion_record.request(PlayRecording(recording))
+    # Replay the recording
+    logger.info("Replaying action")
+    nao.stiffness.request(
+        Stiffness(stiffness=0.7, joints=chain)
+    )  # Enable stiffness for replay
+    recording = NaoqiMotionRecording.load(MOTION_NAME)
+    nao.motion_record.request(PlayRecording(recording))
+except Exception as e:
+    logger.error(f"Exception: {e}")
+finally:
+    app.shutdown()
