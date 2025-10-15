@@ -118,14 +118,17 @@ class FrankaSpacemouseDemo(SICApplication):
     pip install scipy pyspacemouse
     """
     
-    def __init__(self, log_level=sic_logging.INFO):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
-        super(FrankaSpacemouseDemo, self).__init__(log_level=log_level)
+        super(FrankaSpacemouseDemo, self).__init__()
         
         # Demo-specific initialization
         self.franka = None
         self.desktop = None
         self.mouse_handler = None
+        
+        # Configure logging
+        self.set_log_level(sic_logging.INFO)
         
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/franka/logs")

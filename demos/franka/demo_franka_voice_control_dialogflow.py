@@ -42,16 +42,15 @@ class FrankaVoiceControlDemo(SICApplication):
     - "wave" or "waving" → Robot plays the wave motion
     """
     
-    def __init__(self, dialogflow_keyfile_path, motion_file="wave.motion", 
-                 num_turns=25, frequency=1000, log_level=sic_logging.INFO):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
-        super(FrankaVoiceControlDemo, self).__init__(log_level=log_level)
+        super(FrankaVoiceControlDemo, self).__init__()
         
         # Demo-specific initialization
-        self.dialogflow_keyfile_path = dialogflow_keyfile_path
-        self.motion_file = motion_file
-        self.num_turns = num_turns
-        self.frequency = frequency
+        self.dialogflow_keyfile_path = abspath(join("..", "..", "conf", "google", "google-key.json"))
+        self.motion_file = "wave.motion"
+        self.num_turns = 25
+        self.frequency = 1000
         self.desktop = None
         self.franka = None
         self.dialogflow = None
@@ -140,8 +139,6 @@ class FrankaVoiceControlDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = FrankaVoiceControlDemo(
-        dialogflow_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json"))
-    )
+    demo = FrankaVoiceControlDemo()
     demo.run()
 

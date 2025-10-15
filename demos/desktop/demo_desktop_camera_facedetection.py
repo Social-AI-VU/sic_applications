@@ -52,7 +52,7 @@ class FaceDetectionDemo(SICApplication):
         # Face detection component
         self.face_dec = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")

@@ -33,7 +33,7 @@ class NaoMotionDemo(SICApplication):
         super(NaoMotionDemo, self).__init__()
         
         # Demo-specific initialization
-        self.nao_ip = "10.15.2.243"
+        self.nao_ip = "XXX"
         self.nao = None
 
         self.set_log_level(sic_logging.INFO)
@@ -48,7 +48,7 @@ class NaoMotionDemo(SICApplication):
         self.logger.info("Starting NAO Motion Demo...")
         
         # Initialize the NAO robot
-        self.nao = Nao(ip=self.nao_ip, dev_test=True)
+        self.nao = Nao(ip=self.nao_ip)
     
     def run(self):
         """Main application logic."""

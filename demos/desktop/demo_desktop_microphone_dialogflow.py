@@ -43,7 +43,7 @@ class DialogflowDemo(SICApplication):
         self.desktop_mic = None
         self.dialogflow = None
 
-        self.set_log_level(sic_logging.WARNING)
+        self.set_log_level(sic_logging.INFO)
 
         # Random session ID is necceessary for Dialogflow
         self.session_id = np.random.randint(10000)
@@ -112,6 +112,5 @@ class DialogflowDemo(SICApplication):
 
 if __name__ == "__main__":
     # Create and run the demo
-    # This will be the single SICApplication instance for the process
     demo = DialogflowDemo()
     demo.run()

@@ -81,19 +81,25 @@ class ChatApp(SICApplication):
     3. in new terminal: run-dialogflow
     """
 
-    def __init__(self, dialogflow_keyfile_path, sample_rate_hertz=44100, language="en", log_level=sic_logging.INFO):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
-        super(ChatApp, self).__init__(log_level=log_level)
+        super(ChatApp, self).__init__()
         
         # Demo-specific initialization
-        self.dialogflow_keyfile_path = dialogflow_keyfile_path
-        self.sample_rate_hertz = sample_rate_hertz
-        self.language = language
+        self.dialogflow_keyfile_path = "conf/google/google-key.json"
+        self.sample_rate_hertz = 44100
+        self.language = "en"
         self.desktop = None
         self.gpt = None
         self.dialogflow = None
         self.can_listen = True
         self.session_id = np.random.randint(10000)
+        
+        # Configure logging
+        self.set_log_level(sic_logging.INFO)
+
+        # set log file path if needed
+        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
         
         self.setup()
 

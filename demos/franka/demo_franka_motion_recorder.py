@@ -33,15 +33,18 @@ class FrankaMotionRecorderDemo(SICApplication):
     https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
     """
     
-    def __init__(self, motion_file="joints.motion", record_time=10, frequency=1000, log_level=sic_logging.INFO):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
-        super(FrankaMotionRecorderDemo, self).__init__(log_level=log_level)
+        super(FrankaMotionRecorderDemo, self).__init__()
         
         # Demo-specific initialization
-        self.motion_file = motion_file
-        self.record_time = record_time
-        self.frequency = frequency
+        self.motion_file = "joints.motion"
+        self.record_time = 10
+        self.frequency = 1000
         self.franka = None
+        
+        # Configure logging
+        self.set_log_level(sic_logging.INFO)
         
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/franka/logs")

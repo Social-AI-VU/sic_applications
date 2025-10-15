@@ -59,18 +59,17 @@ class KioskApp(SICApplication):
     2. in a new terminal: run-dialogflow
     """
 
-    def __init__(self, dialogflow_keyfile_path, sample_rate_hertz=44100, language="en",
-                 fx=1.0, fy=1.0, flip=1, log_level=sic_logging.INFO):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
-        super(KioskApp, self).__init__(log_level=log_level)
+        super(KioskApp, self).__init__()
         
         # Demo-specific initialization
-        self.dialogflow_keyfile_path = dialogflow_keyfile_path
-        self.sample_rate_hertz = sample_rate_hertz
-        self.language = language
-        self.fx = fx
-        self.fy = fy
-        self.flip = flip
+        self.dialogflow_keyfile_path = "conf/google/google-key.json"
+        self.sample_rate_hertz = 44100
+        self.language = "en"
+        self.fx = 1.0
+        self.fy = 1.0
+        self.flip = 1
         self.imgs_buffer = queue.Queue(maxsize=1)
         self.faces_buffer = queue.Queue(maxsize=1)
         self.sees_face = False
@@ -79,6 +78,11 @@ class KioskApp(SICApplication):
         self.dialogflow = None
         self.can_listen = True
         self.session_id = np.random.randint(10000)
+
+        self.set_log_level(sic_logging.INFO)
+
+        # set log file path if needed
+        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
         
         self.setup()
 
@@ -186,5 +190,5 @@ class KioskApp(SICApplication):
 
 
 if __name__ == "__main__":
-    kiosk_app = KioskApp(abspath(join('..', '..', 'conf', 'dialogflow', 'dialogflow-tutorial.json')))
+    kiosk_app = KioskApp()
     kiosk_app.run()

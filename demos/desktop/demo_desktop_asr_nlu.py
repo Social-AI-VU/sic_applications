@@ -36,18 +36,20 @@ class ASRNLUDemo(SICApplication):
         The other terminal: run-nlu
     """
     
-    def __init__(self, ontology_path, model_path, num_turns=10, log_level=sic_logging.INFO):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
-        super(ASRNLUDemo, self).__init__(log_level=log_level)
+        super(ASRNLUDemo, self).__init__()
         
         # Demo-specific initialization
-        self.ontology_path = ontology_path
-        self.model_path = model_path
-        self.num_turns = num_turns
+        self.ontology_path = "conf/nlu/ontology.json"
+        self.model_path = "conf/nlu/model_checkpoint.pt"
+        self.num_turns = 10
         self.desktop = None
         self.whisper = None
         self.nlu = None
         
+        self.set_log_level(sic_logging.INFO)
+
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
         
@@ -93,8 +95,5 @@ class ASRNLUDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = ASRNLUDemo(
-        ontology_path=abspath(join("..", "..", "conf", "nlu", "ontology.json")),
-        model_path=abspath(join("..", "..", "conf", "nlu", "model_checkpoint.pt"))
-    )
+    demo = ASRNLUDemo()
     demo.run()

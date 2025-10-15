@@ -41,13 +41,13 @@ class NaoDialogflowDemo(SICApplication):
         super(NaoDialogflowDemo, self).__init__()
         
         # Demo-specific initialization
-        self.nao_ip = "10.15.2.243"
+        self.nao_ip = "XXX"
         self.dialogflow_keyfile_path = abspath(join("..", "..", "conf", "google", "google-key.json"))
         self.nao = None
         self.dialogflow = None
         self.session_id = np.random.randint(10000)
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
@@ -75,7 +75,6 @@ class NaoDialogflowDemo(SICApplication):
         # # Initialize NAO
         self.nao = Nao(ip=self.nao_ip)
         
-        # self.nao = NaoStub(ip=self.nao_ip, dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
         nao_mic = self.nao.mic
         
         # Load the key json file
@@ -116,6 +115,5 @@ class NaoDialogflowDemo(SICApplication):
 
 if __name__ == "__main__":
     # Create and run the demo
-    # Replace "XXX" with your NAO robot's IP address
     demo = NaoDialogflowDemo()
     demo.run()

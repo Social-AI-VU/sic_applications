@@ -40,10 +40,10 @@ class AlphaminiGoogleTTSDemo(SICApplication):
         super(AlphaminiGoogleTTSDemo, self).__init__()
         
         # Demo-specific initialization
-        self.mini_ip = "10.0.0.213"
-        self.mini_id = "00039"
+        self.mini_ip = "XXX"
+        self.mini_id = "000XXX"
         self.mini_password = "mini"
-        self.redis_ip = "10.0.0.142"
+        self.redis_ip = "XXX"
         self.google_keyfile_path = abspath(join("..", "..", "conf", "google", "google-key.json"))
         self.mini = None
         self.tts = None
@@ -85,8 +85,6 @@ class AlphaminiGoogleTTSDemo(SICApplication):
                 mini_password=self.mini_password,
                 redis_ip=self.redis_ip,
                 speaker_conf=MiniSpeakersConf(sample_rate=reply.sample_rate),
-                dev_test=True,
-                test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud"
             )
             
             self.logger.info("Alphamini speaking...")

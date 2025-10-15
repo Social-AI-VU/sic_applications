@@ -58,9 +58,7 @@ class NaoCameraDemo(SICApplication):
         conf = NaoqiCameraConf(vflip=1)
         
         # Initialize the NAO robot
-        # self.nao = Nao(ip=self.nao_ip, top_camera_conf=conf)
-        self.nao = NaoStub(ip=self.nao_ip, top_camera_conf=conf, dev_test=True, test_repo="/Users/apple/Desktop/SAIL/SIC_Development/social-interaction-cloud")
-
+        self.nao = Nao(ip=self.nao_ip, top_camera_conf=conf)
         
         self.logger.info("Registering callback...")
         self.nao.top_camera.register_callback(self.on_image)

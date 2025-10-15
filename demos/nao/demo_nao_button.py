@@ -48,8 +48,7 @@ class NaoButtonDemo(SICApplication):
         self.logger.info("Starting NAO Button Demo...")
         
         # Initialize the NAO robot
-        # self.nao = Nao(ip=self.nao_ip)
-        self.nao = NaoStub(ip=self.nao_ip)
+        self.nao = Nao(ip=self.nao_ip)
         
         # Register callback for button presses
         self.nao.buttons.register_callback(self.on_button_press)
@@ -71,6 +70,5 @@ class NaoButtonDemo(SICApplication):
 
 if __name__ == "__main__":
     # Create and run the demo
-    # Replace "XXX" with your NAO robot's IP address
-    demo = NaoButtonDemo(nao_ip="10.0.0.183")
+    demo = NaoButtonDemo()
     demo.run()

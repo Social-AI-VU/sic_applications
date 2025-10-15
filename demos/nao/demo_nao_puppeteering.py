@@ -119,5 +119,5 @@ class NaoPupeteeringDemo(SICApplication):
 
 if __name__ == "__main__":
     # Create and run the demo
-    demo = NaoPupeteeringDemo(puppet_master_ip="XXX", puppet_ip="XXX")
+    demo = NaoPupeteeringDemo()
     demo.run()

@@ -60,9 +60,9 @@ class ConversationDemo(SICApplication):
     """
     def __init__(self, google_keyfile_path, sample_rate_dialogflow_hertz=44100, dialogflow_language="en",
                  google_tts_voice_name="en-US-Standard-C", google_tts_voice_gender="FEMALE", default_speaking_rate=1.0,
-                 openai_key_path=None, log_level=sic_logging.INFO):
+                 openai_key_path=None):
         # Call parent constructor (handles singleton initialization)
-        super(ConversationDemo, self).__init__(log_level=log_level)
+        super(ConversationDemo, self).__init__()
         
         # Demo-specific initialization
         self.google_keyfile_path = google_keyfile_path
@@ -81,6 +81,8 @@ class ConversationDemo(SICApplication):
         self.device = None
         self.mic = None
         self.speaker = None
+
+        self.set_log_level(sic_logging.INFO)
         
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/general/logs")
