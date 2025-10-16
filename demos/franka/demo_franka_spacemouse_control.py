@@ -1,4 +1,12 @@
-# Franka robot motion and messages
+# Import basic preliminaries
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s) we will be using
+from sic_framework.devices.franka import Franka
+from sic_framework.devices.desktop import Desktop
+
+# Import message types and requests
 from sic_framework.devices.common_franka.franka_motion import (
     FrankaMotion,
     FrankaPose,
@@ -6,112 +14,163 @@ from sic_framework.devices.common_franka.franka_motion import (
     FrankaGripperGraspRequest,
     FrankaGripperMoveRequest
 )
-from sic_framework.devices.franka import Franka
-
-# Desktop and spacemouse input
 from sic_framework.devices.common_desktop.desktop_spacemouse import SpaceMouseStates
-from sic_framework.devices.desktop import Desktop
 
+# Import libraries necessary for the demo
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-"""
-This demo allows you to use a space mouse to control the robot arm's end effector (EE),
-and demonstrates the mapping between space mouse input and the end effector's displacement
 
-To run this demo, you need to install the correct version of the panda-python dependency. A version mismatch will cause problems.
-See Installation point 3 for instructions on installing the correct version: https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
-
-Extra installation instruction:
-`pip install scipy pyspacemouse`
-"""
-
-
-class MouseStateHandler():
-    def __init__(self):
+class MouseStateHandler:
+    """Handler for processing space mouse input and converting to robot motion."""
+    
+    def __init__(self, franka, logger):
+        self.franka = franka
+        self.logger = logger
         self.mouse_states = None
+        
+        # Scaling factors for spacemouse input
+        # Smaller values = slower, finer translation; larger = faster, coarser movement
+        self.translation_gain = 0.05
+        self.orientation_gain = 0.5
+        self.deadzone_threshold = 0.05
 
     def on_click(self, states):
+        """Callback for space mouse state updates."""
         self.mouse_states = states
-        # print("Mouse states received:", states)
 
     def on_pose(self, pose):
-        # print("Received pose")
+        """Callback for Franka pose updates - computes new pose based on space mouse input."""
         if self.mouse_states is None:
-            print("No data received yet from space mouse")
+            self.logger.debug("No data received yet from space mouse")
             return
-        # convert quaternion to rotation matrix
+        
+        # Convert quaternion to rotation matrix
         initial_rotation_matrix = Rotation.from_quat(pose.orientation).as_matrix()
 
-        # scaling factor for spacemount input
-        # smaller values = slower, finer translation; larger = faster, coarser movement
-        translation_gain = 0.05  # gain to scale the displacement
-        orientation_gain = 0.5  # gain to scale the rotation
+        # Apply deadzone to translation inputs to avoid small jitters
+        x = self.mouse_states.x if abs(self.mouse_states.x) > self.deadzone_threshold else 0.0
+        y = self.mouse_states.y if abs(self.mouse_states.y) > self.deadzone_threshold else 0.0
+        z = self.mouse_states.z if abs(self.mouse_states.z) > self.deadzone_threshold else 0.0
 
-        # there are some micro inputs from the spacemouse even when it is not touched
-        # deadzone to avoid small jitters, the lower the value, the more sensitive the control
-        threshold = 0.05
-        if abs(self.mouse_states.x) <= threshold:
-            self.mouse_states.x = 0.0
-        if abs(self.mouse_states.y) <= threshold:
-            self.mouse_states.y = 0.0
-        if abs(self.mouse_states.z) <= threshold:
-            self.mouse_states.z = 0.0
+        # Calculate translation displacement in the end-effector (EE) frame
+        displacement_x = -self.translation_gain * x
+        displacement_y = -self.translation_gain * y
+        displacement_z = self.translation_gain * z
 
-        # calculate translation displacement in the end-effector (EE) frame based on SpaceMouse input
-        displacement_x = -translation_gain * self.mouse_states.x
-        displacement_y = -translation_gain * self.mouse_states.y
-        displacement_z =  translation_gain * self.mouse_states.z
-
-        # create a transformation matrix for displacement
+        # Create a transformation matrix for displacement
         T_ee_displacement = np.identity(4)
         T_ee_displacement[0, 3] = displacement_x
         T_ee_displacement[1, 3] = displacement_y
         T_ee_displacement[2, 3] = displacement_z
 
-        # convert into a 4D vector making it compatible with 4x4 T_ee_displacement
+        # Convert into a 4D vector making it compatible with 4x4 T_ee_displacement
         old_position_ee = np.append(pose.position, 1)
-
         new_ee_pose_4D = np.dot(T_ee_displacement, old_position_ee)
-        # extracts the first three elements
-        new_ee_pose = new_ee_pose_4D[:3]
+        new_ee_pose = new_ee_pose_4D[:3]  # Extract the first three elements
 
-        # avoid small orientation jitters
-        threshold = 0.05
-        if abs(self.mouse_states.pitch) <= threshold:
-            self.mouse_states.pitch = 0.0
-        if abs(self.mouse_states.roll) <= threshold:
-            self.mouse_states.roll = 0.0
-        if abs(self.mouse_states.yaw) <= threshold:
-            self.mouse_states.yaw = 0.0
+        # Apply deadzone to orientation inputs
+        pitch = self.mouse_states.pitch if abs(self.mouse_states.pitch) > self.deadzone_threshold else 0.0
+        roll = self.mouse_states.roll if abs(self.mouse_states.roll) > self.deadzone_threshold else 0.0
+        yaw = self.mouse_states.yaw if abs(self.mouse_states.yaw) > self.deadzone_threshold else 0.0
 
-        # calculate new rotation angles based on SpaceMouse input, scaling them so each rotation along the axes can reach up to a maximum of ±90 degrees
-        angle_x = - np.radians(90) * self.mouse_states.pitch * orientation_gain
-        angle_y = - np.radians(90) * self.mouse_states.roll * orientation_gain
-        angle_z = np.radians(90) * self.mouse_states.yaw * orientation_gain
+        # Calculate new rotation angles based on SpaceMouse input
+        angle_x = -np.radians(90) * pitch * self.orientation_gain
+        angle_y = -np.radians(90) * roll * self.orientation_gain
+        angle_z = np.radians(90) * yaw * self.orientation_gain
 
-        # create a rotation matrix from euler angles
+        # Create a rotation matrix from euler angles
         rotation_matrix_displacement = Rotation.from_euler('xyz', [angle_x, angle_y, angle_z]).as_matrix()
 
-        # calculate new rotation matrix based on spacemouse rotation
+        # Calculate new rotation matrix based on spacemouse rotation
         new_rotation_matrix = np.dot(initial_rotation_matrix, rotation_matrix_displacement)
 
-        # convert new rotation matrix back to a quaternion
+        # Convert new rotation matrix back to a quaternion
         new_quaternion = Rotation.from_matrix(new_rotation_matrix).as_quat()
 
-        franka.motion.send_message(FrankaPose(position=new_ee_pose, orientation=new_quaternion))
+        # Send new pose to Franka
+        self.franka.motion.send_message(FrankaPose(position=new_ee_pose, orientation=new_quaternion))
 
-        # gripper control: left button to close, right button to open
+        # Gripper control: left button to close, right button to open
         if self.mouse_states.buttons[0] == 1:
-            franka.motion.request(FrankaGripperGraspRequest(width=0.0, speed=0.1, force=5, epsilon_inner=0.005, epsilon_outer=0.005))
+            self.franka.motion.request(
+                FrankaGripperGraspRequest(
+                    width=0.0, speed=0.1, force=5,
+                    epsilon_inner=0.005, epsilon_outer=0.005
+                )
+            )
         if self.mouse_states.buttons[1] == 1:
-            franka.motion.request(FrankaGripperMoveRequest(width=0.08, speed=0.1))
+            self.franka.motion.request(FrankaGripperMoveRequest(width=0.08, speed=0.1))
 
-mouse_handler = MouseStateHandler()
-desktop = Desktop()
-franka = Franka()
 
-desktop.spacemouse.register_callback(callback=mouse_handler.on_click)
-franka.motion.register_callback(callback=mouse_handler.on_pose)
+class FrankaSpacemouseDemo(SICApplication):
+    """
+    Franka spacemouse control demo application.
+    Demonstrates using a space mouse to control the robot arm's end effector.
 
-franka.motion.request(FrankaPoseRequest(stream=True))
+    IMPORTANT:
+    To run this demo, you need to install the correct version of the panda-python dependency.
+    A version mismatch will cause problems.
+    See Installation point 3 for instructions:
+    https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
+
+    Extra installation:
+    pip install scipy pyspacemouse
+    """
+    
+    def __init__(self):
+        # Call parent constructor (handles singleton initialization)
+        super(FrankaSpacemouseDemo, self).__init__()
+        
+        # Demo-specific initialization
+        self.franka = None
+        self.desktop = None
+        self.mouse_handler = None
+        
+        # Configure logging
+        self.set_log_level(sic_logging.INFO)
+        
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/franka/logs")
+        
+        self.setup()
+    
+    def setup(self):
+        """Initialize and configure the Franka robot and Desktop spacemouse."""
+        self.logger.info("Starting Franka Spacemouse Control Demo...")
+        
+        # Initialize devices
+        self.desktop = Desktop()
+        self.franka = Franka()
+        
+        # Create mouse state handler
+        self.mouse_handler = MouseStateHandler(self.franka, self.logger)
+        
+        # Register callbacks
+        self.desktop.spacemouse.register_callback(callback=self.mouse_handler.on_click)
+        self.franka.motion.register_callback(callback=self.mouse_handler.on_pose)
+        
+        # Start pose streaming
+        self.franka.motion.request(FrankaPoseRequest(stream=True))
+    
+    def run(self):
+        """Main application loop."""
+        self.logger.info("Spacemouse control active. Use the space mouse to control the robot.")
+        self.logger.info("Left button: close gripper, Right button: open gripper")
+        self.logger.info("Press Ctrl+C to stop")
+        
+        try:
+            while not self.shutdown_event.is_set():
+                pass  # Keep running until interrupted
+        except Exception as e:
+            self.logger.error("Exception: {}".format(e))
+        finally:
+            self.shutdown()
+
+
+if __name__ == "__main__":
+    # Create and run the demo
+    # This will be the single SICApplication instance for the process
+    demo = FrankaSpacemouseDemo()
+    demo.run()
+
