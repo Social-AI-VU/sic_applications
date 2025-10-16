@@ -1,116 +1,173 @@
-import json
-import wave
-from os import environ
-from os.path import abspath, join
+# Import basic preliminaries
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-import numpy as np
-from sic_framework.core.message_python2 import AudioMessage, AudioRequest
-from sic_framework.devices import Nao
-from sic_framework.devices.device import SICDevice
-from sic_framework.services.google_tts.google_tts import Text2Speech, Text2SpeechConf, GetSpeechRequest, SpeechResult
-from sic_framework.devices.alphamini import Alphamini
-from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
-
-from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest
-from dotenv import load_dotenv
-
+# Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
+from sic_framework.devices import Nao
+from sic_framework.devices.alphamini import Alphamini
+
+# Import the service(s) we will be using
 from sic_framework.services.dialogflow.dialogflow import (
     Dialogflow,
     DialogflowConf,
     GetIntentRequest,
 )
+from sic_framework.services.google_tts.google_tts import (
+    Text2Speech,
+    Text2SpeechConf,
+    GetSpeechRequest,
+    SpeechResult
+)
+from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest
 
-"""
-This is a demo show casing a agent-driven conversation utalizating Google Dialogflow, Google TTS, and OpenAI's GTP4
+# Import configuration and message types
+from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
+from sic_framework.core.message_python2 import AudioRequest
 
-IMPORTANT
-First, you need to set-up Google Cloud Console with dialogflow and Google TTS:
-
-1. Create a keyfile as instructed here: https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html and save it conf/dialogflow/google_keyfile.json
-
-Secondly you need to configure your dialogflow agent.
-2. In your empty dialogflow agent do the following things:
-    a. remove all default intents
-    b. go to settings -> import and export -> and import the resources/droomrobot_dialogflow_agent.zip into your
-dialogflow agent. That gives all the necessary intents and entities that are part of this example (and many more)
-
-Thirdly, you need an openAI key:
-3. Generate your personal openai api key here: https://platform.openai.com/api-keys
-4. Either add your openai key to your systems variables or
-create a .openai_env file in the conf/openai folder and add your key there like this:
-OPENAI_API_KEY="your key"
-
-Forth, the redis server, Dialogflow, Google TTS and OpenAI gpt service need to be running:
-
-1. pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt,alphamini]
-2. run: conf/redis/redis-server.exe conf/redis/redis.conf
-3. run in new terminal: run-dialogflow 
-4. run in new terminal: run-google-tts
-5. run in new terminal: run-gpt
-6. connect a device e.g. desktop, nao, pepper, alphamini
-7. Run this script
-"""
+# Import libraries necessary for the demo
+import json
+import wave
+from os import environ
+from os.path import abspath, join
+import numpy as np
+from dotenv import load_dotenv
 
 
-class ConversationDemo:
+class ConversationDemo(SICApplication):
+    """
+    General conversation demo application.
+    Demonstrates an agent-driven conversation utilizing Google Dialogflow, Google TTS, and OpenAI's GPT.
+
+    IMPORTANT:
+    1. Set-up Google Cloud Console with Dialogflow and Google TTS:
+       Create a keyfile: https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
+       Save it as conf/google/google-key.json
+
+    2. Configure your Dialogflow agent:
+       a. Remove all default intents
+       b. Go to settings -> import and export -> import the droomrobot_dialogflow_agent.zip
+
+    3. You need an OpenAI key:
+       Generate key here: https://platform.openai.com/api-keys
+       Create a .openai_env file in conf/openai folder with: OPENAI_API_KEY="your key"
+
+    4. Services need to be running:
+       pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt,alphamini]
+       run-dialogflow (in new terminal)
+       run-google-tts (in new terminal)
+       run-gpt (in new terminal)
+    """
     def __init__(self, google_keyfile_path, sample_rate_dialogflow_hertz=44100, dialogflow_language="en",
                  google_tts_voice_name="en-US-Standard-C", google_tts_voice_gender="FEMALE", default_speaking_rate=1.0,
                  openai_key_path=None):
+        # Call parent constructor (handles singleton initialization)
+        super(ConversationDemo, self).__init__()
+        
+        # Demo-specific initialization
+        self.google_keyfile_path = google_keyfile_path
+        self.sample_rate_dialogflow_hertz = sample_rate_dialogflow_hertz
+        self.dialogflow_language = dialogflow_language
+        self.google_tts_voice_name = google_tts_voice_name
+        self.google_tts_voice_gender = google_tts_voice_gender
+        self.default_speaking_rate = default_speaking_rate
+        self.openai_key_path = openai_key_path
+        
+        self.gpt = None
+        self.dialogflow = None
+        self.tts = None
+        self.tts_sample_rate = None
+        self.request_id = np.random.randint(10000)
+        self.device = None
+        self.mic = None
+        self.speaker = None
 
-        if openai_key_path:
-            load_dotenv(openai_key_path)
+        self.set_log_level(sic_logging.INFO)
+        
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/general/logs")
+        
+        self.setup()
+        
+    def setup(self):
+        """Initialize and configure GPT, Dialogflow, and Google TTS."""
+        self.logger.info("Setting up Conversation Demo...")
+        
+        # Load OpenAI API key
+        if self.openai_key_path:
+            load_dotenv(self.openai_key_path)
 
         # Setup GPT client
         conf = GPTConf(openai_key=environ["OPENAI_API_KEY"])
         self.gpt = GPT(conf=conf)
-        print("OpenAI GPT4 Ready")
+        self.logger.info("OpenAI GPT Ready")
 
-        # set up the config for dialogflow
-        dialogflow_conf = DialogflowConf(keyfile_json=json.load(open(google_keyfile_path)),
-                                         sample_rate_hertz=sample_rate_dialogflow_hertz, language=dialogflow_language)
+        # Set up the config for dialogflow
+        dialogflow_conf = DialogflowConf(
+            keyfile_json=json.load(open(self.google_keyfile_path)),
+            sample_rate_hertz=self.sample_rate_dialogflow_hertz,
+            language=self.dialogflow_language
+        )
 
-        # initiate Dialogflow object
+        # Initiate Dialogflow object (without input source initially)
         self.dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf)
-        print("Dialogflow Ready")
-
-        # flag to signal when the app should listen (i.e. transmit to dialogflow)
-        self.request_id = np.random.randint(10000)
+        self.logger.info("Dialogflow Ready")
 
         # Initialize TTS
-        self.google_tts_voice_name = google_tts_voice_name
-        self.google_tts_voice_gender = google_tts_voice_gender
-        self.tts = Text2Speech(conf=Text2SpeechConf(keyfile=google_keyfile_path,
-                                                    speaking_rate=default_speaking_rate))
-        init_reply = self.tts.request(GetSpeechRequest(text="I am initializing",
-                                                       voice_name=self.google_tts_voice_name,
-                                                       ssml_gender=self.google_tts_voice_gender))
+        self.tts = Text2Speech(
+            conf=Text2SpeechConf(
+                keyfile=self.google_keyfile_path,
+                speaking_rate=self.default_speaking_rate
+            )
+        )
+        init_reply = self.tts.request(
+            GetSpeechRequest(
+                text="I am initializing",
+                voice_name=self.google_tts_voice_name,
+                ssml_gender=self.google_tts_voice_gender
+            )
+        )
         self.tts_sample_rate = init_reply.sample_rate
-        print("Google TTS ready")
-
-        # Placeholder for the selected device
-        self.mic = None
-        self.speaker = None
+        self.logger.info("Google TTS ready")
         
     def connect_device(self, device):
+        """
+        Connect a device (Desktop, NAO, Alphamini, etc.) to the conversation system.
+        
+        Args:
+            device: The device to connect (must have mic and speaker/speakers).
+        """
         self.device = device
         self.mic = device.mic
         self.dialogflow.connect(self.mic)
-        print("Device connected")
+        self.logger.info("Device connected")
+        
+        # Desktop uses 'speakers', robots use 'speaker'
         if isinstance(device, Desktop):
             self.speaker = device.speakers
         else:
             self.speaker = device.speaker
 
     def say(self, text, speaking_rate=1.0):
-        print('Saying', text)
-        reply = self.tts.request(GetSpeechRequest(text=text,
-                                                  voice_name=self.google_tts_voice_name,
-                                                  ssml_gender=self.google_tts_voice_gender,
-                                                  speaking_rate=speaking_rate))
-        print(f'Speech generated with sample rate: {reply.sample_rate}')
+        """
+        Synthesize and play speech using Google TTS.
+        
+        Args:
+            text: The text to speak.
+            speaking_rate: The speaking rate (default: 1.0).
+        """
+        self.logger.info("Saying: {}".format(text))
+        reply = self.tts.request(
+            GetSpeechRequest(
+                text=text,
+                voice_name=self.google_tts_voice_name,
+                ssml_gender=self.google_tts_voice_gender,
+                speaking_rate=speaking_rate
+            )
+        )
+        self.logger.debug("Speech generated with sample rate: {}".format(reply.sample_rate))
         self.speaker.request(AudioRequest(reply.waveform, reply.sample_rate))
-        print('Sent to device speaker')
+        self.logger.debug("Sent to device speaker")
 
     def play_audio(self, audio_file):
         with wave.open(audio_file, 'rb') as wf:
@@ -194,29 +251,55 @@ class ConversationDemo:
             attempts += 1
         return None
 
-    # def personalize(self, robot_input, user_age, user_input):
-    #     gpt_response = self.gpt.request(
-    #         GPTRequest(f'Je bent een sociale robot die praat met een kind van {str(user_age)} jaar oud.'
-    #                    f'Het kind ligt in het ziekenhuis.'
-    #                    f'Jij bent daar om het kind af te leiden met een leuk gesprek.'
-    #                    f'Als robot heb je zojuist het volgende gevraagd: {robot_input}'
-    #                    f'Het kind reageerde met het volgende: "{user_input}"'
-    #                    f'Genereer nu een passende reactie in 1 zin.'))
-    #     return gpt_response.response
+    def personalize(self, robot_input, user_age, user_input):
+        """
+        Generate a personalized response using GPT based on user context.
+        
+        Args:
+            robot_input: What the robot just asked.
+            user_age: Age of the user.
+            user_input: What the user said.
+        
+        Returns:
+            Personalized response text.
+        """
+        gpt_response = self.gpt.request(
+            GPTRequest(
+                f'Je bent een sociale robot die praat met een kind van {str(user_age)} jaar oud.'
+                f'Het kind ligt in het ziekenhuis.'
+                f'Jij bent daar om het kind af te leiden met een leuk gesprek.'
+                f'Als robot heb je zojuist het volgende gevraagd: {robot_input}'
+                f'Het kind reageerde met het volgende: "{user_input}"'
+                f'Genereer nu een passende reactie in 1 zin.'
+            )
+        )
+        return gpt_response.response
 
     def run(self):
-        self.say("Hello, I am your companion robot")
+        """Main application logic."""
+        try:
+            self.say("Hello, I am your companion robot")
+            self.logger.info("Conversation demo completed")
+        except Exception as e:
+            self.logger.error("Exception: {}".format(e))
+        finally:
+            self.shutdown()
 
 
 if __name__ == '__main__':
-    demo = ConversationDemo(google_keyfile_path=abspath(join("..", "..", "conf", "dialogflow", "google_tts_keyfile.json")),
-                            openai_key_path=abspath(join("..", "..", "conf", "openai", ".openai_env")))
+    # Create the conversation demo
+    demo = ConversationDemo(
+        google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")),
+        openai_key_path=abspath(join("..", "..", "conf", "openai", ".openai_env"))
+    )
 
-    # Select your device
+    # Select your device (uncomment the one you want to use)
     desktop = Desktop()
     # nao = Nao(ip="xxx.xxx.xxx.xxx")
-    # alphamini = Alphamini(ip="xxx.xxx.xxx.xxx", mini_id="00xxx", mini_password="alphago", redis_ip="yyy.yyy.yyy.yyy",
+    # alphamini = Alphamini(ip="xxx.xxx.xxx.xxx", mini_id="00xxx", mini_password="alphago", 
+    #                       redis_ip="yyy.yyy.yyy.yyy",
     #                       speaker_conf=MiniSpeakersConf(sample_rate=demo.tts_sample_rate))
 
     demo.connect_device(desktop)
     demo.run()
+

@@ -1,48 +1,70 @@
-"""
-This script demonstrates how to use the Nao LEDs.
-"""
+# Import basic preliminaries
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-import time
-
+# Import the device(s) we will be using
 from sic_framework.devices import Nao
+from sic_framework.devices.nao_stub import NaoStub
+
+# Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_leds import (
     NaoFadeRGBRequest,
     NaoLEDRequest,
 )
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
 
-app = SICApplication()
-# In case you want to use the logger with a neat format as opposed to logger.info statements.
-logger = app.get_app_logger()
+# Import libraries necessary for the demo
+import time
 
-# can be DEBUG, INFO, WARNING, ERROR, CRITICAL
-app.set_log_level(sic_logging.DEBUG)
+class NaoLEDsDemo(SICApplication):
+    """
+    NAO LEDs demo application.
+    Demonstrates how to control the NAO robot's LEDs.
+    """
+    
+    def __init__(self):
+        # Call parent constructor (handles singleton initialization)
+        super(NaoLEDsDemo, self).__init__()
+        
+        # Demo-specific initialization
+        self.nao_ip = "XXX"
+        self.nao = None
 
-# Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-# app.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        self.set_log_level(sic_logging.INFO)
+        
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
+        
+        self.setup()
+    
+    def setup(self):
+        """Initialize and configure the NAO robot."""
+        self.logger.info("Starting NAO LEDs Demo...")
+        
+        # Initialize the NAO robot
+        self.nao = Nao(ip=self.nao_ip)
+    
+    def run(self):
+        """Main application logic."""
+        try:
+            self.logger.info("Requesting Eye LEDs to turn on")
+            reply = self.nao.leds.request(NaoLEDRequest("FaceLeds", True))
+            time.sleep(1)
 
-# Use the shutdown event as a loop condition.
-shutdown_flag = app.get_shutdown_event()
+            self.logger.info("Setting right Eye LEDs to red")
+            reply = self.nao.leds.request(NaoFadeRGBRequest("RightFaceLeds", 1, 0, 0, 0))
+            time.sleep(1)
 
-try:
-    logger.info("Starting Nao LEDs Demo...")
-    nao = Nao(ip="XXX")
+            self.logger.info("Setting left Eye LEDs to blue")
+            reply = self.nao.leds.request(NaoFadeRGBRequest("LeftFaceLeds", 0, 0, 1, 0))
 
-    logger.info("Requesting Eye LEDs to turn on")
-    reply = nao.leds.request(NaoLEDRequest("FaceLeds", True))
-    time.sleep(1)
+            self.logger.info("LEDs demo completed successfully")
+        except Exception as e:
+            self.logger.error("Error in LEDs demo: {}".format(e=e))
+        finally:
+            self.shutdown()
 
-    logger.info("Setting right Еye LEDs to red")
-    reply = nao.leds.request(NaoFadeRGBRequest("RightFaceLeds", 1, 0, 0, 0))
 
-    time.sleep(1)
-
-    logger.info("Setting left Eye LEDs to blue")
-    reply = nao.leds.request(NaoFadeRGBRequest("LeftFaceLeds", 0, 0, 1, 0))
-
-    logger.info("LEDs demo completed successfully")
-except Exception as e:
-    logger.error("Error in LEDs demo: {e}".format(e=e))
-finally:
-    app.shutdown()
+if __name__ == "__main__":
+    # Create and run the demo
+    demo = NaoLEDsDemo()
+    demo.run()
