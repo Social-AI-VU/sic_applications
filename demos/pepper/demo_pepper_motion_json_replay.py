@@ -103,4 +103,3 @@ if __name__ == "__main__":
     # Create and run the demo
     demo = PepperMotionJSONReplayDemo()
     demo.run()
-

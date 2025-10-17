@@ -4,6 +4,8 @@ from sic_framework.core import sic_logging
 
 # Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
+
+# Import configuration(s) for the components
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 
 # Import the service(s) we will be using
@@ -27,20 +29,22 @@ class GoogleTTSDemo(SICApplication):
 
     IMPORTANT:
     Google text-to-speech dependency needs to be installed and the service needs to be running:
-    1. pip install social-interaction-cloud[google-tts]
+    1. pip install --upgrade social-interaction-cloud[google-tts]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
     2. run-google-tts (in a separate terminal)
 
     NOTE: you need to have setup Cloud Text-to-Speech API in your Google Cloud Console and configure the credential keyfile.
-    See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
+    See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide
     """
     
-    def __init__(self):
+    def __init__(self, google_keyfile_path):
         # Call parent constructor (handles singleton initialization)
         super(GoogleTTSDemo, self).__init__()
         
         # Demo-specific initialization
         self.desktop = None
         self.tts = None
+        self.google_keyfile_path = google_keyfile_path
         
         # Configure logging
         self.set_log_level(sic_logging.INFO)
@@ -56,7 +60,7 @@ class GoogleTTSDemo(SICApplication):
         
         # initialize the text2speech service
         tts_conf = Text2SpeechConf(
-            keyfile_json=json.load(open(abspath(join("..", "..", "conf", "google", "google-key.json"))))
+            keyfile_json=json.load(open(self.google_keyfile_path))
         )
         self.tts = Text2Speech(conf=tts_conf)
     
@@ -86,5 +90,5 @@ class GoogleTTSDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = GoogleTTSDemo()
+    demo = GoogleTTSDemo(google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")))
     demo.run()

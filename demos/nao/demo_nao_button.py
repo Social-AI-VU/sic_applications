@@ -6,6 +6,7 @@ from sic_framework.core import sic_logging
 from sic_framework.devices import Nao
 from sic_framework.devices.nao_stub import NaoStub
 
+
 class NaoButtonDemo(SICApplication):
     """
     NAO button demo application.

@@ -19,6 +19,7 @@ from os import environ
 from os.path import abspath, join
 from dotenv import load_dotenv
 
+
 class WhisperDemo(SICApplication):
     """
     Whisper speech-to-text demo application.
@@ -27,21 +28,23 @@ class WhisperDemo(SICApplication):
 
     IMPORTANT:
     Whisper service needs to be running:
-    1. pip install social-interaction-cloud[whisper-speech-to-text]
+    1. pip install --upgrade social-interaction-cloud[whisper-speech-to-text]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
     2. run-whisper
 
     NOTE: Requires you to have a secret OpenAI key.
-    You can generate your personal openai api key here: https://platform.openai.com/api-keys
-    Put your key in a .openai_env file in the conf/openai folder as OPENAI_API_KEY="your key"
+    You can generate your personal env api key here: https://platform.openai.com/api-keys
+    Put your key in a .env file in the conf/env folder as OPENAI_API_KEY="your key"
     """
     
-    def __init__(self):
+    def __init__(self, env_path=None):
         # Call parent constructor (handles singleton initialization)
         super(WhisperDemo, self).__init__()
         
         # Demo-specific initialization
         self.desktop = None
         self.whisper = None
+        self.env_path = env_path
         
         # Configure logging
         self.set_log_level(sic_logging.INFO)
@@ -68,8 +71,14 @@ class WhisperDemo(SICApplication):
         self.logger.info("Setting up Whisper speech-to-text...")
         
         self.desktop = Desktop()
-        
-        load_dotenv(abspath(join("..", "..", "conf", "openai", ".openai_env")))
+
+        # Generate your personal env api key here: https://platform.openai.com/api-keys
+        # Either add your env key to your systems variables (and do not provide an env_path) or
+        # create a .env file in the conf/ folder and add your key there like this:
+        # OPENAI_API_KEY="your key"
+        if self.env_path:
+            load_dotenv(self.env_path)
+
         whisper_conf = WhisperConf(openai_key=environ["OPENAI_API_KEY"])
         self.whisper = SICWhisper(input_source=self.desktop.mic, conf=whisper_conf)
         
@@ -98,5 +107,5 @@ class WhisperDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = WhisperDemo()
+    demo = WhisperDemo(env_path=abspath(join("..", "..", "conf", ".env")))
     demo.run()

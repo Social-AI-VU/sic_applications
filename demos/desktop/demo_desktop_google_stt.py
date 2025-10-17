@@ -17,26 +17,29 @@ import json
 from os.path import abspath, join
 import time
 
+
 class GoogleSTTDemo(SICApplication):
     """
     Google Speech-to-Text demo application.
 
     IMPORTANT:
     Google speech-to-text dependency needs to be installed and the service needs to be running:
-    1. pip install social-interaction-cloud[google-stt]
+    1. pip install --upgrade social-interaction-cloud[google-stt]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
     2. run-google-stt
 
     NOTE: you need to have setup Cloud Speech-to-Text API in your Google Cloud Console and configure the credential keyfile.
-    See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
+    See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide
     """
     
-    def __init__(self):
+    def __init__(self, google_keyfile_path):
         # Call parent constructor (handles singleton initialization)
         super(GoogleSTTDemo, self).__init__()
         
         # Demo-specific initialization
         self.desktop = None
         self.desktop_mic = None
+        self.google_keyfile_path = google_keyfile_path
         self.stt = None
         
         # Configure logging
@@ -71,7 +74,7 @@ class GoogleSTTDemo(SICApplication):
         
         # initialize the speech-to-text service
         stt_conf = GoogleSpeechToTextConf(
-            keyfile_json=json.load(open(abspath(join("..", "..", "conf", "google", "google-key.json")))),
+            keyfile_json=json.load(open(self.google_keyfile_path)),
             sample_rate_hertz=44100,
             language="en-US",
             interim_results=False,
@@ -109,5 +112,5 @@ class GoogleSTTDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = GoogleSTTDemo()
+    demo = GoogleSTTDemo(google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")))
     demo.run()

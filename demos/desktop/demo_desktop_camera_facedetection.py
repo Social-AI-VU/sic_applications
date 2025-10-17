@@ -1,11 +1,3 @@
-""" 
-This demo recognizes faces from your webcam and displays the result on your laptop.
-
-IMPORTANT
-face-detection service needs to be running:
-1. run-face-detection
-"""
-
 # Import basic preliminaries
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
@@ -33,9 +25,14 @@ import queue
 # Computer vision library for displaying images
 import cv2
 
+
 class FaceDetectionDemo(SICApplication):
     """
-    Desktop face detection demo application.
+    This demo recognizes faces from your webcam and displays the result on your laptop.
+
+    IMPORTANT
+    face-detection service needs to be running:
+    1. run-face-detection
     """
     
     def __init__(self):
