@@ -214,7 +214,7 @@ class ConversationApp(SICApplication):
         attempts = 1
         max_attempts = 3
         init = True
-        while True:
+        while not self.shutdown_event.is_set():
             try:
                 if self.sees_face and self.can_listen:
                     if init:
