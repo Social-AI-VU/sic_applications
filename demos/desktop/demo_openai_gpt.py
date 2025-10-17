@@ -24,16 +24,18 @@ class GPTDemo(SICApplication):
     IMPORTANT
     OpenAI GPT service needs to be running:
 
-    1. pip install social-interaction-cloud[openai-gpt]
+    1. pip install --upgrade social-interaction-cloud[openai-gpt]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
     2. run-gpt
     """
     
-    def __init__(self):
+    def __init__(self, env_path=None):
         # Call parent constructor (handles singleton initialization)
         super(GPTDemo, self).__init__()
         
         # Demo-specific initialization
         self.gpt = None
+        self.env_path = env_path
         self.context = []
         self.NUM_TURNS = 5
         
@@ -49,11 +51,12 @@ class GPTDemo(SICApplication):
         """Initialize and configure the GPT service."""
         self.logger.info("Setting up GPT...")
         
-        # Generate your personal openai api key here: https://platform.openai.com/api-keys
-        # Either add your openai key to your systems variables (and comment the next line out) or
-        # create a .openai_env file in the conf/openai folder and add your key there like this:
+        # Generate your personal env api key here: https://platform.openai.com/api-keys
+        # Either add your env key to your systems variables (and do not provide an env_path) or
+        # create a .env file in the conf/ folder and add your key there like this:
         # OPENAI_API_KEY="your key"
-        load_dotenv(abspath(join("..", "..", "conf", "openai", ".openai_env")))
+        if self.env_path:
+            load_dotenv(self.env_path)
         
         # Setup GPT
         # To see all available models, see https://platform.openai.com/docs/models and https://platform.openai.com/docs/api-reference/models/list
@@ -101,5 +104,5 @@ class GPTDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = GPTDemo()
+    demo = GPTDemo(env_path=abspath(join("..", "..", "conf", ".env")))
     demo.run()

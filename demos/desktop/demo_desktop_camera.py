@@ -17,6 +17,7 @@ import queue
 # Computer vision library for displaying images
 import cv2
 
+
 class CameraDemo(SICApplication):
     """
     Desktop camera demo application.
@@ -53,8 +54,8 @@ class CameraDemo(SICApplication):
     
     def setup(self):
         """Initialize and configure the desktop camera."""
-        # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
-        conf = DesktopCameraConf(fx=1.0, fy=1.0, flip=-1)
+        # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image (set to -1 to flip)
+        conf = DesktopCameraConf(fx=1.0, fy=1.0, flip=1)
 
         # initialize the device we want to use with relevant configuration
         self.desktop = Desktop(camera_conf=conf)

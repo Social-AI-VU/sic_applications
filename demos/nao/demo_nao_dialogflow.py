@@ -28,21 +28,23 @@ class NaoDialogflowDemo(SICApplication):
     Demonstrates NAO picking up your intent and replying according to your trained agent using Dialogflow.
 
     IMPORTANT:
-    First, you need to obtain your own keyfile.json from Dialogflow and place it in conf/google/.
-    How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
+    First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code can load.
+    How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide for more information.
+    Save the key in conf/google/google-key.json
 
     Second, the Dialogflow service needs to be running:
-    1. pip install social-interaction-cloud[dialogflow]
+    1. pip install --upgrade social-interaction-cloud[dialogflow]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
     2. run-dialogflow
     """
     
-    def __init__(self):
+    def __init__(self, google_keyfile_path):
         # Call parent constructor (handles singleton initialization)
         super(NaoDialogflowDemo, self).__init__()
         
         # Demo-specific initialization
         self.nao_ip = "XXX"
-        self.dialogflow_keyfile_path = abspath(join("..", "..", "conf", "google", "google-key.json"))
+        self.google_keyfile_path = google_keyfile_path
         self.nao = None
         self.dialogflow = None
         self.session_id = np.random.randint(10000)
@@ -78,7 +80,7 @@ class NaoDialogflowDemo(SICApplication):
         nao_mic = self.nao.mic
         
         # Load the key json file
-        keyfile_json = json.load(open(self.dialogflow_keyfile_path))
+        keyfile_json = json.load(open(self.google_keyfile_path))
         
         # Set up the config
         conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=16000)
@@ -115,5 +117,5 @@ class NaoDialogflowDemo(SICApplication):
 
 if __name__ == "__main__":
     # Create and run the demo
-    demo = NaoDialogflowDemo()
+    demo = NaoDialogflowDemo(google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")))
     demo.run()

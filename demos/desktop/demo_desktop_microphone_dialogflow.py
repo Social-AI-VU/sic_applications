@@ -26,15 +26,16 @@ class DialogflowDemo(SICApplication):
 
     IMPORTANT:
     First, you need to obtain your own keyfile.json from Dialogflow and place it in a location that the code can load.
-    How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html for more information.
+    How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide for more information.
     Save the key in conf/google/google-key.json
 
     Second, the Dialogflow service needs to be running:
-    1. pip install social-interaction-cloud[dialogflow]
+    1. pip install --upgrade social-interaction-cloud[dialogflow]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
     2. run-dialogflow
     """
     
-    def __init__(self):
+    def __init__(self, google_keyfile_path):
         # Call parent constructor (handles singleton initialization)
         super(DialogflowDemo, self).__init__()
         
@@ -42,6 +43,7 @@ class DialogflowDemo(SICApplication):
         self.desktop = None
         self.desktop_mic = None
         self.dialogflow = None
+        self.google_keyfile_path = google_keyfile_path
 
         self.set_log_level(sic_logging.INFO)
 
@@ -77,7 +79,7 @@ class DialogflowDemo(SICApplication):
         
         self.logger.info("Initializing Dialogflow")
         # load the key json file, you need to get your own keyfile.json
-        with open(abspath(join("..", "..", "conf", "google", "google-key.json"))) as f:
+        with open(self.google_keyfile_path) as f:
             keyfile_json = json.load(f)
         
         dialogflow_conf = DialogflowConf(keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en")
@@ -112,5 +114,5 @@ class DialogflowDemo(SICApplication):
 
 if __name__ == "__main__":
     # Create and run the demo
-    demo = DialogflowDemo()
+    demo = DialogflowDemo(google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")))
     demo.run()

@@ -32,7 +32,9 @@ class ObjectDetectionDemo(SICApplication):
 
     IMPORTANT:
     Object-detection service needs to be running:
-    1. run-object-detection
+    1. pip install --upgrade social_interaction_cloud[object-detection]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
+    2. run-object-detection
     """
     
     def __init__(self):
