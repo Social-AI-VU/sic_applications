@@ -60,7 +60,12 @@ class NaoMotionDemo(SICApplication):
             self.logger.info("Playing Hey gesture animation")
             self.nao.motion.request(NaoqiAnimationRequest("animations/Stand/Gestures/Hey_1"))
             time.sleep(1)
-            
+
+
+            self.logger.info("Requesting Crouch posture")
+            self.nao.motion.request(NaoPostureRequest("Crouch", 0.5))
+            time.sleep(1)
+
             self.logger.info("Motion demo completed successfully")
         except Exception as e:
             self.logger.error("Error in motion demo: {}".format(e=e))
