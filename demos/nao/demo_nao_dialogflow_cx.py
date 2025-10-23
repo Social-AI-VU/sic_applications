@@ -31,7 +31,7 @@ class NaoDialogflowCXDemo(SICApplication):
 
     IMPORTANT:
     1. You need to obtain your own keyfile.json from Google Cloud and place it in conf/google/
-       How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
+       How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html
        Save the key in conf/google/google-key.json
 
     2. You need a trained Dialogflow CX agent:
@@ -39,11 +39,10 @@ class NaoDialogflowCXDemo(SICApplication):
        - Add intents with training phrases
        - Train the agent
        - Note the agent ID and location
-       - Use verify_dialogflow_cx_agent.py to find your agent details
 
     3. The Dialogflow CX service needs to be running:
-       - pip install google-cloud-dialogflow-cx
-       - The service will start automatically when the connector is initialized
+       - pip install social-interaction-cloud[dialogflow-cx]
+       - run-dialogflow-cx (or run the service manually)
 
     Note: This uses Dialogflow CX (v3), which is different from Dialogflow ES (v2).
     """
@@ -88,7 +87,7 @@ class NaoDialogflowCXDemo(SICApplication):
         self.logger.info("Initializing NAO robot...")
         
         # Initialize NAO
-        self.nao = Nao(ip=self.nao_ip)
+        self.nao = Nao(ip=self.nao_ip, dev_test=True)
         nao_mic = self.nao.mic
         
         self.logger.info("Initializing Dialogflow CX...")

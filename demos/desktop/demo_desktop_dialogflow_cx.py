@@ -26,7 +26,7 @@ class DialogflowCXDemo(SICApplication):
 
     IMPORTANT:
     1. You need to obtain your own keyfile.json from Google Cloud and place it in a location that the code can load.
-       How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
+       How to get a key? See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html
        Save the key in conf/google/google-key.json
 
     2. You need to create a Dialogflow CX agent and note:
@@ -34,10 +34,8 @@ class DialogflowCXDemo(SICApplication):
        - Your agent location (e.g., "global" or "us-central1")
 
     3. The Conversational Agents service needs to be running:
-       - pip install social-interaction-cloud[conversational-agents]
-         OR
-       - pip install google-cloud-dialogflow-cx
-       - run-conversational-agents (or run the service manually)
+       - pip install social-interaction-cloud[dialogflow-cx]
+       - run-dialogflow-cx (or run the service manually)
 
     Note: This uses the newer Dialogflow CX API (v3), which is different from the older Dialogflow ES (v2).
     """
@@ -100,8 +98,8 @@ class DialogflowCXDemo(SICApplication):
         # 4. The agent ID is in the URL: ...agents/YOUR-AGENT-ID/...
         # or in Agent Settings under "Agent ID"
         
-        agent_id = "XXX"  # Replace with your agent ID
-        location = "XXX"  # Replace with your agent location if different
+        agent_id = "27cdbb58-604e-4da9-bb34-91bb7bc62883"  # Replace with your agent ID
+        location = "europe-west4"  # Replace with your agent location if different
         
         # Create configuration for Conversational Agents
         ca_conf = DialogflowCXConf(
