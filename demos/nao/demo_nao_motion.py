@@ -4,6 +4,8 @@ from sic_framework.core import sic_logging
 
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
+from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoRestRequest
+from sic_framework.devices.common_naoqi.naoqi_leds import NaoLEDRequest
 from sic_framework.devices.nao_stub import NaoStub
 
 # Import message types and requests
@@ -60,7 +62,12 @@ class NaoMotionDemo(SICApplication):
             self.logger.info("Playing Hey gesture animation")
             self.nao.motion.request(NaoqiAnimationRequest("animations/Stand/Gestures/Hey_1"))
             time.sleep(1)
-            
+
+            # Reset the eyes when necessary
+            self.nao.leds.request(NaoLEDRequest("FaceLeds", True))
+            # always end with a rest, whenever you reach the end of your code
+            self.nao.autonomous.request(NaoRestRequest())
+
             self.logger.info("Motion demo completed successfully")
         except Exception as e:
             self.logger.error("Error in motion demo: {}".format(e=e))
