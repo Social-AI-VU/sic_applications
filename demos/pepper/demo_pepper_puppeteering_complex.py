@@ -47,8 +47,8 @@ os.environ['REDIS_PASSWORD'] = 'changemeplease'  # Do NOT actually change it
 os.environ['DB_IP'] = 'localhost'  # Use local Redis server
 
 # Robot IPs
-PUPPET_IP = "10.0.0.184"
-PERFORMER_IP = "10.0.0.152"
+PUPPET_IP = "XXX"
+PERFORMER_IP = "XXX"
 
 # Motion streaming configuration
 ACTIVE_JOINTS = ["Head", "RArm", "LArm"]     # motion chains to stream
@@ -171,8 +171,8 @@ class PepperPuppeteeringDemo(SICApplication):
         puppet_conf = PepperMotionStreamerConf(samples_per_second=self.stream_hz, stiffness=0.0)
         performer_conf = PepperMotionStreamerConf(samples_per_second=self.stream_hz, stiffness=1.0)
 
-        self.puppet = Pepper(self.puppet_ip, pepper_motion_conf=puppet_conf, dev_test=True)
-        self.performer = Pepper(self.performer_ip, pepper_motion_conf=performer_conf, dev_test=True)
+        self.puppet = Pepper(self.puppet_ip, pepper_motion_conf=puppet_conf)
+        self.performer = Pepper(self.performer_ip, pepper_motion_conf=performer_conf)
 
         # Initialize robots
         self._initialise_robots()

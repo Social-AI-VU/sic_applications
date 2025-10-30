@@ -51,8 +51,8 @@ class PepperPuppeteeringDemo(SICApplication):
         super(PepperPuppeteeringDemo, self).__init__()
         
         # Demo-specific configuration
-        self.puppet_ip = "10.0.0.184"
-        self.performer_ip = "10.0.0.152"
+        self.puppet_ip = "XXX"
+        self.performer_ip = "XXX"
         self.active_joints = ["Head", "RArm", "LArm"]
         self.stream_hz = 30
         
@@ -75,7 +75,7 @@ class PepperPuppeteeringDemo(SICApplication):
         
         self.logger.info("Initializing puppet (master) robot...")
         puppet_conf = PepperMotionStreamerConf(samples_per_second=self.stream_hz, stiffness=0.0)
-        self.puppet = Pepper(self.puppet_ip, pepper_motion_conf=puppet_conf, dev_test=True)
+        self.puppet = Pepper(self.puppet_ip, pepper_motion_conf=puppet_conf)
         
         # Disable autonomous behaviour that interferes with manual control
         self.puppet.autonomous.request(NaoSetAutonomousLifeRequest("disabled"))
@@ -96,7 +96,7 @@ class PepperPuppeteeringDemo(SICApplication):
         
         self.logger.info("Initializing performer robot...")
         performer_conf = PepperMotionStreamerConf(samples_per_second=self.stream_hz, stiffness=1.0)
-        self.performer = Pepper(self.performer_ip, pepper_motion_conf=performer_conf, dev_test=True)
+        self.performer = Pepper(self.performer_ip, pepper_motion_conf=performer_conf)
         
         # Disable autonomous behaviour
         self.performer.autonomous.request(NaoSetAutonomousLifeRequest("disabled"))
