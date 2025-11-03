@@ -87,7 +87,7 @@ class NaoDialogflowCXDemo(SICApplication):
         self.logger.info("Initializing NAO robot...")
         
         # Initialize NAO
-        self.nao = Nao(ip=self.nao_ip, dev_test=True)
+        self.nao = Nao(ip=self.nao_ip)
         nao_mic = self.nao.mic
         
         self.logger.info("Initializing Dialogflow CX...")
