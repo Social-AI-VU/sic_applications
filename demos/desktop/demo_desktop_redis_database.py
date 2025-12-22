@@ -1,4 +1,6 @@
 # Import basic preliminaries
+from time import sleep
+
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
@@ -28,28 +30,21 @@ class DatabaseDemo(SICApplication):
         self.database = None
 
         # Configure logging
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        self.set_log_file("C:/Users/mlt222/repositories/sic_v2/sic_applications/logs")
+        # self.set_log_file("")
 
         self.setup()
 
     def setup(self):
         """Initialize and configure redis database."""
-        redisDatabaseConf = RedisDatabaseConf(
+        redis_database_conf = RedisDatabaseConf(
             password="changemeplease",
             version="demo",
             developer_id="0"
         )
-        self.database = RedisDatabase(conf=redisDatabaseConf)
-        self.database.register_callback(callback=self.on_data_received)
-
-    def on_data_received(self, data):
-        if isinstance(data, UsermodelKeyValuesMessage):
-            self.logger.info(f'Data received for {data.user_id}: {data.keyvalues}')
-        else:
-            self.logger.info(f'Database request returned {data}')
+        self.database = RedisDatabase(conf=redis_database_conf)
 
     def run(self):
         """Main demo code."""
@@ -65,8 +60,10 @@ class DatabaseDemo(SICApplication):
                                                             keyvalues=demo_user_model))
 
             self.logger.info('Retrieving user model data from Redis Database')
-            self.database.request(GetUsermodelValuesRequest(user_id=demo_user,
-                                                            keys=['key_2', 'key_3']))
+            response = self.database.request(GetUsermodelValuesRequest(user_id=demo_user,
+                                                                       keys=['key_2', 'key_3']))
+            self.logger.info(f'Retrieving user model data for user {response.user_id} '
+                             f'from Redis Database: {response.keyvalues}')
         except Exception as e:
             self.logger.error("Exception: {}".format(e))
         finally:
