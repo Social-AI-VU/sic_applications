@@ -7,6 +7,9 @@
 *.DS_Store
 *.pt
 
+# Ignore generated folders
+appendonlydir/
+
 # Keep some folders
 !.keepme
 
@@ -32,3 +35,4 @@ conf/.env
 
 # Ignore dialogflow keyfiles
 conf/google/*.json
+
