@@ -9,7 +9,11 @@ from sic_framework.services.database.redis_database import (
     RedisDatabase,
     SetUsermodelValuesRequest,
     GetUsermodelValuesRequest,
-    UsermodelKeyValuesMessage
+    UsermodelKeyValuesMessage,
+    DeleteUsermodelValuesRequest,
+    GetUsermodelRequest,
+    DeleteNamespaceRequest,
+    SICSuccessMessage
 )
 
 
@@ -42,7 +46,7 @@ class DatabaseDemo(SICApplication):
         redis_database_conf = RedisDatabaseConf(
             password="changemeplease",
             version="demo",
-            developer_id="0"
+            developer_id=0
         )
         self.database = RedisDatabase(conf=redis_database_conf)
 
@@ -62,8 +66,22 @@ class DatabaseDemo(SICApplication):
             self.logger.info('Retrieving user model data from Redis Database')
             response = self.database.request(GetUsermodelValuesRequest(user_id=demo_user,
                                                                        keys=['key_2', 'key_3']))
-            self.logger.info(f'Retrieving user model data for user {response.user_id} '
+            self.logger.info(f'Retrieved user model data for user {response.user_id} '
                              f'from Redis Database: {response.keyvalues}')
+
+            self.logger.info(f'Deleting key-value pair from user model')
+            response = self.database.request(DeleteUsermodelValuesRequest(user_id=demo_user,
+                                                                          keys=['key_2']))
+            if isinstance(response, SICSuccessMessage):
+                self.logger.info('Key-value pair was successfully deleted from user model')
+
+            self.logger.info('Retrieve full user model for user')
+            response = self.database.request(GetUsermodelRequest(user_id=demo_user))
+            self.logger.info(f'Full user model for user {response.user_id} '
+                             f'from Redis Database: {response.keyvalues}')
+
+            self.logger.info(f'Clearing full database')
+            self.database.request(DeleteNamespaceRequest())
         except Exception as e:
             self.logger.error("Exception: {}".format(e))
         finally:
