@@ -3,7 +3,7 @@ from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
 # Import the OpenAI GPT service, configuration, and message types
-from sic_framework.services.llm import GPT, GPTConf, GPTRequest, LLMConf, Nebula, LLMRequest
+from sic_framework.services.llm import GPT, GPTConf, GPTRequest, LLMConf, Nebula, LLMRequest, AvailableModelsRequest
 
 # Import libraries necessary for the demo
 from os.path import abspath, join
@@ -67,6 +67,10 @@ class NebulaDemo(SICApplication):
 
     def run(self):
         """Main application loop."""
+        self.logger.info("Retrieving available models")
+        available_models = self.nebula.request(AvailableModelsRequest())
+        self.logger.info(f"Available models: {available_models.models}")
+
         self.logger.info("Starting Nebula conversation")
 
         i = 0
