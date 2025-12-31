@@ -3,17 +3,13 @@ from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
 # Import the OpenAI GPT service, configuration, and message types
-from sic_framework.services.openai_gpt.gpt import (
-    GPT, 
-    GPTConf, 
-    GPTRequest, 
-    GPTResponse
-)
+from sic_framework.services.llm import GPT, GPTConf, GPTRequest
 
 # Import libraries necessary for the demo
 from os.path import abspath, join
 from dotenv import load_dotenv
 from os import environ
+
 
 class GPTDemo(SICApplication):
     """
@@ -87,7 +83,7 @@ class GPTDemo(SICApplication):
                 # You can also override the parameters set in the conf within the request, but it is optional
                 # Here we add an additional system message to the request (system messages compound with the one in the conf)
                 # At the very least, you need to pass in an input, and likely also the context messages.
-                reply = self.gpt.request(GPTRequest(input=user_input, context_messages=self.context, system_message="Reverse the order of everything you say."))
+                reply = self.gpt.request(GPTRequest(prompt=user_input, context_messages=self.context, system_message="Reverse the order of everything you say."))
                 print("Reply: {response}".format(response=reply.response))
                 
                 # Add user input to context messages for the model (this allows for conversations)

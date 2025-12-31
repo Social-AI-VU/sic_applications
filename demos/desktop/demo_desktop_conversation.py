@@ -29,7 +29,7 @@ from sic_framework.services.dialogflow.dialogflow import (
     DialogflowConf,
     GetIntentRequest,
 )
-from sic_framework.services.openai_gpt.gpt import GPT, GPTConf, GPTRequest
+from sic_framework.services.llm import GPT, GPTConf, GPTRequest
 
 # Import libraries necessary for the demo
 from time import sleep
