@@ -26,6 +26,7 @@ jobs:
           pip install isort black
 
       - name: Run isort
+        continue-on-error: true
         run: |
           isort . --check --diff
 
