@@ -1,6 +1,7 @@
+---
 name: python-lint
 
-on:
+"on":
   pull_request:
     branches:
       - main
@@ -26,7 +27,6 @@ jobs:
           pip install isort black
 
       - name: Run isort
-        continue-on-error: true
         run: |
           isort . --check --diff
 
