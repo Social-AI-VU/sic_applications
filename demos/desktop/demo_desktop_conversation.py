@@ -5,25 +5,27 @@ import threading
 from os import environ
 from os.path import abspath, join
 from subprocess import call
+
 # Import libraries necessary for the demo
 from time import sleep
 
 import cv2
 import numpy as np
 from dotenv import load_dotenv
+from sic_framework.core import sic_logging, utils_cv2
 
-from sic_framework.core import sic_logging
-from sic_framework.core import utils_cv2
-from sic_framework.core.message_python2 import AudioRequest
 # Import the message type(s) we're using
 from sic_framework.core.message_python2 import (
+    AudioRequest,
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
 from sic_framework.core.sic_application import SICApplication
+
 # Import configuration(s) for the components
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+
 # Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.dialogflow.dialogflow import (
@@ -31,6 +33,7 @@ from sic_framework.services.dialogflow.dialogflow import (
     DialogflowConf,
     GetIntentRequest,
 )
+
 # Import the service(s) we will be using
 from sic_framework.services.face_detection.face_detection import FaceDetection
 from sic_framework.services.google_tts.google_tts import (
@@ -86,7 +89,7 @@ class ConversationApp(SICApplication):
     def __init__(self, google_keyfile_path, env_path=None, local_tts=False):
         # Call parent constructor (handles singleton initialization)
         super(ConversationApp, self).__init__()
-        
+
         # Demo-specific initialization
         self.google_keyfile_path = google_keyfile_path
         self.env_path = env_path
@@ -106,19 +109,19 @@ class ConversationApp(SICApplication):
         self.session_id = np.random.randint(10000)
         self.local_tts = local_tts
         self.tts = None
-        
+
         # Configure logging
         self.set_log_level(sic_logging.INFO)
 
         # set log file path if needed
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
-        
+
         self.setup()
 
     def setup(self):
         """Initialize and configure Desktop, GPT, and Dialogflow."""
         self.logger.info("Setting up Conversation App...")
-        
+
         # Create camera configuration using fx and fy to resize the image along x- and y-axis, and possibly flip image
         camera_conf = DesktopCameraConf(fx=self.fx, fy=self.fy, flip=self.flip)
 
@@ -130,7 +133,7 @@ class ConversationApp(SICApplication):
         )
 
         # connect to services
-        if not self.local_tts: # If Google TTS is used, initiate it.
+        if not self.local_tts:  # If Google TTS is used, initiate it.
             tts_conf = Text2SpeechConf(
                 keyfile_json=json.load(open(self.google_keyfile_path))
             )
@@ -155,11 +158,13 @@ class ConversationApp(SICApplication):
         dialogflow_conf = DialogflowConf(
             keyfile_json=json.load(open(self.google_keyfile_path)),
             sample_rate_hertz=self.sample_rate_hertz,
-            language=self.language
+            language=self.language,
         )
 
         # initiate Dialogflow object
-        self.dialogflow = Dialogflow(ip="localhost", conf=dialogflow_conf, input_source=self.desktop.mic)
+        self.dialogflow = Dialogflow(
+            ip="localhost", conf=dialogflow_conf, input_source=self.desktop.mic
+        )
 
         # register a callback function to act upon arrival of recognition_result
         self.dialogflow.register_callback(self._on_dialog)
@@ -175,10 +180,10 @@ class ConversationApp(SICApplication):
     def _on_dialog(self, message):
         """
         Callback function for Dialogflow recognition results.
-        
+
         Args:
             message: The Dialogflow recognition result message.
-        
+
         Returns:
             None
         """
@@ -194,7 +199,9 @@ class ConversationApp(SICApplication):
             reply = self.tts.request(
                 GetSpeechRequest(text=text, voice_name="en-US-Standard-C")
             )
-            self.desktop.speakers.request(AudioRequest(reply.waveform, reply.sample_rate))
+            self.desktop.speakers.request(
+                AudioRequest(reply.waveform, reply.sample_rate)
+            )
 
     def _kiosk_run_facedetection(self):
         while True:
@@ -228,13 +235,21 @@ class ConversationApp(SICApplication):
                             self.speak("What kind of pizza would you like?")
                         elif "pizza_type" in reply.intent:
                             pizza_type = ""
-                            if reply.response.query_result.parameters and "pizza_type" in reply.response.query_result.parameters:
-                                pizza_type = reply.response.query_result.parameters["pizza_type"]
-                            self.speak(f'{pizza_type} coming right up')
+                            if (
+                                reply.response.query_result.parameters
+                                and "pizza_type"
+                                in reply.response.query_result.parameters
+                            ):
+                                pizza_type = reply.response.query_result.parameters[
+                                    "pizza_type"
+                                ]
+                            self.speak(f"{pizza_type} coming right up")
                             self.can_listen = False
                         elif "look_for_bathroom" in reply.intent:
                             attempts = 1
-                            self.speak("The bathroom is down that hallway. Second door on your left")
+                            self.speak(
+                                "The bathroom is down that hallway. Second door on your left"
+                            )
                             self.can_listen = False
                     else:
                         self.speak("Sorry, I did not understand")
@@ -257,19 +272,21 @@ class ConversationApp(SICApplication):
     def run_llm_conversation(self):
         """Main application logic."""
         self.logger.info("Starting Chat App")
-        
+
         try:
             self.speak("What is your favorite hobby?")
             reply = self.dialogflow.request(GetIntentRequest(self.session_id))
             if reply.response.query_result.query_text:
-                gpt_response = self.gpt.request(GPTRequest(
-                    f'You are a chat bot. The bot just asked about a hobby of the user make a brief '
-                    f'positive comment about the hobby and ask a '
-                    f'follow up question expanding the conversation.'
-                    f'This was the input by the user: "{reply.response.query_result.query_text}"'
-                ))
+                gpt_response = self.gpt.request(
+                    GPTRequest(
+                        f"You are a chat bot. The bot just asked about a hobby of the user make a brief "
+                        f"positive comment about the hobby and ask a "
+                        f"follow up question expanding the conversation."
+                        f'This was the input by the user: "{reply.response.query_result.query_text}"'
+                    )
+                )
                 self.speak(gpt_response.response)
-            
+
             self.logger.info("Chat completed")
         except Exception as e:
             self.logger.error("Exception: {}".format(e))
@@ -281,8 +298,11 @@ if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
     conversation_app = ConversationApp(
-        google_keyfile_path=abspath(join('..', '..', 'conf', 'google', 'google-key.json')),
-        env_path=abspath(join("..", "..", "conf", ".env")))
+        google_keyfile_path=abspath(
+            join("..", "..", "conf", "google", "google-key.json")
+        ),
+        env_path=abspath(join("..", "..", "conf", ".env")),
+    )
     conversation_app.run_llm_conversation()
     # or
     # conversation_app.run_kiosk_conversation()

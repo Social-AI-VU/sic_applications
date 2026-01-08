@@ -5,11 +5,12 @@ from os import environ
 from os.path import abspath, join
 
 from dotenv import load_dotenv
-
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
+
 # Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
+
 # Import the service(s) we will be using
 from sic_framework.services.openai_whisper_stt.whisper_stt import (
     GetTranscript,
@@ -35,40 +36,40 @@ class WhisperDemo(SICApplication):
     You can generate your personal env api key here: https://platform.openai.com/api-keys
     Put your key in a .env file in the conf/env folder as OPENAI_API_KEY="your key"
     """
-    
+
     def __init__(self, env_path=None):
         # Call parent constructor (handles singleton initialization)
         super(WhisperDemo, self).__init__()
-        
+
         # Demo-specific initialization
         self.desktop = None
         self.whisper = None
         self.env_path = env_path
-        
+
         # Configure logging
         self.set_log_level(sic_logging.INFO)
-        
+
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
-        
+
         self.setup()
-    
+
     def on_transcript(self, message: Transcript):
         """
         Callback function for Whisper transcript results.
-        
+
         Args:
             message: The transcript message containing the recognized text.
-        
+
         Returns:
             None
         """
         print(message.transcript)
-    
+
     def setup(self):
         """Initialize and configure the desktop microphone and Whisper service."""
         self.logger.info("Setting up Whisper speech-to-text...")
-        
+
         self.desktop = Desktop()
 
         # Generate your personal env api key here: https://platform.openai.com/api-keys
@@ -80,23 +81,27 @@ class WhisperDemo(SICApplication):
 
         whisper_conf = WhisperConf(openai_key=environ["OPENAI_API_KEY"])
         self.whisper = SICWhisper(input_source=self.desktop.mic, conf=whisper_conf)
-        
+
         # Alternatively, use local model:
         # self.whisper = SICWhisper(input_source=self.desktop.mic)
-        
+
         time.sleep(1)
-        
+
         self.whisper.register_callback(self.on_transcript)
-    
+
     def run(self):
         """Main application loop."""
         self.logger.info("Starting Whisper Demo")
-        
+
         try:
             while not self.shutdown_event.is_set():
                 self.logger.info("Talk now!")
-                transcript = self.whisper.request(GetTranscript(timeout=10, phrase_time_limit=30))
-                self.logger.info("transcript: {transcript}".format(transcript=transcript.transcript))
+                transcript = self.whisper.request(
+                    GetTranscript(timeout=10, phrase_time_limit=30)
+                )
+                self.logger.info(
+                    "transcript: {transcript}".format(transcript=transcript.transcript)
+                )
         except Exception as e:
             self.logger.error("Exception: {}".format(e))
         finally:

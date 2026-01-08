@@ -1,14 +1,20 @@
 # Import basic preliminaries
 from os import environ
+
 # Import libraries necessary for the demo
 from os.path import abspath, join
 
 from dotenv import load_dotenv
-
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
+
 # Import the OpenAI GPT service, configuration, and message types
-from sic_framework.services.llm import LLMConf, Nebula, LLMRequest, AvailableModelsRequest
+from sic_framework.services.llm import (
+    AvailableModelsRequest,
+    LLMConf,
+    LLMRequest,
+    Nebula,
+)
 
 
 class NebulaDemo(SICApplication):
@@ -60,7 +66,7 @@ class NebulaDemo(SICApplication):
             system_message="You are a rhyming poet. Answer every question with a rhyme.",
             model="FAST.gemma3:12b",
             max_tokens=100,
-            return_usage_data=True
+            return_usage_data=True,
         )
 
         self.nebula = Nebula(conf=conf)
@@ -85,8 +91,13 @@ class NebulaDemo(SICApplication):
                 # You can also override the parameters set in the conf within the request, but it is optional
                 # Here we add an additional system message to the request (system messages compound with the one in the conf)
                 # At the very least, you need to pass in an input, and likely also the context messages.
-                reply = self.nebula.request(LLMRequest(prompt=user_input, context_messages=self.context,
-                                                       system_message="Reverse the order of everything you say."))
+                reply = self.nebula.request(
+                    LLMRequest(
+                        prompt=user_input,
+                        context_messages=self.context,
+                        system_message="Reverse the order of everything you say.",
+                    )
+                )
                 print("Reply: {response}".format(response=reply.response))
                 print("Usage data: {}".format(reply.usage_data))
 
