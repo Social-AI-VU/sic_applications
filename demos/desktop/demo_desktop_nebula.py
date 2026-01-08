@@ -1,14 +1,14 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
-# Import the OpenAI GPT service, configuration, and message types
-from sic_framework.services.llm import GPT, GPTConf, GPTRequest, LLMConf, Nebula, LLMRequest, AvailableModelsRequest
-
+from os import environ
 # Import libraries necessary for the demo
 from os.path import abspath, join
+
 from dotenv import load_dotenv
-from os import environ
+
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
+# Import the OpenAI GPT service, configuration, and message types
+from sic_framework.services.llm import LLMConf, Nebula, LLMRequest, AvailableModelsRequest
 
 
 class NebulaDemo(SICApplication):

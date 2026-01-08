@@ -21,8 +21,8 @@ How it works:
 
 import os
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from sic_framework.core import utils
 
+from sic_framework.core import utils
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Configuration

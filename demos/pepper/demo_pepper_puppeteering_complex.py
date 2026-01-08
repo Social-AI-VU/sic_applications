@@ -1,31 +1,20 @@
 # External imports
-from operator import truediv
 import os
 import threading
 import time
 from collections import defaultdict
 
+from sic_framework.core import sic_logging
 # Import basic preliminaries
 from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
 # Import the device(s) we will be using
 from sic_framework.devices import Pepper
-from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
-from sic_framework.devices.common_naoqi.naoqi_leds import NaoFadeRGBRequest
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoSetAutonomousLifeRequest,
     NaoWakeUpRequest,
     NaoRestRequest,
 )
-from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
-from sic_framework.devices.common_pepper.pepper_motion_streamer import (
-    PepperMotionStreamerConf,
-    StartStreaming,
-    StopStreaming,
-    SetLockedJointsRequest,
-    GetLockedJointsRequest,
-)
+from sic_framework.devices.common_naoqi.naoqi_leds import NaoFadeRGBRequest
 from sic_framework.devices.common_naoqi.naoqi_motion import (
     NaoqiMoveTowardRequest,
     NaoqiGetAnglesRequest,
@@ -36,7 +25,14 @@ from sic_framework.devices.common_naoqi.naoqi_motion import (
     NaoqiCollisionProtectionRequest,
     NaoqiMoveArmsEnabledRequest,
 )
-
+from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
+from sic_framework.devices.common_pepper.pepper_motion_streamer import (
+    PepperMotionStreamerConf,
+    StartStreaming,
+    StopStreaming,
+    SetLockedJointsRequest,
+)
 
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # Configuration

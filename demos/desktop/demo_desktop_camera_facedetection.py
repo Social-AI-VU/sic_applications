@@ -1,29 +1,24 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-from sic_framework.core import utils
-from sic_framework.core import utils_cv2
-
-# Import the device(s) we will be using
-from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
-from sic_framework.services.face_detection.face_detection import FaceDetection
-
-# Import the configuration(s) for the components
-from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-
-# Import the message type(s) we're using
-from sic_framework.core.message_python2 import (
-    BoundingBoxesMessage,
-    CompressedImageMessage,
-)
-
 # Queue for storing images and detection results
 import queue
 
 # Computer vision library for displaying images
 import cv2
+
+from sic_framework.core import sic_logging
+from sic_framework.core import utils_cv2
+# Import the message type(s) we're using
+from sic_framework.core.message_python2 import (
+    BoundingBoxesMessage,
+    CompressedImageMessage,
+)
+from sic_framework.core.sic_application import SICApplication
+# Import the configuration(s) for the components
+from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
+# Import the device(s) we will be using
+from sic_framework.devices.desktop import Desktop
+# Import the service(s) we will be using
+from sic_framework.services.face_detection.face_detection import FaceDetection
 
 
 class FaceDetectionDemo(SICApplication):

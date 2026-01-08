@@ -1,18 +1,16 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+import time
 
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # import the device(s) we will be using
 from sic_framework.devices import Pepper
-
 # import the message types we will be using
 from sic_framework.devices.common_pepper.pepper_tablet import (
     UrlMessage,
     WifiConnectRequest,
     ClearDisplayMessage,
 )
-
-import time
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Configuration

@@ -1,10 +1,15 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import time
+from os import environ
+from os.path import abspath, join
 
+from dotenv import load_dotenv
+
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
-
 # Import the service(s) we will be using
 from sic_framework.services.openai_whisper_stt.whisper_stt import (
     GetTranscript,
@@ -12,12 +17,6 @@ from sic_framework.services.openai_whisper_stt.whisper_stt import (
     Transcript,
     WhisperConf,
 )
-
-# Import libraries necessary for the demo
-import time
-from os import environ
-from os.path import abspath, join
-from dotenv import load_dotenv
 
 
 class WhisperDemo(SICApplication):

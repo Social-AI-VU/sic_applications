@@ -1,16 +1,15 @@
 # Import basic preliminaries
+import argparse
+
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
-
 # Import the device(s) we will be using
 from sic_framework.devices import Pepper
-
 # Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoSetAutonomousLifeRequest,
 )
 
-import argparse
 
 class PepperAutonomousLifeDemo(SICApplication):
     """

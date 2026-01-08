@@ -1,10 +1,10 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
+# Import libraries necessary for the demo
+import csv
+import time
+
 from sic_framework.core import sic_logging
-
-# Import the device(s) we will be using
-from sic_framework.devices.franka import Franka
-
+from sic_framework.core.sic_application import SICApplication
 # Import message types and requests
 from sic_framework.devices.common_franka.franka_motion_recorder import (
     GoHomeRequest,
@@ -15,10 +15,8 @@ from sic_framework.devices.common_franka.franka_motion_recorder import (
     StopRecordingRequest,
     StopTeachingRequest,
 )
-
-# Import libraries necessary for the demo
-import csv
-import time
+# Import the device(s) we will be using
+from sic_framework.devices.franka import Franka
 
 
 class FrankaMotionRecorderDemo(SICApplication):

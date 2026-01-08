@@ -1,18 +1,16 @@
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
-
-from sic_framework.devices.desktop import Desktop
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
-
+from sic_framework.devices.desktop import Desktop
 from sic_framework.services.streaming_sortformer import (
     STMSortformer,
     STMSortformerConf,
     GetDiarizationRequest,
-    DiarizationResult,
     STMSortformerUtils,
 )
 
-class STMSortformerDemo(SICApplication):   
+
+class STMSortformerDemo(SICApplication):
     def __init__(self):
         super(STMSortformerDemo, self).__init__()
         

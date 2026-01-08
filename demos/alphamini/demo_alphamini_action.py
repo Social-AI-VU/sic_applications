@@ -1,10 +1,8 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
-
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices.alphamini import Alphamini
-
 # Import message types and requests
 from sic_framework.devices.common_mini.mini_animation import MiniActionRequest
 

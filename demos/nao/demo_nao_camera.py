@@ -1,18 +1,16 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
-# Import the device(s) we will be using
-from sic_framework.devices import Nao
-from sic_framework.devices.nao_stub import NaoStub
-
-# Import configuration and message types
-from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiCameraConf
-from sic_framework.core.message_python2 import CompressedImageMessage
-
 # Import libraries necessary for the demo
 import queue
+
 import cv2
+
+from sic_framework.core import sic_logging
+from sic_framework.core.message_python2 import CompressedImageMessage
+from sic_framework.core.sic_application import SICApplication
+# Import the device(s) we will be using
+from sic_framework.devices import Nao
+# Import configuration and message types
+from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiCameraConf
 
 
 class NaoCameraDemo(SICApplication):

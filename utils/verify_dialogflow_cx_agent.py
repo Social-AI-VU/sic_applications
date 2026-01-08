@@ -4,8 +4,10 @@ Helper script to verify Dialogflow CX agent configuration and find the correct a
 
 import json
 from os.path import abspath, join
+
 from google.cloud import dialogflowcx_v3
 from google.oauth2.service_account import Credentials
+
 
 def list_agents():
     """List all Dialogflow CX agents in the project to find the correct agent ID."""

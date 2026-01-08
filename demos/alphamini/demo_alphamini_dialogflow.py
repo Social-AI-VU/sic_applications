@@ -1,10 +1,17 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import json
+from os.path import abspath, join
 
+import numpy as np
+
+from sic_framework.core import sic_logging
+from sic_framework.core.message_python2 import AudioRequest
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices.alphamini import Alphamini
-
+# Import configuration and message types
+from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
 # Import the service(s) we will be using
 from sic_framework.services.dialogflow.dialogflow import (
     Dialogflow,
@@ -16,15 +23,6 @@ from sic_framework.services.google_tts.google_tts import (
     Text2Speech,
     Text2SpeechConf,
 )
-
-# Import configuration and message types
-from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
-from sic_framework.core.message_python2 import AudioRequest
-
-# Import libraries necessary for the demo
-import json
-from os.path import abspath, join
-import numpy as np
 
 
 class AlphaminiDialogflowDemo(SICApplication):

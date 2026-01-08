@@ -1,20 +1,17 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+from time import sleep
 
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
-from sic_framework.devices.nao_stub import NaoStub
-
 # Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoWakeUpRequest, NaoRestRequest
 from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiAnimationRequest
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import (
     NaoqiTextToSpeechRequest,
 )
-
-# Import libraries necessary for the demo
-from time import sleep
 
 
 class NaoTalkDemo(SICApplication):

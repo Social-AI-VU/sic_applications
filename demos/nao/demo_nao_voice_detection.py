@@ -1,19 +1,17 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import time
 
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
-
 # Import the service(s) we will be using
 from sic_framework.services.voice_detection.voice_detection import (
     VoiceDetection,
     VoiceDetectionConf,
     VoiceDetectionMessage
 )
-
-# Import libraries necessary for the demo
-import time
 
 
 class NaoVoiceDetectionDemo(SICApplication):

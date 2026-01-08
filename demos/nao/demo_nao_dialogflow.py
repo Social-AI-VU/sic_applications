@@ -1,25 +1,21 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import json
+from os.path import abspath, join
 
+import numpy as np
+
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
-from sic_framework.devices.nao_stub import NaoStub
 from sic_framework.devices.nao import NaoqiTextToSpeechRequest
-
 # Import the service(s) we will be using
 from sic_framework.services.dialogflow.dialogflow import (
     Dialogflow,
     DialogflowConf,
     GetIntentRequest,
-    QueryResult,
-    RecognitionResult,
 )
-
-# Import libraries necessary for the demo
-import json
-from os.path import abspath, join
-import numpy as np
 
 
 class NaoDialogflowDemo(SICApplication):

@@ -1,10 +1,10 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import time
 
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
-
 # Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.common_naoqi.naoqi_tracker import (
@@ -12,9 +12,6 @@ from sic_framework.devices.common_naoqi.naoqi_tracker import (
     StartTrackRequest,
     StopAllTrackRequest,
 )
-
-# Import libraries necessary for the demo
-import time
 
 
 class NaoTrackerDemo(SICApplication):

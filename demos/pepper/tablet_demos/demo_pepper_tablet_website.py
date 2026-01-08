@@ -1,13 +1,10 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
-
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Pepper
-
 # Import message types
 from sic_framework.devices.common_pepper.pepper_tablet import UrlMessage
-
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Configuration

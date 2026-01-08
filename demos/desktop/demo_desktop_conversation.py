@@ -1,22 +1,36 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
+import json
+import queue
+import threading
+from os import environ
+from os.path import abspath, join
+from subprocess import call
+# Import libraries necessary for the demo
+from time import sleep
+
+import cv2
+import numpy as np
+from dotenv import load_dotenv
+
 from sic_framework.core import sic_logging
 from sic_framework.core import utils_cv2
-
-# Import the device(s) we will be using
-from sic_framework.devices.desktop import Desktop
-
-# Import configuration(s) for the components
-from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-
+from sic_framework.core.message_python2 import AudioRequest
 # Import the message type(s) we're using
 from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
-from sic_framework.core.message_python2 import AudioRequest
-
+from sic_framework.core.sic_application import SICApplication
+# Import configuration(s) for the components
+from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
+from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+# Import the device(s) we will be using
+from sic_framework.devices.desktop import Desktop
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+)
 # Import the service(s) we will be using
 from sic_framework.services.face_detection.face_detection import FaceDetection
 from sic_framework.services.google_tts.google_tts import (
@@ -24,24 +38,7 @@ from sic_framework.services.google_tts.google_tts import (
     Text2Speech,
     Text2SpeechConf,
 )
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-)
 from sic_framework.services.llm import GPT, GPTConf, GPTRequest
-
-# Import libraries necessary for the demo
-from time import sleep
-import json
-from os import environ
-import queue
-import threading
-from os.path import abspath, join
-from subprocess import call
-from dotenv import load_dotenv
-import cv2
-import numpy as np
 
 
 class ConversationApp(SICApplication):

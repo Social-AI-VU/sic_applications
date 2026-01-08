@@ -1,21 +1,18 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
-# Import the device we will be using
-from sic_framework.devices.desktop import Desktop
-
-# Import the configuration for the component
-from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-
-# Import the message type we're using
-from sic_framework.core.message_python2 import CompressedImageMessage
-
 # Queue for storing images
 import queue
 
 # Computer vision library for displaying images
 import cv2
+
+from sic_framework.core import sic_logging
+# Import the message type we're using
+from sic_framework.core.message_python2 import CompressedImageMessage
+from sic_framework.core.sic_application import SICApplication
+# Import the configuration for the component
+from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
+# Import the device we will be using
+from sic_framework.devices.desktop import Desktop
 
 
 class CameraDemo(SICApplication):

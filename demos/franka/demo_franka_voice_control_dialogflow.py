@@ -1,29 +1,26 @@
 # Import basic preliminaries
+# Import libraries necessary for the demo
+import json
+from os.path import abspath, join
+
+import numpy as np
+
 from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
-# Import the device(s) we will be using
-from sic_framework.devices.franka import Franka
-from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
-)
-
 # Import message types and requests
 from sic_framework.devices.common_franka.franka_motion_recorder import (
     GoHomeRequest,
     PandaJointsRecording,
     PlayRecordingRequest,
 )
-
-# Import libraries necessary for the demo
-import json
-from os.path import abspath, join
-import numpy as np
+from sic_framework.devices.desktop import Desktop
+# Import the device(s) we will be using
+from sic_framework.devices.franka import Franka
+# Import the service(s) we will be using
+from sic_framework.services.dialogflow.dialogflow import (
+    Dialogflow,
+    DialogflowConf,
+    GetIntentRequest,
+)
 
 
 class FrankaVoiceControlDemo(SICApplication):

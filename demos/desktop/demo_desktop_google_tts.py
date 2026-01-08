@@ -1,26 +1,22 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
+# Import libraries necessary for the demo
+import json
+from os.path import abspath, join
+
 from sic_framework.core import sic_logging
-
-# Import the device(s) we will be using
-from sic_framework.devices.desktop import Desktop
-
+# Import the message type(s) we're using
+from sic_framework.core.message_python2 import AudioRequest
+from sic_framework.core.sic_application import SICApplication
 # Import configuration(s) for the components
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-
+# Import the device(s) we will be using
+from sic_framework.devices.desktop import Desktop
 # Import the service(s) we will be using
 from sic_framework.services.google_tts.google_tts import (
     GetSpeechRequest,
     Text2Speech,
     Text2SpeechConf,
 )
-
-# Import the message type(s) we're using
-from sic_framework.core.message_python2 import AudioRequest
-
-# Import libraries necessary for the demo
-import json
-from os.path import abspath, join
 
 
 class GoogleTTSDemo(SICApplication):

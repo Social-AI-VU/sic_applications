@@ -1,13 +1,11 @@
 # External imports
 import json
 
+from sic_framework.core import sic_logging
 # Import basic preliminaries
 from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
 # Import the device(s) we will be using
 from sic_framework.devices import Pepper
-
 # Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoWakeUpRequest,

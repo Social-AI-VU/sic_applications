@@ -1,24 +1,20 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
+# Import libraries necessary for the demo
+import numpy as np
+from scipy.spatial.transform import Rotation
+
 from sic_framework.core import sic_logging
-
-# Import the device(s) we will be using
-from sic_framework.devices.franka import Franka
-from sic_framework.devices.desktop import Desktop
-
+from sic_framework.core.sic_application import SICApplication
 # Import message types and requests
 from sic_framework.devices.common_franka.franka_motion import (
-    FrankaMotion,
     FrankaPose,
     FrankaPoseRequest,
     FrankaGripperGraspRequest,
     FrankaGripperMoveRequest
 )
-from sic_framework.devices.common_desktop.desktop_spacemouse import SpaceMouseStates
-
-# Import libraries necessary for the demo
-import numpy as np
-from scipy.spatial.transform import Rotation
+from sic_framework.devices.desktop import Desktop
+# Import the device(s) we will be using
+from sic_framework.devices.franka import Franka
 
 
 class MouseStateHandler:

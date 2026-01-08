@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
-
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Pepper
-
-# Import message types and requests
-from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoSetAutonomousLifeRequest,
     NaoWakeUpRequest,
     NaoRestRequest,
 )
+from sic_framework.devices.common_naoqi.naoqi_motion import (
+    NaoqiSmartStiffnessRequest,
+    NaoqiBreathingRequest,
+)
+# Import message types and requests
+from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import NaoqiTextToSpeechRequest
 from sic_framework.devices.common_pepper.pepper_motion_streamer import (
     PepperMotionStreamerConf,
     StartStreaming,
     StopStreaming,
-)
-from sic_framework.devices.common_naoqi.naoqi_motion import (
-    NaoqiSmartStiffnessRequest,
-    NaoqiBreathingRequest,
 )
 
 

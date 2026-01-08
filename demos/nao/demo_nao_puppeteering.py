@@ -1,28 +1,26 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import time
 
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
-
+from sic_framework.devices.common_naoqi.nao_motion_streamer import (
+    NaoMotionStreamerConf,
+    StartStreaming,
+    StopStreaming,
+)
 # Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoBackgroundMovingRequest,
     NaoBasicAwarenessRequest,
     NaoRestRequest,
 )
-from sic_framework.devices.common_naoqi.nao_motion_streamer import (
-    NaoMotionStreamerConf,
-    StartStreaming,
-    StopStreaming,
-)
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import (
     NaoqiTextToSpeechRequest,
 )
-
-# Import libraries necessary for the demo
-import time
 
 
 class NaoPupeteeringDemo(SICApplication):

@@ -1,16 +1,15 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
-
-# Import the device(s) we will be using
-from sic_framework.devices import Nao
-
-# Import message types
-from sic_framework.core.message_python2 import AudioRequest
-
 # Import libraries necessary for the demo
 import wave
+
 import numpy as np
+
+from sic_framework.core import sic_logging
+# Import message types
+from sic_framework.core.message_python2 import AudioRequest
+from sic_framework.core.sic_application import SICApplication
+# Import the device(s) we will be using
+from sic_framework.devices import Nao
 
 
 class NaoSpeakersDemo(SICApplication):

@@ -1,11 +1,12 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.core import sic_logging
+# Import libraries necessary for the demo
+import time
 
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoRestRequest, NaoWakeUpRequest
-
 # Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_motion_recorder import (
     NaoqiMotionRecorderConf,
@@ -15,9 +16,6 @@ from sic_framework.devices.common_naoqi.naoqi_motion_recorder import (
     StopRecording,
 )
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
-
-# Import libraries necessary for the demo
-import time
 
 
 class NaoMotionRecorderDemo(SICApplication):
