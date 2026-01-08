@@ -13,7 +13,7 @@ from os import environ
 
 class NebulaDemo(SICApplication):
     """
-    Demo which shows how to use the OpenAI GPT model to get responses to user input.
+    Demo which shows how to use the Nebula LLM service to get responses to user input.
 
     A secret API key is required to run it.
 
