@@ -21,8 +21,8 @@ How it works:
 
 import os
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from sic_framework.core import utils
 
+from sic_framework.core import utils
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -36,68 +36,72 @@ VIDEO_FILE = "demo_video.mp4"
 # ─────────────────────────────────────────────────────────────────────────────
 class VideoHTTPRequestHandler(SimpleHTTPRequestHandler):
     """HTTP handler that supports range requests for video streaming."""
-    
+
     def log_error(self, format, *args):
         """Suppress BrokenPipeError and favicon errors."""
         if "Broken pipe" in str(args) or "favicon.ico" in str(args):
             pass
         else:
             super().log_error(format, *args)
-    
+
     def send_head(self):
         """Override to add proper range request support for video streaming."""
         # Handle root path - serve index.html
-        if self.path == '/':
-            self.path = '/index.html'
-        
+        if self.path == "/":
+            self.path = "/index.html"
+
         path = self.translate_path(self.path)
-        
+
         # Check if file exists
         try:
-            f = open(path, 'rb')
+            f = open(path, "rb")
         except OSError:
             self.send_error(404, "File not found")
             return None
-        
+
         try:
             fs = os.fstat(f.fileno())
             file_len = fs.st_size
-            
+
             # Check if client requested a range
-            range_header = self.headers.get('Range')
-            
+            range_header = self.headers.get("Range")
+
             if range_header:
                 # Parse range header (e.g., "bytes=0-1023")
                 try:
-                    ranges = range_header.strip().lower().replace('bytes=', '').split('-')
+                    ranges = (
+                        range_header.strip().lower().replace("bytes=", "").split("-")
+                    )
                     start = int(ranges[0]) if ranges[0] else 0
                     end = int(ranges[1]) if ranges[1] else file_len - 1
-                    
+
                     # Validate range
                     if start >= file_len:
                         self.send_error(416, "Requested Range Not Satisfiable")
                         f.close()
                         return None
-                    
+
                     end = min(end, file_len - 1)
                     content_length = end - start + 1
-                    
+
                     # Send 206 Partial Content response
                     self.send_response(206)
                     self.send_header("Content-Type", self.guess_type(path))
-                    self.send_header("Content-Range", "bytes {}-{}/{}".format(start, end, file_len))
+                    self.send_header(
+                        "Content-Range", "bytes {}-{}/{}".format(start, end, file_len)
+                    )
                     self.send_header("Content-Length", str(content_length))
                     self.send_header("Accept-Ranges", "bytes")
                     self.send_header("Cache-Control", "no-cache")
                     self.end_headers()
-                    
+
                     # Seek to start position
                     f.seek(start)
                     return f
-                    
+
                 except (ValueError, IndexError):
                     pass
-            
+
             # No range request - send full file
             self.send_response(200)
             self.send_header("Content-Type", self.guess_type(path))
@@ -106,21 +110,21 @@ class VideoHTTPRequestHandler(SimpleHTTPRequestHandler):
             self.send_header("Cache-Control", "no-cache")
             self.end_headers()
             return f
-            
+
         except Exception as e:
             f.close()
             self.send_error(500, "Internal Server Error: {}".format(str(e)))
             return None
-    
+
     def copyfile(self, source, outputfile):
         """Copy file data, handling partial content properly."""
         try:
-            range_header = self.headers.get('Range')
+            range_header = self.headers.get("Range")
             if range_header:
-                ranges = range_header.strip().lower().replace('bytes=', '').split('-')
+                ranges = range_header.strip().lower().replace("bytes=", "").split("-")
                 start = int(ranges[0]) if ranges[0] else 0
                 end = int(ranges[1]) if ranges[1] else None
-                
+
                 if end:
                     length = end - start + 1
                     chunk_size = 64 * 1024
@@ -139,7 +143,7 @@ class VideoHTTPRequestHandler(SimpleHTTPRequestHandler):
             pass
         except Exception:
             pass
-    
+
     def do_GET(self):
         """Handle GET requests with proper error handling."""
         try:
@@ -193,8 +197,10 @@ def create_video_html(video_filename):
         Your browser does not support the video tag.
     </video>
 </body>
-</html>""".format(video_filename, video_filename)
-    
+</html>""".format(
+        video_filename, video_filename
+    )
+
     return html_content
 
 
@@ -206,24 +212,24 @@ def main():
     # Get the directory where this script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
-    
+
     # Check if video file exists
     if not os.path.exists(VIDEO_FILE):
         print("ERROR: Video file '{}' not found!".format(VIDEO_FILE))
         print("Please ensure the video file is in the same directory as this script.")
         return
-    
+
     # Get video file size
     file_size_mb = os.path.getsize(VIDEO_FILE) / (1024 * 1024)
-    
+
     # Create index.html with video player
     html_content = create_video_html(VIDEO_FILE)
-    with open('index.html', 'w') as f:
+    with open("index.html", "w") as f:
         f.write(html_content)
-    
+
     # Get local IP address using SIC framework utils
     local_ip = utils.get_ip_adress()
-    
+
     print("=" * 70)
     print("Simple Video Web Server")
     print("=" * 70)
@@ -231,10 +237,10 @@ def main():
     print("Video size: {:.2f} MB".format(file_size_mb))
     print("")
     print("Starting HTTP server on port {}...".format(HTTP_PORT))
-    
+
     # Create and start the HTTP server
     server = HTTPServer(("", HTTP_PORT), VideoHTTPRequestHandler)
-    
+
     print("")
     print("=" * 70)
     print("Server is running!")
@@ -252,7 +258,7 @@ def main():
     print("")
     print("Press Ctrl+C to stop the server")
     print("=" * 70)
-    
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:

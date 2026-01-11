@@ -1,18 +1,18 @@
 # Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
+import time
+
 from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 
 # import the device(s) we will be using
 from sic_framework.devices import Pepper
 
 # import the message types we will be using
 from sic_framework.devices.common_pepper.pepper_tablet import (
+    ClearDisplayMessage,
     UrlMessage,
     WifiConnectRequest,
-    ClearDisplayMessage,
 )
-
-import time
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -29,6 +29,7 @@ WEBSITE_URL = "http://google.com"
 # Display timing
 DISPLAY_DURATION_URL = 8.0
 
+
 class PepperTabletCapabilityDemo(SICApplication):
     """
     Demonstrates tablet messaging capabilities on Pepper.
@@ -36,15 +37,14 @@ class PepperTabletCapabilityDemo(SICApplication):
 
     def __init__(self):
         super(PepperTabletCapabilityDemo, self).__init__()
-       
+
         self.set_log_level(sic_logging.DEBUG)
 
         self.Pepper = None
-        
+
         # Optional: set log file path if needed
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/pepper/tablet_demos/logs")
         self.setup()
-
 
     def setup(self):
         """
@@ -55,7 +55,7 @@ class PepperTabletCapabilityDemo(SICApplication):
         self.pepper = Pepper(ip=ROBOT_IP)
         self.logger.info("Connected successfully!")
         self.logger.info("Setting up Pepper tablet capability demo.")
-        
+
         # Connect Pepper's tablet to Wi-Fi (optional)
         if WIFI_SSID:
             self.logger.info(
@@ -65,7 +65,7 @@ class PepperTabletCapabilityDemo(SICApplication):
                 WifiConnectRequest(
                     network_name=WIFI_SSID,
                     network_password=WIFI_PASSWORD,
-                    network_type=WIFI_SECURITY
+                    network_type=WIFI_SECURITY,
                 )
             )
             if not response:

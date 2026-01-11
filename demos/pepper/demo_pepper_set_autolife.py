@@ -1,4 +1,6 @@
 # Import basic preliminaries
+import argparse
+
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 
@@ -10,7 +12,6 @@ from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoSetAutonomousLifeRequest,
 )
 
-import argparse
 
 class PepperAutonomousLifeDemo(SICApplication):
     """
@@ -46,7 +47,9 @@ class PepperAutonomousLifeDemo(SICApplication):
             )
             self.logger.info("Autonomous Life set to %s successfully.", self.life_mode)
         except Exception as exc:
-            self.logger.error("Failed to set Autonomous Life to %s: %s", self.life_mode, exc)
+            self.logger.error(
+                "Failed to set Autonomous Life to %s: %s", self.life_mode, exc
+            )
             raise
         finally:
             self.shutdown()
@@ -60,12 +63,20 @@ class PepperAutonomousLifeDemo(SICApplication):
         except Exception as exc:
             self.logger.warning("Failed to stop Pepper cleanly: %s", exc)
 
+
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Pepper Autonomous Life Demo")
     parser.add_argument("--robot-ip", type=str, required=True, help="Pepper IP address")
-    parser.add_argument("--life-mode", type=str, default="disabled", choices=["solitary", "interactive", "safeguard", "disabled"], help="Mode to run the demo")
+    parser.add_argument(
+        "--life-mode",
+        type=str,
+        default="disabled",
+        choices=["solitary", "interactive", "safeguard", "disabled"],
+        help="Mode to run the demo",
+    )
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     args = parse_args()

@@ -1,7 +1,7 @@
 import pyaudio
 
 
-class AvailableAudio():
+class AvailableAudio:
 
     def __init__(self):
         self.p = pyaudio.PyAudio()
@@ -16,7 +16,7 @@ class AvailableAudio():
         for i in range(self.p.get_device_count()):
             try:
                 dev = self.p.get_device_info_by_index(i)
-                if dev.get('maxInputChannels') > 0:
+                if dev.get("maxInputChannels") > 0:
                     print(f"Input Device id {i} - {dev.get('name')}")
             except Exception:
                 continue  # Skip problematic devices
@@ -26,7 +26,7 @@ class AvailableAudio():
         for i in range(self.p.get_device_count()):
             try:
                 dev = self.p.get_device_info_by_index(i)
-                if dev.get('maxOutputChannels') > 0:
+                if dev.get("maxOutputChannels") > 0:
                     print(f"Output Device id {i} - {dev.get('name')}")
             except Exception:
                 continue  # Skip problematic devices
@@ -35,6 +35,6 @@ class AvailableAudio():
         self.p.terminate()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     available_audio = AvailableAudio()
     available_audio.list_available_audio_device()

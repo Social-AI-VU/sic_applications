@@ -1,20 +1,20 @@
 # Import the original component + SICComponentManager + SICConnector
-from sic_framework.services.face_detection.face_detection import FaceDetectionComponent
+import cv2
+import numpy as np
+from numpy import array
 from sic_framework.core.component_manager_python2 import SICComponentManager
 from sic_framework.core.connector import SICConnector
+
 # Import the modules necessary for custom functionality
-from sic_framework.core.message_python2 import (
-    BoundingBox,
-    BoundingBoxesMessage,
-)
-from numpy import array
-import numpy as np
-import cv2
+from sic_framework.core.message_python2 import BoundingBox, BoundingBoxesMessage
+from sic_framework.services.face_detection.face_detection import FaceDetectionComponent
+
 
 class CustomFaceDetectionComponent(FaceDetectionComponent):
     """
     Custom FaceDetectionComponent. Makes 'scaleFactor' and 'minNeighbors' instance variables
     """
+
     def __init__(self, *args, **kwargs):
         super(CustomFaceDetectionComponent, self).__init__(*args, **kwargs)
         self.scaleFactor = 1.2
@@ -30,7 +30,7 @@ class CustomFaceDetectionComponent(FaceDetectionComponent):
         faces = self.faceCascade.detectMultiScale(
             gray,
             scaleFactor=self.scaleFactor,  # Example of different scale factor
-            minNeighbors=self.minNeighbors,    # Example of different minNeighbors
+            minNeighbors=self.minNeighbors,  # Example of different minNeighbors
             minSize=(int(self.params.minW), int(self.params.minH)),
         )
 
@@ -38,13 +38,16 @@ class CustomFaceDetectionComponent(FaceDetectionComponent):
 
         return BoundingBoxesMessage(faces)
 
+
 class CustomFaceDetection(SICConnector):
     # every component needs a connector
     component_class = CustomFaceDetectionComponent
 
+
 def main():
     # Register the custom component in the component manager
     SICComponentManager([CustomFaceDetectionComponent])
+
 
 if __name__ == "__main__":
     main()
