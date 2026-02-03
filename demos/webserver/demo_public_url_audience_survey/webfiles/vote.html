@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audience Survey (Vote)</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #0f172a;
+      }
+      .card {
+        max-width: 720px;
+        margin: 0 auto;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(2, 8, 23, 0.06);
+      }
+      h1 { margin: 0 0 6px; font-size: 20px; }
+      .muted { color: #475569; font-size: 14px; }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #475569;
+        margin: 10px 0 14px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+      }
+      .dot.ok {
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      button {
+        appearance: none;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 14px 12px;
+        background: #ffffff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 700;
+        transition: transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        text-align: left;
+      }
+      button:hover { border-color: #94a3b8; box-shadow: 0 10px 20px rgba(2, 8, 23, 0.08); }
+      button:active { transform: translateY(1px); }
+      button:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+      .thanks {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        color: #0f172a;
+        font-size: 14px;
+        display: none;
+      }
+      .closed {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #fff7ed;
+        color: #7c2d12;
+        font-size: 14px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Vote</h1>
+      <div class="muted" id="question">Loading…</div>
+      <div class="status">
+        <span id="dot" class="dot"></span>
+        <span id="connText">Connecting…</span>
+        <span>•</span>
+        <span id="timeLeft">—</span>
+      </div>
+
+      <div class="grid" id="buttons"></div>
+
+      <div class="thanks" id="thanks">Thanks! Your vote was sent.</div>
+      <div class="closed" id="closed">Voting is closed.</div>
+    </div>
+
+    <script>
+      const dot = document.getElementById("dot");
+      const connText = document.getElementById("connText");
+      const question = document.getElementById("question");
+      const timeLeft = document.getElementById("timeLeft");
+      const buttons = document.getElementById("buttons");
+      const thanks = document.getElementById("thanks");
+      const closed = document.getElementById("closed");
+
+      let votingOpen = false;
+      let hasVoted = false;
+
+      function setConnected(isConnected) {
+        dot.classList.toggle("ok", isConnected);
+        connText.textContent = isConnected ? "Connected" : "Disconnected";
+      }
+
+      function fmtTime(seconds) {
+        if (seconds == null) return "—";
+        const s = Math.max(0, seconds|0);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return votingOpen ? (m > 0 ? `${m}:${String(r).padStart(2, "0")}` : `${r}s`) : "Closed";
+      }
+
+      function setButtonsEnabled(enabled) {
+        Array.from(buttons.querySelectorAll("button")).forEach((b) => b.disabled = !enabled);
+      }
+
+      function render(state) {
+        question.textContent = state.question || "Survey";
+        votingOpen = !!state.votingOpen;
+        timeLeft.textContent = fmtTime(state.secondsLeft);
+
+        closed.style.display = votingOpen ? "none" : "block";
+        thanks.style.display = hasVoted ? "block" : "none";
+
+        // Rebuild buttons if options changed or first render
+        const opts = state.options || [];
+        const existing = Array.from(buttons.querySelectorAll("button")).map(b => b.dataset.option);
+        if (existing.length !== opts.length || existing.some((v, i) => v !== opts[i])) {
+          buttons.innerHTML = "";
+          opts.forEach((opt) => {
+            const btn = document.createElement("button");
+            btn.textContent = opt;
+            btn.dataset.option = opt;
+            btn.addEventListener("click", () => {
+              if (!votingOpen || hasVoted) return;
+              sendVote(opt);
+            });
+            buttons.appendChild(btn);
+          });
+        }
+
+        setButtonsEnabled(votingOpen && !hasVoted);
+      }
+
+      async function sendVote(opt) {
+        try {
+          await fetch("/api/buttonClick", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "vote", option: opt }),
+          });
+          hasVoted = true;
+          thanks.style.display = "block";
+          setButtonsEnabled(false);
+        } catch (e) {
+          // ignore; polling will keep UI alive
+        }
+      }
+
+      async function poll() {
+        try {
+          const resp = await fetch("/api/webinfo/survey_state");
+          const json = await resp.json();
+          if (json && json.message) render(json.message);
+          setConnected(true);
+        } catch (e) {
+          setConnected(false);
+        } finally {
+          setTimeout(poll, 600);
+        }
+      }
+
+      setConnected(false);
+      poll();
+    </script>
+  </body>
+</html>
