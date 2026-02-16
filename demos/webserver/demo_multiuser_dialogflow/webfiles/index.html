@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dialogflow CX Multi-user Demo</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #0f172a;
+      }
+      .wrap { max-width: 900px; margin: 0 auto; }
+      .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(2, 8, 23, 0.06);
+        margin-bottom: 14px;
+      }
+      h1 { margin: 0 0 6px; font-size: 20px; }
+      .muted { color: #475569; font-size: 14px; }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #475569;
+        margin-top: 10px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+      }
+      .dot.ok {
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+      .row { display: grid; gap: 10px; }
+      .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+      .bubble {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 48px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .meta {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Dialogflow CX Demo</h1>
+        <div class="muted">Same UI, but each browser connection gets its own Dialogflow session.</div>
+        <div class="status">
+          <span id="dot" class="dot"></span>
+          <span id="connText">Connecting...</span>
+        </div>
+        <div id="meta" class="meta">Socket: -</div>
+      </div>
+
+      <div class="card row">
+        <div class="label">User transcript</div>
+        <div id="transcript" class="bubble">—</div>
+      </div>
+
+      <div class="card row">
+        <div class="label">Agent response</div>
+        <div id="response" class="bubble">—</div>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const dot = document.getElementById("dot");
+      const connText = document.getElementById("connText");
+      const transcriptEl = document.getElementById("transcript");
+      const responseEl = document.getElementById("response");
+      const metaEl = document.getElementById("meta");
+
+      let socketId = "";
+
+      function keyFor(base) {
+        return socketId ? `${base}::${socketId}` : "";
+      }
+
+      function setConnected(isConnected) {
+        dot.classList.toggle("ok", isConnected);
+        connText.textContent = isConnected ? "Connected" : "Disconnected";
+      }
+
+      function setError(text) {
+        dot.classList.remove("ok");
+        connText.textContent = text;
+      }
+
+      function setTranscript(text) {
+        transcriptEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function setResponse(text) {
+        responseEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function handleWebInfo(payload) {
+        if (!payload || typeof payload !== "object" || !payload.label || !socketId) return;
+        if (payload.label === keyFor("user_transcript")) setTranscript(payload.message);
+        if (payload.label === keyFor("agent_response")) setResponse(payload.message);
+      }
+
+      function registerUser() {
+        if (!socketId) return;
+        socket.emit("sic/button_clicked", { type: "register_user", socket_id: socketId });
+      }
+
+      function unregisterUserKeepalive() {
+        if (!socketId) return;
+        fetch("/api/buttonClick", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "unregister_user", socket_id: socketId }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+
+      const socket = io();
+      socket.on("connect", () => {
+        socketId = socket.id || "";
+        metaEl.textContent = `Socket: ${socketId || "-"}`;
+        setConnected(true);
+        setTranscript("—");
+        setResponse("(listening...)");
+        registerUser();
+      });
+      socket.on("disconnect", () => setConnected(false));
+      socket.on("connect_error", (err) => {
+        const msg = (err && err.message) ? err.message : String(err || "connect_error");
+        setError("Socket.IO connect_error: " + msg);
+      });
+      setConnected(false);
+
+      socket.on("sic/webinfo", handleWebInfo);
+      socket.on("sic/state", (p) => {
+        if (!p || typeof p !== "object" || !p.webinfo || !socketId) return;
+        const transcript = p.webinfo[keyFor("user_transcript")];
+        const response = p.webinfo[keyFor("agent_response")];
+        if (transcript != null) setTranscript(transcript);
+        if (response != null) setResponse(response);
+      });
+
+      window.addEventListener("beforeunload", unregisterUserKeepalive);
+    </script>
+  </body>
+</html>

@@ -2,6 +2,7 @@ import os
 import threading
 import time
 import webbrowser
+import urllib.request
 
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.services.webserver.webserver_service import WebserverConf, Webserver
@@ -30,12 +31,27 @@ class WebserverDemo(SICApplication):
         # This will start the component (locally or remotely depending on config, default local)
         self.webserver = Webserver(conf=conf)
 
-        # Open the default browser automatically (small delay so server is ready).
+        # Open the default browser automatically once the server is ready.
         url = f"http://localhost:{conf.port}"
-        threading.Timer(0.75, lambda: webbrowser.open(url, new=2)).start()
+        threading.Thread(target=lambda: self._open_when_ready(url), daemon=True).start()
         
         print(f"Starting webserver serving files from: {webfiles_dir}")
         print(f"Open your browser at: {url}")
+
+    def _open_when_ready(self, url: str) -> None:
+        ready_url = url.rstrip("/") + "/readyz"
+        deadline = time.time() + 10.0
+        while time.time() < deadline:
+            try:
+                with urllib.request.urlopen(ready_url, timeout=0.5) as resp:
+                    if resp.status == 200:
+                        webbrowser.open(url, new=2)
+                        return
+            except Exception:
+                pass
+            time.sleep(0.1)
+        # Fall back to opening anyway (useful for debugging failures).
+        webbrowser.open(url, new=2)
 
     def run(self):
         try:
@@ -46,7 +62,6 @@ class WebserverDemo(SICApplication):
         except KeyboardInterrupt:
             pass
         finally:
-            self.stop()
             self.shutdown()
 
 

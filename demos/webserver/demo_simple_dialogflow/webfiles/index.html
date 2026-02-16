@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dialogflow CX Demo</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #0f172a;
+      }
+      .wrap { max-width: 900px; margin: 0 auto; }
+      .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(2, 8, 23, 0.06);
+        margin-bottom: 14px;
+      }
+      h1 { margin: 0 0 6px; font-size: 20px; }
+      .muted { color: #475569; font-size: 14px; }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #475569;
+        margin-top: 10px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+      }
+      .dot.ok {
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+      .row { display: grid; gap: 10px; }
+      .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+      .bubble {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 48px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Dialogflow CX Demo</h1>
+        <div class="muted">Shows what the system understood (transcript) and the agent response.</div>
+        <div class="status">
+          <span id="dot" class="dot"></span>
+          <span id="connText">Connecting…</span>
+        </div>
+      </div>
+
+      <div class="card row">
+        <div class="label">User transcript</div>
+        <div id="transcript" class="bubble">—</div>
+      </div>
+
+      <div class="card row">
+        <div class="label">Agent response</div>
+        <div id="response" class="bubble">—</div>
+      </div>
+    </div>
+
+    <script>
+      const dot = document.getElementById("dot");
+      const connText = document.getElementById("connText");
+      const transcriptEl = document.getElementById("transcript");
+      const responseEl = document.getElementById("response");
+
+      function setConnected(isConnected) {
+        dot.classList.toggle("ok", isConnected);
+        connText.textContent = isConnected ? "Connected" : "Disconnected";
+      }
+
+      function setError(text) {
+        dot.classList.remove("ok");
+        connText.textContent = text;
+      }
+
+      function setTranscript(text) {
+        transcriptEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function setResponse(text) {
+        responseEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function startSocket() {
+        if (typeof window.io !== "function") {
+          setError("Socket.IO client failed to load.");
+          return;
+        }
+
+        const socket = io();
+        socket.on("connect", () => setConnected(true));
+        socket.on("disconnect", () => setConnected(false));
+        socket.on("connect_error", (err) => {
+          const msg = (err && err.message) ? err.message : String(err || "connect_error");
+          setError("Socket.IO connect_error: " + msg);
+        });
+        setConnected(false);
+
+        socket.on("sic/state", (p) => {
+          if (!p || typeof p !== "object") return;
+          if (p.transcript != null) setTranscript(p.transcript);
+          if (p.webinfo && typeof p.webinfo === "object") {
+            if (p.webinfo.agent_response != null) setResponse(p.webinfo.agent_response);
+          }
+        });
+
+        socket.on("sic/transcript", (p) => {
+          if (p && typeof p === "object" && "transcript" in p) setTranscript(p.transcript);
+        });
+
+        socket.on("sic/webinfo", (p) => {
+          if (!p || typeof p !== "object") return;
+          if (p.label === "agent_response") setResponse(p.message);
+        });
+      }
+
+      // Expose minimal hooks so the external script tag can call into this code.
+      window.__startSocket = startSocket;
+      window.__setError = setError;
+
+      function loadSocketClient(url) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = url;
+          script.async = true;
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      async function initSocketClient() {
+        // Prefer server-provided client to avoid client/server version mismatch.
+        const candidates = ["/socket.io/socket.io.js", "/static/js/socket.io.min.js"];
+        for (const url of candidates) {
+          try {
+            await loadSocketClient(url);
+            if (typeof window.io === "function") return;
+          } catch (_) {
+            // Try next candidate.
+          }
+        }
+        setError("Socket.IO client failed to load (tried /socket.io/socket.io.js and /static/js/socket.io.min.js).");
+      }
+
+      // Start after scripts/DOM are ready.
+      window.addEventListener("load", async () => {
+        await initSocketClient();
+        startSocket();
+        // If connect never happens and no error fired, show a hint.
+        setTimeout(() => {
+          if (connText.textContent === "Connecting…") {
+            setError("Still connecting… (check browser console + server Engine.IO logs)");
+          }
+        }, 2500);
+      });
+    </script>
+  </body>
+</html>
+

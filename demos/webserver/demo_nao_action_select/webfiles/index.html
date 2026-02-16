@@ -106,7 +106,7 @@
       buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
           const action = btn.dataset.action;
-          socket.emit("buttonClick", action);
+          socket.emit("sic/button_clicked", { action });
         });
       });
     </script>
