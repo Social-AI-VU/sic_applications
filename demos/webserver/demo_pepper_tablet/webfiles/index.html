@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pepper Tablet Media Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-family: Arial, sans-serif;
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #111827;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      h1 { margin: 0 0 8px; font-size: 26px; }
+      h2 { margin: 0 0 8px; font-size: 18px; }
+      p { margin: 6px 0; }
+      .muted { color: #94a3b8; }
+      img, video, iframe {
+        width: 100%;
+        max-height: 420px;
+        object-fit: contain;
+        background: #000;
+        border-radius: 8px;
+      }
+      audio { width: 100%; }
+      code {
+        background: #1e293b;
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+      .card.warning {
+        background: #422006;
+        border-color: #b45309;
+        color: #fef3c7;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Pepper Tablet Media Demo</h1>
+        <p>Single page showing multiple media types from one demo.</p>
+        <p class="muted">Put media files in this same <code>webfiles/</code> folder.</p>
+      </div>
+
+      <div class="card warning">
+        <strong>⚠ Media size:</strong> Images and video must be no larger than <strong>1280×720</strong> for them to display on the Pepper tablet.
+      </div>
+
+      <div class="card">
+        <h2>Text</h2>
+        <p>This section is plain HTML text rendered on the Pepper tablet webview.</p>
+      </div>
+
+      <div class="card">
+        <h2>Image</h2>
+        <img src="/static/demo_image.jpg" alt="Demo image" />
+        <p class="muted">Expected file: <code>demo_image.jpg</code></p>
+      </div>
+
+      <div class="card">
+        <h2>Audio</h2>
+        <audio controls>
+          <source src="/static/demo_audio.wav" type="audio/wav" />
+          Your browser does not support audio.
+        </audio>
+        <p class="muted">Expected file: <code>demo_audio.wav</code></p>
+      </div>
+
+      <div class="card">
+        <h2>Video</h2>
+        <video controls autoplay muted playsinline>
+          <source src="/static/demo_video.mp4" type="video/mp4" />
+          Your browser does not support video.
+        </video>
+        <p class="muted">Expected file: <code>demo_video.mp4</code></p>
+      </div>
+    </div>
+  </body>
+</html>
