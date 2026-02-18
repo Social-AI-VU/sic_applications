@@ -107,7 +107,6 @@ class DialogflowCXWebDemo(SICApplication):
             host="0.0.0.0",
             port=self.web_port,
             templates_dir=webfiles_dir,
-            ephemeral=True,
         )
         self.webserver = Webserver(conf=web_conf)
 

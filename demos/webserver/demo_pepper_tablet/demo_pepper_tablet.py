@@ -75,7 +75,6 @@ class PepperTabletWebserverDemo(SICApplication):
             port=WEB_PORT,
             templates_dir=webfiles_dir,
             static_dir=webfiles_dir,
-            ephemeral=True,
         )
         self.webserver = Webserver(conf=conf)
         self.logger.info("Webserver started on port %d", WEB_PORT)

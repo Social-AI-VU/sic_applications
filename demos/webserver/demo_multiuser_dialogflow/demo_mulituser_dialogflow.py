@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 import threading
 import time
 import urllib.request
@@ -58,7 +59,7 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self.location = "europe-west4"  # Replace if needed
         self.keyfile_json = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         self.setup()
 
     def setup(self):
@@ -73,19 +74,59 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             host="0.0.0.0",
             port=self.web_port,
             templates_dir=webfiles_dir,
-            ephemeral=True,
+            tunnel_enable=True,
+            tunnel_provider="ngrok",
         )
         self.webserver = Webserver(conf=web_conf)
         self.webserver.register_callback(self.on_web_event)
 
         presenter_url = f"http://localhost:{self.web_port}"
         threading.Thread(target=lambda: self._open_when_ready(presenter_url), daemon=True).start()
-        self.logger.info(f"Web UI: {presenter_url}")
+        self.logger.info(f"Local Web UI (this machine): {presenter_url}")
+        threading.Thread(target=self._log_connection_urls, daemon=True).start()
 
         with open(abspath(join("..", "..", "..", "conf", "google", "google-key.json"))) as f:
             self.keyfile_json = json.load(f)
 
         self.logger.info("Ready for multi-user Dialogflow sessions")
+
+    def _log_connection_urls(self) -> None:
+        """
+        Log helpful URLs for connecting to the demo:
+        - localhost (current machine)
+        - LAN URL (other devices on same network), if detectable
+        - Public tunnel URL (if tunnel_enable is on and a tunnel comes up)
+        """
+        # LAN URL for other devices on the same network.
+        try:
+            hostname = socket.gethostname()
+            lan_ip = socket.gethostbyname(hostname)
+        except Exception:
+            lan_ip = None
+
+        if lan_ip and lan_ip not in ("127.0.0.1", "localhost"):
+            self.logger.info(f"LAN Web UI (same network devices): http://{lan_ip}:{self.web_port}")
+
+        # If a tunnel is enabled, poll the /api/tunnel helper until it reports a public URL.
+        api_url = f"http://127.0.0.1:{self.web_port}/api/tunnel"
+        deadline = time.time() + 120.0  # give the tunnel some time to start
+        public_url: Optional[str] = None
+
+        while time.time() < deadline and not self.shutdown_event.is_set():
+            try:
+                with urllib.request.urlopen(api_url, timeout=1.0) as resp:
+                    data = json.load(resp)
+                if data.get("enabled") and data.get("url"):
+                    public_url = str(data["url"])
+                    break
+            except Exception:
+                pass
+            time.sleep(1.0)
+
+        if public_url:
+            self.logger.info(f"Public Web UI (tunnel): {public_url}")
+        else:
+            self.logger.info("No public Web UI available (tunnel not enabled or failed to start)")
 
     def _open_when_ready(self, url: str) -> None:
         ready_url = url.rstrip("/") + "/readyz"

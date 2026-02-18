@@ -46,7 +46,6 @@ class AudienceSurveyDemo(SICApplication):
             port=self.port,
             templates_dir=webfiles_dir,
             static_dir=webfiles_dir,
-            ephemeral=True,
             tunnel_enable=self.enable_tunnel,
             tunnel_provider=self.tunnel_provider,
         )
