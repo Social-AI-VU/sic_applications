@@ -13,11 +13,12 @@ import numpy as np
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core.utils import is_sic_instance
-from sic_framework.devices.desktop import Desktop
+from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.services.dialogflow_cx.dialogflow_cx import (
     DetectIntentRequest,
     DialogflowCX,
     DialogflowCXConf,
+    StopListeningMessage,
 )
 from sic_framework.services.webserver.webserver_service import (
     ButtonClicked,
@@ -33,6 +34,7 @@ class UserSessionState:
     session_id: int
     agent: DialogflowCX
     stop_event: threading.Event
+    start_listening_event: threading.Event
     worker_thread: threading.Thread
 
 
@@ -47,8 +49,6 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
     def __init__(self):
         super(DialogflowCXMultiUserWebDemo, self).__init__()
 
-        self.desktop = None
-        self.desktop_mic = None
         self.webserver = None
         self.web_port = 8080
 
@@ -59,14 +59,10 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self.location = "europe-west4"  # Replace if needed
         self.keyfile_json = None
 
-        self.set_log_level(sic_logging.INFO)
+        self.set_log_level(sic_logging.DEBUG)
         self.setup()
 
     def setup(self):
-        self.logger.info("Initializing Desktop microphone")
-        self.desktop = Desktop()
-        self.desktop_mic = self.desktop.mic
-
         current_dir = os.path.dirname(os.path.abspath(__file__))
         webfiles_dir = os.path.join(current_dir, "webfiles")
 
@@ -76,6 +72,7 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             templates_dir=webfiles_dir,
             tunnel_enable=True,
             tunnel_provider="ngrok",
+            cors_allowed_origins="*",  # Allow tunnel (ngrok) and other remote origins
         )
         self.webserver = Webserver(conf=web_conf)
         self.webserver.register_callback(self.on_web_event)
@@ -176,7 +173,8 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             sample_rate_hertz=44100,
             language="en-US",
         )
-        return DialogflowCX(conf=ca_conf, input_source=self.desktop_mic)
+        # No hardware microphone: audio is streamed from the browser via Socket.IO.
+        return DialogflowCX(conf=ca_conf)
 
     def _start_user_session(self, socket_id: str) -> None:
         with self._users_lock:
@@ -194,9 +192,10 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             return
 
         stop_event = threading.Event()
+        start_listening_event = threading.Event()
         worker = threading.Thread(
             target=self._user_loop,
-            args=(socket_id, session_id, agent, stop_event),
+            args=(socket_id, session_id, agent, stop_event, start_listening_event),
             daemon=True,
         )
         state = UserSessionState(
@@ -204,6 +203,7 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             session_id=session_id,
             agent=agent,
             stop_event=stop_event,
+            start_listening_event=start_listening_event,
             worker_thread=worker,
         )
 
@@ -233,9 +233,24 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         for socket_id in socket_ids:
             self._stop_user_session(socket_id)
 
-    def _user_loop(self, socket_id: str, session_id: int, agent: DialogflowCX, stop_event: threading.Event) -> None:
+    def _user_loop(
+        self,
+        socket_id: str,
+        session_id: int,
+        agent: DialogflowCX,
+        stop_event: threading.Event,
+        start_listening_event: threading.Event,
+    ) -> None:
         try:
             while not self.shutdown_event.is_set() and not stop_event.is_set():
+                # Wait for user to press record before starting the next turn.
+                while not stop_event.is_set() and not self.shutdown_event.is_set():
+                    if start_listening_event.wait(timeout=0.25):
+                        break
+                if stop_event.is_set() or self.shutdown_event.is_set():
+                    break
+                start_listening_event.clear()
+
                 self.logger.info(f"[{socket_id}] Conversation turn (session {session_id})")
                 try:
                     reply = agent.request(DetectIntentRequest(session_id))
@@ -258,6 +273,13 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
                 self.logger.info(f"[{socket_id}] Transcript: {transcript}")
                 self.logger.info(f"[{socket_id}] Agent reply: {response}")
                 self._publish_to_user(socket_id, transcript=transcript, agent_response=response)
+                # Notify this client that the turn has completed, so it can auto-stop the mic.
+                try:
+                    self.webserver.send_message(
+                        WebInfoMessage(self._web_label("turn_done", socket_id), True)
+                    )
+                except Exception as e:
+                    self.logger.warning(f"Failed to publish turn_done for socket {socket_id}: {e}")
         finally:
             try:
                 agent.stop_component()
@@ -279,8 +301,41 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
 
         if event_type == "register_user":
             self._start_user_session(socket_id)
-        elif event_type == "unregister_user":
+            return
+
+        # All other events require an active user session.
+        with self._users_lock:
+            state = self._users.get(socket_id)
+        if state is None:
+            return
+
+        if event_type == "unregister_user":
             self._stop_user_session(socket_id)
+        elif event_type == "start_audio":
+            # User pressed record; allow the next DetectIntentRequest to run.
+            state.start_listening_event.set()
+        elif event_type == "audio_chunk":
+            # Browser-streamed PCM16 audio for this user.
+            audio_list = data.get("audio")
+            if not isinstance(audio_list, list):
+                return
+            try:
+                audio_bytes = bytes(int(b) & 0xFF for b in audio_list)
+            except Exception as e:
+                self.logger.warning(f"Invalid audio payload for socket {socket_id}: {e}")
+                return
+
+            sample_rate = int(data.get("sample_rate") or 44100)
+            try:
+                state.agent.send_message(AudioMessage(audio_bytes, sample_rate=sample_rate))
+            except Exception as e:
+                self.logger.error(f"[{socket_id}] Failed to forward audio chunk: {e}")
+        elif event_type == "stop_audio":
+            # Signal Dialogflow to finalize the current turn.
+            try:
+                state.agent.send_message(StopListeningMessage(session_id=state.session_id))
+            except Exception as e:
+                self.logger.error(f"[{socket_id}] Failed to send StopListeningMessage: {e}")
 
     def run(self):
         self.logger.info(" -- Starting Multi-user Conversational Agents Demo -- ")

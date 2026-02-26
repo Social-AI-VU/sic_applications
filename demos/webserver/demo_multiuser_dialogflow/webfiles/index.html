@@ -59,6 +59,34 @@
         font-size: 12px;
         color: #64748b;
       }
+      .controls {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .btn {
+        border-radius: 999px;
+        border: none;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-mic {
+        background: #0f766e;
+        color: white;
+      }
+      .btn-mic.recording {
+        background: #b91c1c;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -71,6 +99,11 @@
           <span id="connText">Connecting...</span>
         </div>
         <div id="meta" class="meta">Socket: -</div>
+        <div class="controls">
+          <button id="micButton" class="btn btn-mic" disabled>
+            <span id="micLabel">Enable microphone</span>
+          </button>
+        </div>
       </div>
 
       <div class="card row">
@@ -91,8 +124,14 @@
       const transcriptEl = document.getElementById("transcript");
       const responseEl = document.getElementById("response");
       const metaEl = document.getElementById("meta");
+      const micButton = document.getElementById("micButton");
+      const micLabel = document.getElementById("micLabel");
 
       let socketId = "";
+      let audioContext = null;
+      let mediaStream = null;
+      let processor = null;
+      let isRecording = false;
 
       function keyFor(base) {
         return socketId ? `${base}::${socketId}` : "";
@@ -101,6 +140,7 @@
       function setConnected(isConnected) {
         dot.classList.toggle("ok", isConnected);
         connText.textContent = isConnected ? "Connected" : "Disconnected";
+        micButton.disabled = !isConnected;
       }
 
       function setError(text) {
@@ -120,6 +160,9 @@
         if (!payload || typeof payload !== "object" || !payload.label || !socketId) return;
         if (payload.label === keyFor("user_transcript")) setTranscript(payload.message);
         if (payload.label === keyFor("agent_response")) setResponse(payload.message);
+        if (payload.label === keyFor("turn_done") && isRecording) {
+          stopRecording();
+        }
       }
 
       function registerUser() {
@@ -135,6 +178,78 @@
           body: JSON.stringify({ type: "unregister_user", socket_id: socketId }),
           keepalive: true,
         }).catch(() => {});
+      }
+
+      function floatTo16BitPCM(float32Array) {
+        const buffer = new ArrayBuffer(float32Array.length * 2);
+        const view = new DataView(buffer);
+        for (let i = 0; i < float32Array.length; i++) {
+          let s = Math.max(-1, Math.min(1, float32Array[i]));
+          view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+        }
+        return new Uint8Array(buffer);
+      }
+
+      async function startRecording() {
+        if (!socketId || isRecording) return;
+        socket.emit("sic/button_clicked", { type: "start_audio", socket_id: socketId });
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+          setError("Mic permission denied");
+          return;
+        }
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: 44100,
+        });
+
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        processor = audioContext.createScriptProcessor(4096, 1, 1);
+        processor.onaudioprocess = (event) => {
+          if (!isRecording) return;
+          const input = event.inputBuffer.getChannelData(0);
+          const pcm16 = floatTo16BitPCM(input);
+          // Send as an array of bytes; backend will reassemble to bytes.
+          socket.emit("sic/button_clicked", {
+            type: "audio_chunk",
+            socket_id: socketId,
+            sample_rate: audioContext.sampleRate,
+            audio: Array.from(pcm16),
+          });
+        };
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+        isRecording = true;
+        connText.textContent = "Recording…";
+        micButton.classList.add("recording");
+        micLabel.textContent = "Stop microphone";
+      }
+
+      function stopRecording() {
+        if (!isRecording) return;
+        isRecording = false;
+
+        if (processor) {
+          try { processor.disconnect(); } catch (_) {}
+          processor = null;
+        }
+        if (audioContext) {
+          try { audioContext.close(); } catch (_) {}
+          audioContext = null;
+        }
+        if (mediaStream) {
+          mediaStream.getTracks().forEach((t) => t.stop());
+          mediaStream = null;
+        }
+
+        if (socketId) {
+          socket.emit("sic/button_clicked", { type: "stop_audio", socket_id: socketId });
+        }
+        connText.textContent = "Connected";
+        micButton.classList.remove("recording");
+        micLabel.textContent = "Start microphone";
       }
 
       const socket = io();
@@ -163,6 +278,15 @@
       });
 
       window.addEventListener("beforeunload", unregisterUserKeepalive);
+
+      micButton.addEventListener("click", () => {
+        if (!socketId) return;
+        if (!isRecording) {
+          startRecording();
+        } else {
+          stopRecording();
+        }
+      });
     </script>
   </body>
 </html>
