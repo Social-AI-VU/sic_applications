@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!--
+      Audience voting page for the survey demo.
+
+      The page periodically polls `/api/webinfo/survey_state` to stay in sync
+      with the presenter, renders one button per option, and posts votes to
+      `/api/buttonClick`. The Python `AudienceSurveyDemo` aggregates the votes.
+    -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Audience Survey (Vote)</title>

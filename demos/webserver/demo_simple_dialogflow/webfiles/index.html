@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!--
+      Dialogflow CX single-user web demo.
+
+      This page connects to the SIC webserver via Socket.IO, streams microphone
+      audio to the backend, and visualises both the recognised transcript and
+      the agent's reply. The Python `DialogflowCXWebDemo` application is
+      responsible for running the Dialogflow turn-taking logic.
+    -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dialogflow CX Demo</title>
@@ -54,6 +62,34 @@
         white-space: pre-wrap;
         word-break: break-word;
       }
+      .controls {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+      }
+      .btn {
+        border-radius: 999px;
+        border: none;
+        padding: 14px 22px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-mic {
+        background: #0f766e;
+        color: #ffffff;
+      }
+      .btn-mic.recording {
+        background: #b91c1c;
+        transform: translateY(1px);
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -64,6 +100,11 @@
         <div class="status">
           <span id="dot" class="dot"></span>
           <span id="connText">Connecting…</span>
+        </div>
+        <div class="controls">
+          <button id="micButton" class="btn btn-mic" disabled>
+            <span id="micLabel">Enable microphone</span>
+          </button>
         </div>
       </div>
 
@@ -78,15 +119,24 @@
       </div>
     </div>
 
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script>
       const dot = document.getElementById("dot");
       const connText = document.getElementById("connText");
       const transcriptEl = document.getElementById("transcript");
       const responseEl = document.getElementById("response");
+      const micButton = document.getElementById("micButton");
+      const micLabel = document.getElementById("micLabel");
+
+      let audioContext = null;
+      let mediaStream = null;
+      let processor = null;
+      let isRecording = false;
 
       function setConnected(isConnected) {
         dot.classList.toggle("ok", isConnected);
         connText.textContent = isConnected ? "Connected" : "Disconnected";
+        micButton.disabled = !isConnected;
       }
 
       function setError(text) {
@@ -100,6 +150,74 @@
 
       function setResponse(text) {
         responseEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function floatTo16BitPCM(float32Array) {
+        const buffer = new ArrayBuffer(float32Array.length * 2);
+        const view = new DataView(buffer);
+        for (let i = 0; i < float32Array.length; i++) {
+          let s = Math.max(-1, Math.min(1, float32Array[i]));
+          view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+        }
+        return new Uint8Array(buffer);
+      }
+
+      async function startRecording(socket) {
+        if (isRecording) return;
+        socket.emit("sic/button_clicked", { type: "start_audio" });
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+          setError("Mic permission denied");
+          return;
+        }
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: 44100,
+        });
+
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        processor = audioContext.createScriptProcessor(4096, 1, 1);
+        processor.onaudioprocess = (event) => {
+          if (!isRecording) return;
+          const input = event.inputBuffer.getChannelData(0);
+          const pcm16 = floatTo16BitPCM(input);
+          socket.emit("sic/button_clicked", {
+            type: "audio_chunk",
+            sample_rate: audioContext.sampleRate,
+            audio: Array.from(pcm16),
+          });
+        };
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+        isRecording = true;
+        connText.textContent = "Recording…";
+        micButton.classList.add("recording");
+        micLabel.textContent = "Stop microphone";
+      }
+
+      function stopRecording(socket) {
+        if (!isRecording) return;
+        isRecording = false;
+
+        if (processor) {
+          try { processor.disconnect(); } catch (_) {}
+          processor = null;
+        }
+        if (audioContext) {
+          try { audioContext.close(); } catch (_) {}
+          audioContext = null;
+        }
+        if (mediaStream) {
+          mediaStream.getTracks().forEach((t) => t.stop());
+          mediaStream = null;
+        }
+
+        socket.emit("sic/button_clicked", { type: "stop_audio" });
+        connText.textContent = "Connected";
+        micButton.classList.remove("recording");
+        micLabel.textContent = "Start microphone";
       }
 
       function startSocket() {
@@ -132,41 +250,21 @@
         socket.on("sic/webinfo", (p) => {
           if (!p || typeof p !== "object") return;
           if (p.label === "agent_response") setResponse(p.message);
-        });
-      }
-
-      // Expose minimal hooks so the external script tag can call into this code.
-      window.__startSocket = startSocket;
-      window.__setError = setError;
-
-      function loadSocketClient(url) {
-        return new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = url;
-          script.async = true;
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      async function initSocketClient() {
-        // Prefer server-provided client to avoid client/server version mismatch.
-        const candidates = ["/socket.io/socket.io.js", "/static/js/socket.io.min.js"];
-        for (const url of candidates) {
-          try {
-            await loadSocketClient(url);
-            if (typeof window.io === "function") return;
-          } catch (_) {
-            // Try next candidate.
+          if (p.label === "turn_done" && isRecording) {
+            stopRecording(socket);
           }
-        }
-        setError("Socket.IO client failed to load (tried /socket.io/socket.io.js and /static/js/socket.io.min.js).");
+        });
+
+        micButton.addEventListener("click", () => {
+          if (!isRecording) {
+            startRecording(socket);
+          } else {
+            stopRecording(socket);
+          }
+        });
       }
 
-      // Start after scripts/DOM are ready.
-      window.addEventListener("load", async () => {
-        await initSocketClient();
+      window.addEventListener("load", () => {
         startSocket();
         // If connect never happens and no error fired, show a hint.
         setTimeout(() => {
@@ -178,4 +276,4 @@
     </script>
   </body>
 </html>
-
+ 

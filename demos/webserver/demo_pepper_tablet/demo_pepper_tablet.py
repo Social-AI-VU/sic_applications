@@ -18,7 +18,7 @@ from sic_framework.services.webserver.webserver_service import Webserver, Webser
 # -------------------------------------------------------------------------------
 # Configuration
 # -------------------------------------------------------------------------------
-ROBOT_IP = "10.0.0.168"  # Replace with your Pepper's IP address
+ROBOT_IP = "XXX"  # Replace with your Pepper's IP address
 
 # Optional tablet Wi-Fi connection. Leave WIFI_SSID empty to skip this step.
 WIFI_SSID = ""
@@ -49,6 +49,9 @@ class PepperTabletWebserverDemo(SICApplication):
         self.setup()
 
     def setup(self):
+        """
+        Setup the Pepper tablet webserver demo.
+        """
         self.logger.info("Connecting to Pepper at %s ...", ROBOT_IP)
         self.pepper = Pepper(ip=ROBOT_IP)
         self.logger.info("Connected to Pepper.")
@@ -67,6 +70,9 @@ class PepperTabletWebserverDemo(SICApplication):
             self.logger.info("Local preview URL: %s", local_url)
 
     def _start_webserver(self):
+        """
+        Start the webserver.
+        """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         webfiles_dir = os.path.join(current_dir, "webfiles")
 
@@ -80,6 +86,9 @@ class PepperTabletWebserverDemo(SICApplication):
         self.logger.info("Webserver started on port %d", WEB_PORT)
 
     def _maybe_connect_tablet_wifi(self):
+        """
+        Connect the tablet to the Wi-Fi network if WIFI_SSID is not empty.
+        """
         if not WIFI_SSID:
             self.logger.info("Skipping tablet Wi-Fi setup (WIFI_SSID is empty).")
             return
@@ -101,6 +110,9 @@ class PepperTabletWebserverDemo(SICApplication):
             self.logger.error("Failed to connect tablet Wi-Fi: %s", e)
 
     def _open_when_ready(self, url: str) -> None:
+        """
+        Open the local browser when the webserver is ready.
+        """
         ready_url = url.rstrip("/") + "/readyz"
         deadline = time.time() + 10.0
         while time.time() < deadline and not self.shutdown_event.is_set():

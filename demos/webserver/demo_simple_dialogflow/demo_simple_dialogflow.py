@@ -11,17 +11,18 @@ from os.path import abspath, join
 import numpy as np
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core.utils import is_sic_instance
+from sic_framework.core.message_python2 import AudioMessage
 
-# Import the device(s) we will be using
-from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
+# Import the services we will be using
 from sic_framework.services.dialogflow_cx.dialogflow_cx import (
     DetectIntentRequest,
     DialogflowCX,
     DialogflowCXConf,
+    StopListeningMessage,
 )
 from sic_framework.services.webserver.webserver_service import (
+    ButtonClicked,
     TranscriptMessage,
     WebInfoMessage,
     Webserver,
@@ -54,51 +55,26 @@ class DialogflowCXWebDemo(SICApplication):
         super(DialogflowCXWebDemo, self).__init__()
 
         # Demo-specific initialization
-        self.desktop = None
-        self.desktop_mic = None
         self.conversational_agent = None
         self.webserver = None
         self.web_port = 8080
 
-        self.set_log_level(sic_logging.DEBUG)
+        # Browser-mic control
+        self.start_listening_event = threading.Event()
+        self.worker_thread: threading.Thread | None = None
+
+        self.set_log_level(sic_logging.INFO)
 
         # Random session ID is necessary for Dialogflow CX
         self.session_id = np.random.randint(10000)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        # self.set_log_file("/Users/apple/Desktop/logs")
 
         self.setup()
 
-    def on_recognition(self, message):
-        """
-        Callback function for Dialogflow CX recognition results.
-
-        Args:
-            message: The Dialogflow CX recognition result message.
-
-        Returns:
-            None
-        """
-        if message.response:
-            if (
-                hasattr(message.response, "recognition_result")
-                and message.response.recognition_result
-            ):
-                rr = message.response.recognition_result
-                if hasattr(rr, "is_final") and rr.is_final:
-                    if hasattr(rr, "transcript"):
-                        self.logger.info(
-                            "Transcript: {transcript}".format(transcript=rr.transcript)
-                        )
-
     def setup(self):
-        """Initialize and configure the desktop microphone and Conversational Agents service."""
-        self.logger.info("Initializing Desktop microphone")
-
-        # Local desktop setup
-        self.desktop = Desktop()
-        self.desktop_mic = self.desktop.mic
+        """Initialize web UI and Dialogflow CX service (audio via browser)."""
 
         # Webserver setup (serves local demo UI + receives events)
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -109,6 +85,7 @@ class DialogflowCXWebDemo(SICApplication):
             templates_dir=webfiles_dir,
         )
         self.webserver = Webserver(conf=web_conf)
+        self.webserver.register_callback(self.on_web_event)
 
         presenter_url = f"http://localhost:{self.web_port}"
         threading.Thread(target=lambda: self._open_when_ready(presenter_url), daemon=True).start()
@@ -128,8 +105,8 @@ class DialogflowCXWebDemo(SICApplication):
         # 4. The agent ID is in the URL: ...agents/YOUR-AGENT-ID/...
         # or in Agent Settings under "Agent ID"
 
-        agent_id = "27cdbb58-604e-4da9-bb34-91bb7bc62883"  # Replace with your agent ID
-        location = "europe-west4"  # Replace with your agent location if different
+        agent_id = "XXX"  # Replace with your agent ID
+        location = "XXX"  # Replace with your agent location if different
 
         # Create configuration for Conversational Agents
         ca_conf = DialogflowCXConf(
@@ -140,16 +117,16 @@ class DialogflowCXWebDemo(SICApplication):
             language="en-US",
         )
 
-        # Initialize the conversational agent with microphone input
-        self.conversational_agent = DialogflowCX(
-            conf=ca_conf, input_source=self.desktop_mic
-        )
+        # Initialize the conversational agent; audio will come from the browser via Socket.IO.
+        self.conversational_agent = DialogflowCX(conf=ca_conf)
 
-        self.logger.info(
-            "Initialized Conversational Agents... registering callback function"
+        self.logger.info("Initialized Conversational Agents; starting worker thread.")
+        self.worker_thread = threading.Thread(
+            target=self._user_loop,
+            daemon=True,
+            name="dialogflow_simple_user_loop",
         )
-        # Register a callback function to handle recognition results
-        self.conversational_agent.register_callback(callback=self.on_recognition)
+        self.worker_thread.start()
 
     def _open_when_ready(self, url: str) -> None:
         ready_url = url.rstrip("/") + "/readyz"
@@ -177,18 +154,28 @@ class DialogflowCXWebDemo(SICApplication):
         except Exception as e:
             self.logger.warning(f"Failed to publish to web UI: {e}")
 
-    def run(self):
-        """Main application loop."""
-        self.logger.info(" -- Starting Conversational Agents Demo -- ")
-
+    def _user_loop(self) -> None:
+        """Worker loop that runs Dialogflow turns when the user presses record."""
         try:
             while not self.shutdown_event.is_set():
-                self.logger.info(" ----- Conversation turn")
+                # Wait for the browser to send "start_audio" before starting a new turn.
+                while not self.shutdown_event.is_set():
+                    if self.start_listening_event.wait(timeout=0.25):
+                        break
+                if self.shutdown_event.is_set():
+                    break
+                self.start_listening_event.clear()
 
-                # Request intent detection with the current session
-                reply = self.conversational_agent.request(
-                    DetectIntentRequest(self.session_id)
-                )
+                self.logger.info(" ----- Conversation turn (session {})".format(self.session_id))
+                try:
+                    reply = self.conversational_agent.request(
+                        DetectIntentRequest(self.session_id)
+                    )
+                except Exception as e:
+                    self.logger.error("Dialogflow request failed: {}".format(e))
+                    self._publish_to_web(agent_response="(error: {})".format(e))
+                    time.sleep(0.5)
+                    continue
 
                 # Log the detected intent
                 if reply.intent:
@@ -226,13 +213,69 @@ class DialogflowCXWebDemo(SICApplication):
                         "Parameters: {params}".format(params=reply.parameters)
                     )
 
+                # Notify the browser that this turn is done so it can auto-stop the mic.
+                try:
+                    if self.webserver:
+                        self.webserver.send_message(WebInfoMessage("turn_done", True))
+                except Exception as e:
+                    self.logger.warning(f"Failed to send turn_done to web UI: {e}")
+        finally:
+            try:
+                if self.conversational_agent:
+                    self.conversational_agent.stop_component()
+            except Exception:
+                pass
+
+    def on_web_event(self, message):
+        """Handle events from the web UI (start/stop + audio chunks)."""
+        if not is_sic_instance(message, ButtonClicked):
+            return
+
+        data = message.button
+        if not isinstance(data, dict):
+            return
+
+        event_type = str(data.get("type", "")).strip().lower()
+
+        if event_type == "start_audio":
+            # User pressed record; allow the next DetectIntentRequest to run.
+            self.start_listening_event.set()
+        elif event_type == "audio_chunk":
+            audio_list = data.get("audio")
+            if not isinstance(audio_list, list):
+                return
+            try:
+                audio_bytes = bytes(int(b) & 0xFF for b in audio_list)
+            except Exception as e:
+                self.logger.warning(f"Invalid audio payload from browser: {e}")
+                return
+
+            sample_rate = int(data.get("sample_rate") or 44100)
+            try:
+                if self.conversational_agent:
+                    self.conversational_agent.send_message(
+                        AudioMessage(audio_bytes, sample_rate=sample_rate)
+                    )
+            except Exception as e:
+                self.logger.error(f"Failed to forward audio chunk to Dialogflow: {e}")
+        elif event_type == "stop_audio":
+            try:
+                if self.conversational_agent:
+                    self.conversational_agent.send_message(
+                        StopListeningMessage(session_id=self.session_id)
+                    )
+            except Exception as e:
+                self.logger.error(f"Failed to send StopListeningMessage: {e}")
+
+    def run(self):
+        """Main application loop (idle; work is done in background worker)."""
+        self.logger.info(" -- Starting Conversational Agents Demo -- ")
+
+        try:
+            while not self.shutdown_event.is_set():
+                time.sleep(0.25)
         except KeyboardInterrupt:
             self.logger.info("Demo interrupted by user")
-        except Exception as e:
-            self.logger.error("Exception: {}".format(e))
-            import traceback
-
-            traceback.print_exc()
         finally:
             self.shutdown()
 

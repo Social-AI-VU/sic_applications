@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!--
+      Presenter view for the audience survey demo.
+
+      This page:
+        - shows the current tallies as animated bars,
+        - polls the backend for `survey_state` and `audience_url` webinfo,
+        - and renders a QR code pointing at the public (or local) `/vote.html`.
+
+      All server-side logic (timing, vote counting, tunnelling) lives in the
+      `AudienceSurveyDemo` Python application.
+    -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Audience Survey (Presenter)</title>
@@ -58,7 +69,6 @@
       a:hover { text-decoration: underline; }
       .qrRow { display: flex; gap: 16px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
       .qrBox { width: 180px; height: 180px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; display: grid; place-items: center; overflow: hidden; }
-      .qrBox img { width: 180px; height: 180px; }
     </style>
   </head>
   <body>
@@ -75,9 +85,7 @@
           <code id="audienceUrl">/vote.html</code>
         </p>
         <div class="qrRow">
-          <div class="qrBox">
-            <img id="qrImg" alt="Audience QR code" />
-          </div>
+          <div id="qrBox" class="qrBox"></div>
           <div class="muted">
             Scan this QR code to open the voting page.
           </div>
@@ -90,6 +98,8 @@
       </div>
     </div>
 
+    <!-- Lightweight QR code generator (no integrity to avoid hash mismatches) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
       const dot = document.getElementById("dot");
       const connText = document.getElementById("connText");
@@ -98,10 +108,10 @@
       const question = document.getElementById("question");
       const bars = document.getElementById("bars");
       const audienceUrl = document.getElementById("audienceUrl");
-      const qrImg = document.getElementById("qrImg");
+      const qrBox = document.getElementById("qrBox");
       audienceUrl.textContent = `${location.origin}/vote.html`;
-      qrImg.src = `/api/qr?data=${encodeURIComponent(audienceUrl.textContent)}&_=${Date.now()}`;
-      let lastQrValue = audienceUrl.textContent;
+      let qr = null;
+      let lastQrValue = null;
 
       function setConnected(isConnected) {
         dot.classList.toggle("ok", isConnected);
@@ -114,6 +124,25 @@
         const m = Math.floor(s / 60);
         const r = s % 60;
         return m > 0 ? `${m}:${String(r).padStart(2, "0")}` : `${r}s`;
+      }
+
+      function ensureQr(value) {
+        if (!value) return;
+        if (typeof window.QRCode === "undefined") {
+          console.error("QRCode library not loaded; cannot render QR code.");
+          return;
+        }
+        if (!qr) {
+          qr = new QRCode(qrBox, {
+            text: value,
+            width: 180,
+            height: 180,
+            correctLevel: QRCode.CorrectLevel.M,
+          });
+        } else {
+          qr.clear();
+          qr.makeCode(value);
+        }
       }
 
       function render(state) {
@@ -137,6 +166,9 @@
         });
       }
 
+      // Render an initial QR code for the local audience URL.
+      ensureQr(audienceUrl.textContent);
+
       async function poll() {
         try {
           const [stateResp, urlResp] = await Promise.all([
@@ -149,7 +181,7 @@
           if (urlJson && urlJson.message) audienceUrl.textContent = urlJson.message;
           if (audienceUrl.textContent && audienceUrl.textContent !== lastQrValue) {
             lastQrValue = audienceUrl.textContent;
-            qrImg.src = `/api/qr?data=${encodeURIComponent(lastQrValue)}&_=${Date.now()}`;
+            ensureQr(lastQrValue);
           }
           if (stateJson && stateJson.message) render(stateJson.message);
           setConnected(true);

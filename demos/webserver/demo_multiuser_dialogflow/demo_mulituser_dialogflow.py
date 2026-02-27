@@ -55,14 +55,20 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self._users_lock = threading.Lock()
         self._users: Dict[str, UserSessionState] = {}
 
-        self.agent_id = "27cdbb58-604e-4da9-bb34-91bb7bc62883"  # Replace if needed
-        self.location = "europe-west4"  # Replace if needed
+        self.agent_id = "XXX"  # Replace if needed
+        self.location = "XXX"  # Replace if needed
         self.keyfile_json = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         self.setup()
 
     def setup(self):
+        """
+        Initialize the webserver, open the browser UI, and load Dialogflow credentials.
+
+        This does not start any Dialogflow sessions yet; those are created lazily per
+        browser socket when we receive a 'register_user' event from the frontend.
+        """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         webfiles_dir = os.path.join(current_dir, "webfiles")
 
@@ -126,6 +132,10 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             self.logger.info("No public Web UI available (tunnel not enabled or failed to start)")
 
     def _open_when_ready(self, url: str) -> None:
+        """
+        Poll the webserver /readyz endpoint and open the presenter URL in the
+        default browser once the port is reachable (or after a short timeout).
+        """
         ready_url = url.rstrip("/") + "/readyz"
         deadline = time.time() + 10.0
         while time.time() < deadline and not self.shutdown_event.is_set():
@@ -140,6 +150,12 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         webbrowser.open(url, new=2)
 
     def _new_session_id(self) -> int:
+        """
+        Generate a session ID that is unique across all active user sessions.
+
+        Each browser socket gets its own Dialogflow CX session so their
+        conversational context does not interfere.
+        """
         while True:
             candidate = int(np.random.randint(1, 1_000_000_000))
             with self._users_lock:
@@ -151,6 +167,10 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         return f"{key}::{socket_id}"
 
     def _publish_to_user(self, socket_id: str, transcript: Optional[str] = None, agent_response: Optional[str] = None):
+        """
+        Convenience helper: push transcript / agent_response updates for a single
+        user to the web UI via WebInfo labels that are namespaced by socket_id.
+        """
         if not self.webserver:
             return
         try:
@@ -166,6 +186,12 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             self.logger.warning(f"Failed to publish update for socket {socket_id}: {e}")
 
     def _create_user_agent(self) -> DialogflowCX:
+        """
+        Construct a DialogflowCX connector for a single user session.
+
+        Audio is streamed from the browser, not from a local microphone, so we
+        do not pass an input_source here.
+        """
         ca_conf = DialogflowCXConf(
             keyfile_json=self.keyfile_json,
             agent_id=self.agent_id,
@@ -177,6 +203,12 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         return DialogflowCX(conf=ca_conf)
 
     def _start_user_session(self, socket_id: str) -> None:
+        """
+        Create per-user state (Dialogflow connector + worker thread) for a new
+        Socket.IO connection identified by socket_id.
+
+        If a session already exists for this socket_id, this is a no-op.
+        """
         with self._users_lock:
             if socket_id in self._users:
                 return
@@ -214,6 +246,9 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         worker.start()
 
     def _stop_user_session(self, socket_id: str) -> None:
+        """
+        Stop a single user session and its Dialogflow connector, if it exists.
+        """
         with self._users_lock:
             state = self._users.pop(socket_id, None)
 
@@ -228,6 +263,9 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
             pass
 
     def _stop_all_user_sessions(self) -> None:
+        """
+        Best-effort shutdown of all active user sessions on application exit.
+        """
         with self._users_lock:
             socket_ids = list(self._users.keys())
         for socket_id in socket_ids:
@@ -287,6 +325,12 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
                 pass
 
     def on_web_event(self, message):
+        """
+        Entry point for all events coming from the web UI via ButtonClicked.
+
+        The frontend sends small JSON payloads with a 'type' and 'socket_id'
+        field, plus optional audio data when streaming microphone chunks.
+        """
         if not is_sic_instance(message, ButtonClicked):
             return
 
@@ -338,6 +382,12 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
                 self.logger.error(f"[{socket_id}] Failed to send StopListeningMessage: {e}")
 
     def run(self):
+        """
+        Idle main loop that keeps the SICApplication alive until shutdown.
+
+        All Dialogflow work happens in per-user worker threads started in
+        _start_user_session; this loop just waits for Ctrl+C or shutdown_event.
+        """
         self.logger.info(" -- Starting Multi-user Conversational Agents Demo -- ")
         try:
             while not self.shutdown_event.is_set():

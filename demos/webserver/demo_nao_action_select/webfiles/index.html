@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!--
+      NAO Action Select control panel.
+
+      This UI sends simple "stand", "sit", "dance" commands over Socket.IO
+      (`sic/button_clicked` events). The Python `NaoActionSelectDemo` receives
+      those events and triggers the corresponding NAO motions.
+    -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NAO Action Select</title>
@@ -86,7 +93,7 @@
       </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script>
       const dot = document.getElementById("dot");
       const statusText = document.getElementById("statusText");
