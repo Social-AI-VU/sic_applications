@@ -32,7 +32,7 @@ class NaoActionSelectDemo(SICApplication):
 
         # IP/port of the target NAO and local webserver.
         # Adjust `nao_ip` to match your robot; the web UI always runs on localhost.
-        self.nao_ip = "10.0.0.212"
+        self.nao_ip = "XXX"
         self.port = 8080
 
         # Will be initialised in `setup`.
