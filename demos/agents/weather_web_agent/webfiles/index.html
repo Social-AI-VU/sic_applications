@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LangChain Web Agent</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #0f172a;
+      }
+      .wrap { max-width: 900px; margin: 0 auto; }
+      .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(2, 8, 23, 0.06);
+        margin-bottom: 14px;
+      }
+      h1 { margin: 0 0 6px; font-size: 20px; }
+      .muted { color: #475569; font-size: 14px; }
+      .row { display: grid; gap: 10px; }
+      .label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+      }
+      .bubble {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 48px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .inputRow {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .textInput {
+        flex: 1;
+        border-radius: 999px;
+        border: 1px solid #cbd5e1;
+        padding: 10px 14px;
+        font-size: 15px;
+        outline: none;
+      }
+      .textInput:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5);
+      }
+      .btn {
+        border-radius: 999px;
+        border: none;
+        padding: 10px 18px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #4f46e5;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>LangChain Web Agent</h1>
+        <div class="muted">
+          Ask about current weather or any web topic. The backend uses LangChain tools for live weather lookups and web search.
+        </div>
+        <div class="inputRow">
+          <input
+            id="queryInput"
+            class="textInput"
+            type="text"
+            placeholder="e.g. “What’s the weather in Amsterdam right now?” or “Summarise the latest news on AI.”"
+          />
+          <button id="sendButton" class="btn" disabled>
+            <span>Ask</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card row">
+        <div class="label">Last question</div>
+        <div id="transcript" class="bubble">—</div>
+      </div>
+
+      <div class="card row">
+        <div class="label">Agent answer</div>
+        <div id="response" class="bubble">—</div>
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script>
+      const queryInput = document.getElementById("queryInput");
+      const sendButton = document.getElementById("sendButton");
+      const transcriptEl = document.getElementById("transcript");
+      const responseEl = document.getElementById("response");
+
+      function setTranscript(text) {
+        transcriptEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function setResponse(text) {
+        responseEl.textContent = (text && String(text).trim()) ? String(text) : "—";
+      }
+
+      function startSocket() {
+        if (typeof window.io !== "function") {
+          // Socket.IO client failed to load; allow UI but nothing will be sent.
+          return;
+        }
+
+        const socket = io();
+
+        socket.on("sic/state", (p) => {
+          if (!p || typeof p !== "object") return;
+          if (p.transcript != null) setTranscript(p.transcript);
+          if (p.webinfo && typeof p.webinfo === "object") {
+            if (p.webinfo.agent_response != null) setResponse(p.webinfo.agent_response);
+          }
+        });
+
+        socket.on("sic/transcript", (p) => {
+          if (p && typeof p === "object" && "transcript" in p) setTranscript(p.transcript);
+        });
+
+        socket.on("sic/webinfo", (p) => {
+          if (!p || typeof p !== "object") return;
+          if (p.label === "agent_response") setResponse(p.message);
+        });
+
+        function sendQuery() {
+          const text = queryInput.value.trim();
+          if (!text) return;
+          socket.emit("sic/button_clicked", {
+            type: "query",
+            text,
+          });
+          setTranscript(text);
+          setResponse("Thinking…");
+        }
+
+        sendButton.addEventListener("click", () => {
+          sendQuery();
+        });
+
+        queryInput.addEventListener("keydown", (evt) => {
+          if (evt.key === "Enter") {
+            evt.preventDefault();
+            sendQuery();
+          }
+        });
+      }
+
+      window.addEventListener("load", () => {
+        startSocket();
+      });
+    </script>
+  </body>
+</html>
+
