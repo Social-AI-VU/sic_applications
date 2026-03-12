@@ -53,3 +53,8 @@ class STMSortformerDemo(SICApplication):
             self.logger.error("Exception: {}".format(e))
         finally:
             self.shutdown()
+
+
+if __name__ == "__main__":
+    demo = STMSortformerDemo()
+    demo.run()
