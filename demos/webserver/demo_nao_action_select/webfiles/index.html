@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--
+      NAO Action Select control panel.
+
+      This UI sends simple "stand", "sit", "dance" commands over Socket.IO
+      (`sic/button_clicked` events). The Python `NaoActionSelectDemo` receives
+      those events and triggers the corresponding NAO motions.
+    -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NAO Action Select</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #0f172a;
+      }
+      .card {
+        max-width: 720px;
+        margin: 0 auto;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(2, 8, 23, 0.06);
+      }
+      h1 { margin: 0 0 6px; font-size: 22px; }
+      p { margin: 0 0 16px; color: #334155; }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #475569;
+        margin-bottom: 16px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+      }
+      .dot.ok {
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      button {
+        appearance: none;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 14px 12px;
+        background: #ffffff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+      button:hover { border-color: #94a3b8; box-shadow: 0 10px 20px rgba(2, 8, 23, 0.08); }
+      button:active { transform: translateY(1px); }
+      button:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+      .hint { margin-top: 14px; font-size: 13px; color: #64748b; }
+      @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>NAO Action Select</h1>
+      <p>Click an action to make the connected NAO perform it.</p>
+      <div class="status">
+        <span id="dot" class="dot"></span>
+        <span id="statusText">Connecting…</span>
+      </div>
+
+      <div class="grid">
+        <button id="btn-stand" data-action="stand">Stand up</button>
+        <button id="btn-sit" data-action="sit">Sit down</button>
+        <button id="btn-dance" data-action="dance">Dance</button>
+      </div>
+
+      <div class="hint">
+        This page uses Socket.IO. If clicks do nothing, check the Python console for logs.
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script>
+      const dot = document.getElementById("dot");
+      const statusText = document.getElementById("statusText");
+      const buttons = Array.from(document.querySelectorAll("button[data-action]"));
+
+      function setConnected(isConnected) {
+        dot.classList.toggle("ok", isConnected);
+        statusText.textContent = isConnected ? "Connected" : "Disconnected";
+        buttons.forEach(b => b.disabled = !isConnected);
+      }
+
+      const socket = io();
+      socket.on("connect", () => setConnected(true));
+      socket.on("disconnect", () => setConnected(false));
+      setConnected(false);
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const action = btn.dataset.action;
+          socket.emit("sic/button_clicked", { action });
+        });
+      });
+    </script>
+  </body>
+</html>
