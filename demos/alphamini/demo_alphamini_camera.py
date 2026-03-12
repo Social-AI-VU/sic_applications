@@ -39,13 +39,13 @@ class AlphaminiCameraDemo(SICApplication):
         self.mini_cam = None
 
         # Connection parameters (fill these in before running)
-        self.mini_ip = "10.0.0.155"
-        self.mini_id = "00268"
-        self.mini_password = "alphago"
-        self.redis_ip = "10.0.0.184"
+        self.mini_ip = "XXX"
+        self.mini_id = "XXX"
+        self.mini_password = "XXX"
+        self.redis_ip = "XXX"
 
         # Configure logging
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
 
         # Optionally enable file logging by uncommenting and setting a valid path:
         # self.set_log_file("/path/to/log/directory")
@@ -63,7 +63,7 @@ class AlphaminiCameraDemo(SICApplication):
             latency_ms = (now - capture_ts) * 1000.0
             img = image_message.image
             size_bytes = img.nbytes if hasattr(img, "nbytes") else None
-            self.logger.info(
+            self.logger.debug(
                 "Received image message "
                 "(latency ~{latency:.1f} ms, shape={shape}, size={size} bytes)".format(
                     latency=latency_ms,
@@ -74,7 +74,7 @@ class AlphaminiCameraDemo(SICApplication):
         else:
             img = image_message.image
             size_bytes = img.nbytes if hasattr(img, "nbytes") else None
-            self.logger.info(
+            self.logger.debug(
                 "Received image message (shape={shape}, size={size} bytes)".format(
                     shape=getattr(img, "shape", None), size=size_bytes
                 )
@@ -93,14 +93,30 @@ class AlphaminiCameraDemo(SICApplication):
             pass
 
     def setup(self):
-        """Initialize and configure the Alphamini camera."""
-        # Configure the Mini camera TCP server (keep defaults unless you changed the Android app port)
+        """
+        Initialize and configure the Alphamini camera.
+
+        Resolution control works as follows (implemented inside the Android
+        ``CameraActivity``):
+
+        - It starts from the camera's preferred preview size.
+        - If ``MiniCameraConf.target_width`` / ``target_height`` are both > 0,
+          that pair is taken as the desired base size.
+        - Then ``MiniCameraConf.scale`` is applied on top of that desired size
+          (width and height are multiplied by scale) before snapping to the
+          nearest supported preview size.
+
+        In other words, ``target_width`` / ``target_height`` and ``scale`` can
+        be combined; ``scale`` does not disable the ``target_*`` fields, it
+        scales their effect.
+        """
+        # Configure the Mini camera TCP server (keep defaults unless you changed the Android app port).
         cam_conf = MiniCameraConf(
             port=6001,
             # Example tuning for latency vs quality:
             # - Smaller resolution via scale reduces bandwidth and CPU.
             # - send_fps caps how many frames per second we push into SIC/Redis.
-            scale=0.4,  # use half the default width/height
+            scale=0.25,  # use a quarter of the default width/height
             send_fps=5.0,
             jpeg_quality=100,
         )
@@ -112,8 +128,6 @@ class AlphaminiCameraDemo(SICApplication):
             mini_password=self.mini_password,
             redis_ip=self.redis_ip,
             camera_conf=cam_conf,
-            dev_test=True,
-            # test_repo="/Users/landon/Desktop/SAIL/social-interaction-cloud",
         )
 
         # Get camera connector
