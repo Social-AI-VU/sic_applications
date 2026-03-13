@@ -88,20 +88,24 @@ class ChatGPTDemo(SICApplication):
         """
         Main application loop.
 
-        Per turn, you can choose whether to use:
-        - non-streaming request/response, or
+        At startup, you choose whether to use:
+        - simple non-streaming request/response, or
         - streaming with real-time tokens.
+        That choice then applies to the whole conversation.
         """
         self.logger.info("Starting unified GPT conversation")
 
+        # Choose mode once at the start
+        mode = None
+        while mode not in {"s", "t"} and not self.shutdown_event.is_set():
+            mode = input("Choose mode: [s]imple or [t]reaming (q to quit): ").strip().lower()
+            if mode in {"quit", "q", "exit"}:
+                return
+
+        streaming = mode == "t"
+
         try:
             while not self.shutdown_event.is_set():
-                mode = input("Choose mode: [s]imple, [t]reaming, or 'quit': ").strip().lower()
-                if mode in {"quit", "q", "exit"}:
-                    break
-                if mode not in {"s", "t"}:
-                    continue
-
                 user_input = input("You: ")
                 if user_input.strip().lower() in {"exit", "quit"}:
                     break
@@ -115,7 +119,7 @@ class ChatGPTDemo(SICApplication):
                     "role_messages": self.conversation,
                 }
 
-                if mode == "s":
+                if not streaming:
                     # Simple, non-streaming request/response
                     request = GPTRequest(
                         **base_request_kwargs,
