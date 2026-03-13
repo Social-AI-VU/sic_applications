@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--
+      Presenter view for the audience survey demo.
+
+      This page:
+        - shows the current tallies as animated bars,
+        - polls the backend for `survey_state` and `audience_url` webinfo,
+        - and renders a QR code pointing at the public (or local) `/vote.html`.
+
+      All server-side logic (timing, vote counting, tunnelling) lives in the
+      `AudienceSurveyDemo` Python application.
+    -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audience Survey (Presenter)</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #0f172a;
+      }
+      .wrap { max-width: 900px; margin: 0 auto; }
+      .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(2, 8, 23, 0.06);
+        margin-bottom: 14px;
+      }
+      h1 { margin: 0 0 6px; font-size: 20px; }
+      .muted { color: #475569; font-size: 14px; }
+      code { background: #f1f5f9; padding: 2px 6px; border-radius: 6px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 999px;
+        font-size: 13px;
+        color: #334155;
+        background: #fff;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+      }
+      .dot.ok {
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+      }
+      .bars { display: grid; gap: 10px; margin-top: 10px; }
+      .barRow { display: grid; grid-template-columns: 140px 1fr 90px; gap: 10px; align-items: center; }
+      .label { font-weight: 600; color: #0f172a; }
+      .track { height: 12px; background: #eef2ff; border-radius: 999px; overflow: hidden; border: 1px solid #e2e8f0; }
+      .fill { height: 100%; width: 0%; background: #6366f1; transition: width 0.2s ease; }
+      .value { text-align: right; color: #334155; font-variant-numeric: tabular-nums; }
+      a { color: #4f46e5; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .qrRow { display: flex; gap: 16px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+      .qrBox { width: 180px; height: 180px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; display: grid; place-items: center; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Audience Survey (Presenter)</h1>
+        <div class="row">
+          <span class="pill"><span id="dot" class="dot"></span><span id="connText">Connecting…</span></span>
+          <span class="pill">Time left: <strong id="timeLeft">—</strong></span>
+          <span class="pill">Total votes: <strong id="totalVotes">0</strong></span>
+        </div>
+        <p class="muted" style="margin:10px 0 0;">
+          Share this link with the audience:
+          <code id="audienceUrl">/vote.html</code>
+        </p>
+        <div class="qrRow">
+          <div id="qrBox" class="qrBox"></div>
+          <div class="muted">
+            Scan this QR code to open the voting page.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="muted" id="question">Waiting for survey…</div>
+        <div class="bars" id="bars"></div>
+      </div>
+    </div>
+
+    <!-- Lightweight QR code generator (no integrity to avoid hash mismatches) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+      const dot = document.getElementById("dot");
+      const connText = document.getElementById("connText");
+      const timeLeft = document.getElementById("timeLeft");
+      const totalVotes = document.getElementById("totalVotes");
+      const question = document.getElementById("question");
+      const bars = document.getElementById("bars");
+      const audienceUrl = document.getElementById("audienceUrl");
+      const qrBox = document.getElementById("qrBox");
+      audienceUrl.textContent = `${location.origin}/vote.html`;
+      let qr = null;
+      let lastQrValue = null;
+
+      function setConnected(isConnected) {
+        dot.classList.toggle("ok", isConnected);
+        connText.textContent = isConnected ? "Connected" : "Disconnected";
+      }
+
+      function fmtTime(seconds) {
+        if (seconds == null) return "—";
+        const s = Math.max(0, seconds|0);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return m > 0 ? `${m}:${String(r).padStart(2, "0")}` : `${r}s`;
+      }
+
+      function ensureQr(value) {
+        if (!value) return;
+        if (typeof window.QRCode === "undefined") {
+          console.error("QRCode library not loaded; cannot render QR code.");
+          return;
+        }
+        if (!qr) {
+          qr = new QRCode(qrBox, {
+            text: value,
+            width: 180,
+            height: 180,
+            correctLevel: QRCode.CorrectLevel.M,
+          });
+        } else {
+          qr.clear();
+          qr.makeCode(value);
+        }
+      }
+
+      function render(state) {
+        question.textContent = state.question || "Survey";
+        totalVotes.textContent = String((state && state.totalVotes != null) ? state.totalVotes : 0);
+        timeLeft.textContent = state.votingOpen ? fmtTime(state.secondsLeft) : "Closed";
+
+        if (state && state.audienceUrl) audienceUrl.textContent = state.audienceUrl;
+
+        bars.innerHTML = "";
+        (state.results || []).forEach((r) => {
+          const row = document.createElement("div");
+          row.className = "barRow";
+          const pct = Math.max(0, Math.min(100, Number(r.percent || 0)));
+          row.innerHTML = `
+            <div class="label">${r.option}</div>
+            <div class="track"><div class="fill" style="width:${pct}%;"></div></div>
+            <div class="value">${r.count} (${pct.toFixed(1)}%)</div>
+          `;
+          bars.appendChild(row);
+        });
+      }
+
+      // Render an initial QR code for the local audience URL.
+      ensureQr(audienceUrl.textContent);
+
+      async function poll() {
+        try {
+          const [stateResp, urlResp] = await Promise.all([
+            fetch("/api/webinfo/survey_state"),
+            fetch("/api/webinfo/audience_url"),
+          ]);
+          const stateJson = await stateResp.json();
+          const urlJson = await urlResp.json();
+
+          if (urlJson && urlJson.message) audienceUrl.textContent = urlJson.message;
+          if (audienceUrl.textContent && audienceUrl.textContent !== lastQrValue) {
+            lastQrValue = audienceUrl.textContent;
+            ensureQr(lastQrValue);
+          }
+          if (stateJson && stateJson.message) render(stateJson.message);
+          setConnected(true);
+        } catch (e) {
+          setConnected(false);
+        } finally {
+          setTimeout(poll, 600);
+        }
+      }
+
+      setConnected(false);
+      poll();
+    </script>
+  </body>
+</html>
