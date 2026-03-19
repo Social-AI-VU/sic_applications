@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import argparse
+import os
+import wave
 from typing import Optional, Tuple
 
 from mcp.server.fastmcp import FastMCP
 
 from sic_framework.core import sic_logging
+from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.devices import Nao
 from sic_framework.devices.common_naoqi.naoqi_leds import NaoFadeRGBRequest
+from sic_framework.devices.common_naoqi.naoqi_text_to_speech import (
+    NaoqiTextToSpeechRequest,
+)
 
 
 class NaoLedApplication(SICApplication):
@@ -48,9 +54,52 @@ def _require_app() -> NaoLedApplication:
     if APP is None or APP.nao is None:
         raise RuntimeError(
             "NAO LED application is not initialized. "
-            "Make sure the server was started with a valid --nao-ip."
+            "Set NAO_IP (or call 'connect') so the server can connect."
         )
     return APP
+
+
+def _resolve_nao_ip(nao_ip: Optional[str]) -> str:
+    if nao_ip and nao_ip.strip():
+        return nao_ip.strip()
+    env_ip = os.getenv("NAO_IP", "").strip()
+    if env_ip:
+        return env_ip
+    raise RuntimeError(
+        "No NAO IP provided. Pass nao_ip to the 'connect' tool or set NAO_IP."
+    )
+
+
+def _ensure_connected(nao_ip: Optional[str] = None) -> NaoLedApplication:
+    """
+    Ensure the global NAO application is connected.
+
+    - If already connected, returns the existing app.
+    - If `nao_ip` is provided, it is stored in `NAO_IP` and used.
+    - Otherwise, `NAO_IP` must already be set.
+    """
+    global APP
+
+    if APP is not None and APP.nao is not None:
+        return APP
+
+    if nao_ip is not None and nao_ip.strip():
+        os.environ["NAO_IP"] = nao_ip.strip()
+
+    ip = _resolve_nao_ip(None)
+    APP = NaoLedApplication(nao_ip=ip)
+    return APP
+
+
+@mcp.tool()
+def connect(nao_ip: Optional[str] = None) -> str:
+    """
+    One-time connection setup to the NAO robot.
+
+    If `nao_ip` is omitted, the environment variable `NAO_IP` is used.
+    """
+    app = _ensure_connected(nao_ip=nao_ip)
+    return f"Connected to NAO at {app.nao_ip}."
 
 
 def _color_name_to_rgb(name: str) -> Tuple[float, float, float]:
@@ -89,7 +138,7 @@ def set_eye_color_rgb(
     - `duration` is the fade duration in seconds (0 for instant change).
     - `led_group` defaults to "FaceLeds" which controls both eyes.
     """
-    app = _require_app()
+    app = _ensure_connected()
 
     try:
         app.nao.leds.request(
@@ -121,7 +170,7 @@ def set_eye_color_name(
     Supported colors include: red, green, blue, yellow, cyan, magenta,
     white, orange, purple, pink, and off. Unknown names default to white.
     """
-    app = _require_app()
+    app = _ensure_connected()
     r, g, b = _color_name_to_rgb(color_name)
 
     try:
@@ -144,6 +193,64 @@ def set_eye_color_name(
     except Exception as exc:
         app.logger.error("Failed to set eye color via name '%s': %r", color_name, exc)
         return f"ERROR: Failed to set eye color '{color_name}': {exc!r}"
+
+
+@mcp.tool()
+def play_audio(wav_path: str) -> str:
+    """
+    Play a local WAV file through the NAO's speakers.
+
+    The file is read by the MCP server process and sent as an AudioRequest to SIC.
+    """
+    app = _ensure_connected()
+
+    if not wav_path or not isinstance(wav_path, str):
+        return "ERROR: wav_path must be a non-empty string."
+
+    path = os.path.expanduser(wav_path)
+    if not os.path.isfile(path):
+        return f"ERROR: WAV file not found: {path}"
+
+    try:
+        with wave.open(path, "rb") as wf:
+            channels = wf.getnchannels()
+            sample_width = wf.getsampwidth()
+            sample_rate = wf.getframerate()
+            frames = wf.readframes(wf.getnframes())
+
+        if channels != 1:
+            return f"ERROR: WAV must be mono (1 channel). Got {channels} channels."
+        if sample_width != 2:
+            return f"ERROR: WAV must be 16-bit PCM (sample width 2). Got {sample_width}."
+
+        app.nao.speaker.request(AudioRequest(sample_rate=sample_rate, waveform=frames))
+        app.logger.info("Played WAV '%s' at %d Hz (%d bytes).", path, sample_rate, len(frames))
+        return f"Playing '{os.path.basename(path)}' at {sample_rate} Hz."
+    except Exception as exc:
+        app.logger.error("Failed to play WAV '%s': %r", path, exc)
+        return f"ERROR: Failed to play WAV: {exc!r}"
+
+
+@mcp.tool()
+def say_text(text: str, animated: bool = False) -> str:
+    """
+    Make the NAO robot say the given text using its onboard TTS.
+
+    - `text`: What the robot should say.
+    - `animated`: If True, use animated speech (gestures, etc.) when available.
+    """
+    app = _ensure_connected()
+
+    if not text or not isinstance(text, str):
+        return "ERROR: text must be a non-empty string."
+
+    try:
+        app.nao.tts.request(NaoqiTextToSpeechRequest(text, animated=animated))
+        app.logger.info("NAO TTS said (animated=%s): %s", animated, text)
+        return f"NAO said: {text}"
+    except Exception as exc:
+        app.logger.error("Failed to say text via TTS: %r", exc)
+        return f"ERROR: Failed to say text: {exc!r}"
 
 
 @mcp.tool()
@@ -173,20 +280,12 @@ def main() -> None:
     """
     Entry point for running this module as an MCP server.
 
-    The NAO IP address is provided via the `--nao-ip` command-line argument.
-    When the server starts, it initializes a `NaoLedApplication` (a
-    `SICApplication` subclass) with the given IP. When the server is about
-    to exit, it calls `shutdown()` on the application so all SIC resources
-    and connectors are cleaned up.
+    The server can start without connecting to a robot. To connect, call the
+    `connect` tool with an explicit `nao_ip` or set the `NAO_IP` environment
+    variable and then call `connect`.
     """
     parser = argparse.ArgumentParser(
         description="MCP server exposing tools to control NAO eye LEDs via SIC."
-    )
-    parser.add_argument(
-        "--nao-ip",
-        type=str,
-        required=True,
-        help="IP address of the NAO robot.",
     )
     parser.add_argument(
         "--transport",
@@ -196,9 +295,6 @@ def main() -> None:
         help="MCP transport to use (default: stdio).",
     )
     args = parser.parse_args()
-
-    global APP
-    APP = NaoLedApplication(nao_ip=args.nao_ip)
 
     try:
         mcp.run(transport=args.transport)

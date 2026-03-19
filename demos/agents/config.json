@@ -1,0 +1,11 @@
+"nao_leds" : {
+  "command": "bash",
+  "args": [
+    "/Users/landon/Desktop/SAIL/sic_applications/demos/agents/run_mcp_nao_leds.sh"
+  ],
+  "env": {
+    "NAO_IP": "10.0.0.212"
+  },
+  "disabled": false,
+  "autoApprove": []
+}
