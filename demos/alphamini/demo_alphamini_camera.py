@@ -1,30 +1,28 @@
-"""
-Alphamini camera demo.
-
-This demo connects to an Alphamini running SIC, subscribes to the Mini camera
-component (`MiniCameraSensor`), and displays the incoming camera feed using OpenCV.
-
-Requirements:
-- SIC must be installed and running on the Alphamini (handled by `Alphamini`).
-- The Android `camera_app` must be running on the Alphamini and streaming JPEG
-  frames to the port configured in `MiniCameraConf` (default: 6001).
-"""
-
+# Import basic preliminaries
 import queue
 import time
-
 import cv2
 
 from sic_framework.core import sic_logging
 from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.core.sic_application import SICApplication
+
+# Import the device we will be using
 from sic_framework.devices.alphamini import Alphamini
 from sic_framework.devices.common_mini.mini_camera import MiniCameraConf
 
 
 class AlphaminiCameraDemo(SICApplication):
     """
-    Alphamini camera demo application.
+    Alphamini camera demo.
+
+    This demo connects to an Alphamini running SIC, subscribes to the Mini camera
+    component (`MiniCameraSensor`), and displays the incoming camera feed using OpenCV.
+
+    Requirements:
+    - SIC must be installed and running on the Alphamini (handled by `Alphamini`).
+    - The Android `camera_app` must be running on the Alphamini and streaming JPEG
+    frames to the port configured in `MiniCameraConf` (default: 6001).
     """
 
     def __init__(self):
@@ -96,8 +94,7 @@ class AlphaminiCameraDemo(SICApplication):
         """
         Initialize and configure the Alphamini camera.
 
-        Resolution control works as follows (implemented inside the Android
-        ``CameraActivity``):
+        Resolution control works as follows (implemented inside the Android ``CameraActivity``):
 
         - It starts from the camera's preferred preview size.
         - If ``MiniCameraConf.target_width`` / ``target_height`` are both > 0,

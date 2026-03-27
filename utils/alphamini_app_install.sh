@@ -19,11 +19,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOWNLOAD_DIR_DEFAULT="${SCRIPT_DIR}/.alphamini_apks"
 
+# GitHub release source (owner/repo/tag are used to build APK download URLs).
 RELEASE_OWNER="Social-AI-VU"
 RELEASE_REPO="SIC-Android-Connectors-Alphamini"
 RELEASE_TAG="0.1.0"
 DOWNLOAD_DIR="${DOWNLOAD_DIR_DEFAULT}"
 
+# Parse optional CLI flags to override release tag and download directory.
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --release-tag)
@@ -57,6 +59,7 @@ CAMERA_PACKAGE="com.example.alphamini.camera"
 MIC_PACKAGE="com.example.micarraytest"
 
 require_cmd() {
+  # Fail early with a clear message if a required tool is missing.
   local cmd="$1"
   if ! command -v "${cmd}" >/dev/null 2>&1; then
     echo "Error: '${cmd}' is not installed or not in PATH."
@@ -65,6 +68,7 @@ require_cmd() {
 }
 
 adb_cmd() {
+  # Route all adb calls through one helper so ANDROID_SERIAL is consistently honored.
   if [[ -n "${ANDROID_SERIAL:-}" ]]; then
     adb -s "${ANDROID_SERIAL}" "$@"
   else
@@ -73,6 +77,7 @@ adb_cmd() {
 }
 
 check_adb_device() {
+  # Ensure adb server is running and collect current device states.
   adb start-server >/dev/null
   local adb_output
   adb_output="$(adb devices)"
@@ -83,6 +88,7 @@ check_adb_device() {
   local offline_lines
   offline_lines="$(echo "${adb_output}" | awk 'NR>1 && $2=="offline" {print $1}')"
 
+  # If user picked a specific device, verify that exact serial is available.
   if [[ -n "${ANDROID_SERIAL:-}" ]]; then
     if ! echo "${lines}" | awk -v serial="${ANDROID_SERIAL}" '$0 == serial { found=1 } END { exit(found ? 0 : 1) }'; then
       echo "Error: ANDROID_SERIAL='${ANDROID_SERIAL}' is not listed as an attached device."
@@ -93,6 +99,7 @@ check_adb_device() {
     return
   fi
 
+  # Otherwise require exactly one connected device in "device" state.
   local count
   count="$(echo "${lines}" | awk 'NF{n++} END{print n+0}')"
   if [[ "${count}" -eq 0 ]]; then
@@ -120,6 +127,7 @@ check_adb_device() {
 }
 
 download_apks() {
+  # Download both APK assets from the chosen GitHub release tag.
   mkdir -p "${DOWNLOAD_DIR}"
 
   echo "Downloading camera APK from release ${RELEASE_TAG}..."
@@ -130,6 +138,7 @@ download_apks() {
 }
 
 install_apk() {
+  # Install (or replace) one APK on the selected device.
   local apk_path="$1"
   local package_name="$2"
 
@@ -144,6 +153,7 @@ install_apk() {
 }
 
 verify_install() {
+  # Confirm package presence after installation for quick operator feedback.
   local package_name="$1"
   if adb_cmd shell pm list packages | awk -v pkg="package:${package_name}" '$0 == pkg { found=1 } END { exit(found ? 0 : 1) }'; then
     echo "Verified on device: ${package_name}"
@@ -152,18 +162,42 @@ verify_install() {
   fi
 }
 
+uninstall_if_present() {
+  # Best-effort cleanup: uninstall old package if it exists, continue otherwise.
+  local package_name="$1"
+  if adb_cmd shell pm list packages | awk -v pkg="package:${package_name}" '$0 == pkg { found=1 } END { exit(found ? 0 : 1) }'; then
+    echo "Existing package found, uninstalling: ${package_name}"
+    # Keep install flow resilient if uninstall reports a non-zero status.
+    adb_cmd uninstall "${package_name}" >/dev/null 2>&1 || true
+  else
+    echo "Package not installed, skipping uninstall: ${package_name}"
+  fi
+}
+
 main() {
+  # 1) Validate required tools.
   require_cmd adb
   require_cmd curl
+
+  # 2) Ensure exactly one target device is selected/reachable.
   check_adb_device
+
+  # 3) Fetch APKs for the chosen release tag.
   download_apks
 
+  # 4) Remove previous app installs if present (safe no-op when absent).
+  uninstall_if_present "${CAMERA_PACKAGE}"
+  uninstall_if_present "${MIC_PACKAGE}"
+
+  # 5) Install + verify camera app.
   install_apk "${CAMERA_APK}" "${CAMERA_PACKAGE}"
   verify_install "${CAMERA_PACKAGE}"
 
+  # 6) Install + verify microphone app.
   install_apk "${MIC_APK}" "${MIC_PACKAGE}"
   verify_install "${MIC_PACKAGE}"
 
+  # 7) Print local APK paths for debugging/reuse.
   echo
   echo "Downloaded APKs:"
   echo "  ${CAMERA_APK}"
