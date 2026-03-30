@@ -40,7 +40,7 @@ class ReachyMiniCameraDemo(SICApplication):
     def setup(self):
         """Initialize the Reachy Mini device and subscribe to the camera."""
         self.logger.info("Initializing Reachy Mini for camera demo...")
-        self.mini = ReachyMiniDevice()
+        self.mini = ReachyMiniDevice(mode="sim")
         self.mini.camera.register_callback(callback=self.on_image)
 
     def run(self):

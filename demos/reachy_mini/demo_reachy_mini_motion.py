@@ -28,7 +28,7 @@ class ReachyMiniMotionDemo(SICApplication):
     def setup(self):
         """Initialize the Reachy Mini device."""
         self.logger.info("Initializing Reachy Mini for motion demo...")
-        self.mini = ReachyMiniDevice()
+        self.mini = ReachyMiniDevice(mode="sim")
 
     def run(self):
         """Main application logic."""

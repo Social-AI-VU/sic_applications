@@ -44,7 +44,7 @@ class ReachyMiniFaceDetectionDemo(SICApplication):
         """Initialize the Reachy Mini device and face detection pipeline."""
         self.logger.info("Creating pipeline...")
 
-        self.mini = ReachyMiniDevice()
+        self.mini = ReachyMiniDevice(mode="sim")
 
         self.logger.info("Setting up face detection service")
         self.face_det = FaceDetection(input_source=self.mini.camera)
@@ -65,7 +65,6 @@ class ReachyMiniFaceDetectionDemo(SICApplication):
 
                     for face in faces:
                         utils_cv2.draw_bbox_on_image(face, img)
-
                     cv2.imshow("Reachy Mini Face Detection", img)
                     cv2.waitKey(1)
                 except queue.Empty:

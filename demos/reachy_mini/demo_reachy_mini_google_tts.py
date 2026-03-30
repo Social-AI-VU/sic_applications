@@ -15,7 +15,7 @@ See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google
 Save the file in conf/google/google-key.json
 """
 import json
-from os.path import abspath, join
+from os.path import abspath, join, dirname
 
 from sic_framework.core import sic_logging
 from sic_framework.core.message_python2 import AudioRequest
@@ -65,6 +65,7 @@ class ReachyMiniGoogleTTSDemo(SICApplication):
 
             # Initialize device with matching sample rate
             self.mini = ReachyMiniDevice(
+                mode="sim",
                 speakers_conf=ReachyMiniSpeakersConf(sample_rate=reply.sample_rate)
             )
 
@@ -81,7 +82,7 @@ class ReachyMiniGoogleTTSDemo(SICApplication):
 if __name__ == "__main__":
     demo = ReachyMiniGoogleTTSDemo(
         google_keyfile_path=abspath(
-            join("..", "..", "conf", "google", "google-key.json")
+            join(dirname(__file__), "..", "..", "conf", "google", "google-key.json")
         )
     )
     demo.run()

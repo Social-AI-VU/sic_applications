@@ -44,7 +44,7 @@ class ReachyMiniWhisperDemo(SICApplication):
         """Initialize the Reachy Mini device and Whisper service."""
         self.logger.info("Setting up Whisper speech-to-text...")
 
-        self.mini = ReachyMiniDevice()
+        self.mini = ReachyMiniDevice(mode="sim")
 
         if self.env_path:
             load_dotenv(self.env_path)
