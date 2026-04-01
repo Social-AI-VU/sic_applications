@@ -1,26 +1,30 @@
-"""
-Reachy Mini camera with face detection overlay.
-
-IMPORTANT:
-face-detection service needs to be running:
-1. pip install --upgrade social-interaction-cloud[face-detection-dnn]
-2. run-face-detection
-"""
+# import libraries for the demo
 import queue
-
 import cv2
+
+# import SIC framework components
 from sic_framework.core import sic_logging, utils_cv2
+from sic_framework.core.sic_application import SICApplication
+
+# import devices, services, and message types
+from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.services.face_detection.face_detection import FaceDetection
 
 
 class ReachyMiniFaceDetectionDemo(SICApplication):
-    """Reachy Mini camera with face detection demo application."""
+    """
+    Reachy Mini camera with face detection demo application.
+    
+    IMPORTANT:
+    face-detection service needs to be running:
+    1. pip install --upgrade social-interaction-cloud[face-detection]
+    2. run-face-detection
+    
+    """
 
     def __init__(self):
         super(ReachyMiniFaceDetectionDemo, self).__init__()
@@ -31,6 +35,8 @@ class ReachyMiniFaceDetectionDemo(SICApplication):
         self.face_det = None
 
         self.set_log_level(sic_logging.INFO)
+        # set log file path if needed
+        # self.set_log_file("/path/to/logs")
 
         self.setup()
 

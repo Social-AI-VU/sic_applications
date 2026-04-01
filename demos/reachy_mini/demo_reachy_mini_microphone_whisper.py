@@ -1,19 +1,15 @@
-"""
-Reachy Mini microphone with Whisper speech-to-text.
-
-IMPORTANT:
-1. Whisper service needs to be running:
-   pip install --upgrade social-interaction-cloud[whisper-speech-to-text]
-   run-whisper
-2. An OpenAI API key must be set in conf/.env as OPENAI_API_KEY="your key".
-"""
+# import libraries for the demo
 import time
 from os import environ
+from dotenv import load_dotenv
 from os.path import abspath, join
 
-from dotenv import load_dotenv
+
+# import SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
+
+# import devices, services, and message types
 from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.services.openai_whisper_stt.whisper_stt import (
     GetTranscript,
@@ -22,9 +18,16 @@ from sic_framework.services.openai_whisper_stt.whisper_stt import (
     WhisperConf,
 )
 
-
 class ReachyMiniWhisperDemo(SICApplication):
-    """Reachy Mini microphone with Whisper speech-to-text demo."""
+    """
+    Reachy Mini microphone with Whisper speech-to-text.
+
+    IMPORTANT:
+    1. Whisper service needs to be running:
+    pip install --upgrade social-interaction-cloud[whisper-speech-to-text]
+    run-whisper
+    2. An OpenAI API key must be set in conf/.env as OPENAI_API_KEY="your key".
+    """
 
     def __init__(self, env_path=None):
         super(ReachyMiniWhisperDemo, self).__init__()
@@ -34,6 +37,8 @@ class ReachyMiniWhisperDemo(SICApplication):
         self.env_path = env_path
 
         self.set_log_level(sic_logging.INFO)
+        # set log file path if needed
+        # self.set_log_file("/path/to/logs")
 
         self.setup()
 

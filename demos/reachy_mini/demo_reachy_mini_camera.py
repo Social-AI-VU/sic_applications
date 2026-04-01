@@ -1,20 +1,22 @@
-"""
-Reachy Mini camera demo.
-
-Connects to a Reachy Mini, subscribes to the camera sensor, and displays
-the incoming camera feed using OpenCV.
-"""
+# import libraries for the demo
 import queue
-
 import cv2
-from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.devices.reachy_mini import ReachyMiniDevice
 
+# import SIC framework components
+from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
+
+# import devices, services, and message types
+from sic_framework.devices.reachy_mini import ReachyMiniDevice
+from sic_framework.core.message_python2 import CompressedImageMessage
 
 class ReachyMiniCameraDemo(SICApplication):
-    """Reachy Mini camera demo application."""
+    """
+    Reachy Mini camera demo.
+
+    Connects to a Reachy Mini, subscribes to the camera sensor, and displays
+    the incoming camera feed using OpenCV.
+    """
 
     def __init__(self):
         super(ReachyMiniCameraDemo, self).__init__()
@@ -23,6 +25,8 @@ class ReachyMiniCameraDemo(SICApplication):
         self.mini = None
 
         self.set_log_level(sic_logging.INFO)
+        # set log file path if needed
+        # self.set_log_file("/path/to/logs")
 
         self.setup()
 

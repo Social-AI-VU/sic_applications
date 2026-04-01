@@ -1,20 +1,22 @@
-"""
-Reachy Mini motion demo.
-
-Demonstrates head, antenna, and body yaw movements.
-"""
+# import SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
+
+# import devices, services, and message types
+from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.devices.common_reachy_mini.reachy_mini_motion import (
     ReachyMiniAntennaRequest,
     ReachyMiniBodyYawRequest,
     ReachyMiniHeadRequest,
 )
-from sic_framework.devices.reachy_mini import ReachyMiniDevice
 
 
 class ReachyMiniMotionDemo(SICApplication):
-    """Reachy Mini motion demo application."""
+    """
+    Reachy Mini motion demo.
+
+    Demonstrates head, antenna, and body yaw movements.
+    """
 
     def __init__(self):
         super(ReachyMiniMotionDemo, self).__init__()
@@ -22,6 +24,8 @@ class ReachyMiniMotionDemo(SICApplication):
         self.mini = None
 
         self.set_log_level(sic_logging.INFO)
+        # set log file path if needed
+        # self.set_log_file("/path/to/logs")
 
         self.setup()
 

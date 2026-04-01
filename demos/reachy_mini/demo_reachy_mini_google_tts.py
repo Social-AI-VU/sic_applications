@@ -1,36 +1,38 @@
-"""
-Reachy Mini Google Text-to-Speech demo.
-
-Demonstrates how to use the Google Text2Speech service to have the
-Reachy Mini speak through its built-in speaker.
-
-IMPORTANT:
-Google text-to-speech dependency needs to be installed and the service needs to be running:
-1. pip install --upgrade social-interaction-cloud[google-tts]
-2. run-google-tts (in a separate terminal)
-
-NOTE: you need to have setup Cloud Text-to-Speech API in your Google Cloud Console
-and configure the credential keyfile.
-See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html
-Save the file in conf/google/google-key.json
-"""
+# import libraries for the demo
 import json
 from os.path import abspath, join, dirname
 
+# import SIC framework components
 from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.core.sic_application import SICApplication
-from sic_framework.devices.common_reachy_mini.reachy_mini_speakers import ReachyMiniSpeakersConf
+
+# import devices, services, and message types
 from sic_framework.devices.reachy_mini import ReachyMiniDevice
+from sic_framework.devices.common_reachy_mini.reachy_mini_speakers import ReachyMiniSpeakersConf
+from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.services.google_tts.google_tts import (
     GetSpeechRequest,
     Text2Speech,
     Text2SpeechConf,
 )
 
-
 class ReachyMiniGoogleTTSDemo(SICApplication):
-    """Reachy Mini Google Text-to-Speech demo application."""
+    """
+    Reachy Mini Google Text-to-Speech demo.
+
+    Demonstrates how to use the Google Text2Speech service to have the
+    Reachy Mini speak through its built-in speaker.
+
+    IMPORTANT:
+    Google text-to-speech dependency needs to be installed and the service needs to be running:
+    1. pip install --upgrade social-interaction-cloud[google-tts]
+    2. run-google-tts (in a separate terminal)
+
+    NOTE: you need to have setup Cloud Text-to-Speech API in your Google Cloud Console
+    and configure the credential keyfile.
+    See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html
+    Save the file in conf/google/google-key.json
+    """
 
     def __init__(self, google_keyfile_path):
         super(ReachyMiniGoogleTTSDemo, self).__init__()
@@ -40,6 +42,8 @@ class ReachyMiniGoogleTTSDemo(SICApplication):
         self.tts = None
 
         self.set_log_level(sic_logging.INFO)
+        # set log file path if needed
+        # self.set_log_file("/path/to/logs")
 
         self.setup()
 
