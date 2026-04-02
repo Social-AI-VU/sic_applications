@@ -33,6 +33,8 @@ class AlphaminiGoogleTTSDemo(SICApplication):
     NOTE: you need to have setup Cloud Text-to-Speech API in your Google Cloud Console and configure the credential keyfile.
     See https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
     Save the file in conf/google/google-key.json
+
+    NOTE: the sample rate of the speaker must match the sample rate of the audio from Google TTS.
     """
 
     def __init__(self):
@@ -42,7 +44,7 @@ class AlphaminiGoogleTTSDemo(SICApplication):
         # Demo-specific initialization
         self.mini_ip = "XXX"
         self.mini_id = "000XXX"
-        self.mini_password = "mini"
+        self.mini_password = "XXX"
         self.redis_ip = "XXX"
         self.google_keyfile_path = abspath(
             join("..", "..", "conf", "google", "google-key.json")
@@ -50,10 +52,10 @@ class AlphaminiGoogleTTSDemo(SICApplication):
         self.mini = None
         self.tts = None
 
-        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/alphamini/logs")
-
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file("/path/to/logs")
 
         self.setup()
 

@@ -1,10 +1,14 @@
+# Import preliminaries
 import wave
 from os.path import abspath, dirname, join
 
+# import basic SIC framework libraries
 from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.core.sic_application import SICApplication
+
+# import device(s) and services, and message types we will be using
 from sic_framework.devices.alphamini import Alphamini
+from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
 
 
@@ -14,6 +18,8 @@ class AlphaminiSpeakerWavDemo(SICApplication):
 
     Plays a local WAV file (``sic_applications/demos/media/test_sound.wav``)
     through the Alphamini speakers using the MiniSpeaker component.
+
+    NOTE: the sample rate of the speaker must match the sample rate of the audio from the WAV file.
     """
 
     def __init__(self):
@@ -21,10 +27,13 @@ class AlphaminiSpeakerWavDemo(SICApplication):
 
         # Demo-specific initialization
         self.mini_ip = "XXX"
-        self.mini_id = "XXX"
+        self.mini_id = "000XXX"
         self.mini_password = "XXX"
         self.redis_ip = "XXX"
         self.mini = None
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file("/path/to/logs")
 
         self.set_log_level(sic_logging.INFO)
 
