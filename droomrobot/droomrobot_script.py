@@ -46,13 +46,22 @@ class InteractionMove:
         return value() if callable(value) else value
 
     def execute(self):
-        if callable(self.func) and not self.args and not self.kwargs:
-            # lambda or fully-wrapped func
-            return self.func()
-        else:
-            resolved_args = [self.resolve(arg) for arg in self.args]
-            resolved_kwargs = {k: self.resolve(v) for k, v in self.kwargs.items()}
-            return self.func(*resolved_args, **resolved_kwargs)
+        func_name = self.func.__name__ if hasattr(self.func, '__name__') else str(self.func)
+        print(f"[MOVE] Resolving arguments for {func_name}")
+        try:
+            if callable(self.func) and not self.args and not self.kwargs:
+                # lambda or fully-wrapped func
+                print(f"[MOVE] Calling {func_name} with no args")
+                return self.func()
+            else:
+                print(f"[MOVE] Resolving {len(self.args)} args and {len(self.kwargs)} kwargs for {func_name}")
+                resolved_args = [self.resolve(arg) for arg in self.args]
+                resolved_kwargs = {k: self.resolve(v) for k, v in self.kwargs.items()}
+                print(f"[MOVE] Calling {func_name} with {len(resolved_args)} args")
+                return self.func(*resolved_args, **resolved_kwargs)
+        except Exception as e:
+            print(f"[MOVE ERROR] {func_name} failed: {e}")
+            raise
 
 
 class InteractionChoice:
@@ -65,19 +74,30 @@ class InteractionChoice:
     def execute(self, data: dict | str):
         try:
             if self.condition == InteractionChoiceCondition.HASVALUE:
+                print(f"[CHOICE] HASVALUE condition: target='{self.target}'")
+                print(f"[CHOICE] Available moves: {list(self.moves.keys())}")
                 if self.target in data:
+                    value = data[self.target]
+                    print(f"[CHOICE] Target found in data: {repr(value)[:100]}")
                     if isinstance(data, dict) and data[self.target] is None:
+                        print(f"[CHOICE] Target value is None, returning 'fail' moves ({len(self.moves.get('fail', []))} moves)")
                         return self.moves['fail']
+                    print(f"[CHOICE] Target value is not None, returning 'success' moves ({len(self.moves.get('success', []))} moves)")
                     return self.moves['success']
                 else:
+                    print(f"[CHOICE] Target not found in data, returning 'fail' moves ({len(self.moves.get('fail', []))} moves)")
                     return self.moves['fail']
             elif self.condition == InteractionChoiceCondition.MATCHVALUE:
+                print(f"[CHOICE] MATCHVALUE condition: target='{self.target}', data={repr(data)[:100]}")
                 if self.target in data:
                     if data[self.target] is not None:
                         if data[self.target] in self.moves:
+                            print(f"[CHOICE] Returning moves for value '{data[self.target]}'")
                             return self.moves[data[self.target]]
                         else:
+                            print(f"[CHOICE] Value not in moves, returning 'other' moves")
                             return self.moves['other']
+                print(f"[CHOICE] Target not found or None, returning 'fail' moves")
                 return self.moves['fail']
             elif self.condition == InteractionChoiceCondition.PHASE:
                 if data in self.moves:
@@ -87,6 +107,7 @@ class InteractionChoice:
             else:
                 raise InteractionChoiceNotAvailable(f"{self.condition} is not available as a condition")
         except KeyError as e:
+            print(f"[CHOICE ERROR] KeyError: {e}")
             raise InteractionChoiceNotAvailable(f"{e} is not available.")
 
     def add_move(self, option: str | list, func, *args, **kwargs):
@@ -168,15 +189,32 @@ class DroomrobotScript:
             move = self.interaction_moves[self.script_idx]
 
             if isinstance(move, InteractionMove):
-                result = move.execute()
-                if move.user_model_key:
-                    self.user_model[move.user_model_key] = result
-                    self.droomrobot.save_user_model(self.participant_id, self.user_model)
-                self.script_idx += 1
+                try:
+                    print(f"[SCRIPT] Executing InteractionMove {self.script_idx}: {move.func.__name__ if hasattr(move.func, '__name__') else move.func}")
+                    result = move.execute()
+                    if move.user_model_key:
+                        print(f"[SCRIPT] Storing result in user_model['{move.user_model_key}'] = {repr(result)[:100]}")
+                        self.user_model[move.user_model_key] = result
+                        self.droomrobot.save_user_model(self.participant_id, self.user_model)
+                    self.script_idx += 1
+                except Exception as e:
+                    print(f"[SCRIPT ERROR] Move {self.script_idx} failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
             elif isinstance(move, InteractionChoice):
-                moves = move.execute(self.user_model)
-                self.interaction_moves[self.script_idx:self.script_idx + 1] = moves  # insert the moves beloning to the choice in the list
+                try:
+                    print(f"[SCRIPT] Executing InteractionChoice {self.script_idx}: target='{move.target}', condition={move.condition}")
+                    print(f"[SCRIPT] Current user_model keys: {list(self.user_model.keys())}")
+                    moves = move.execute(self.user_model)
+                    print(f"[SCRIPT] InteractionChoice resolved to {len(moves)} moves")
+                    self.interaction_moves[self.script_idx:self.script_idx + 1] = moves  # insert the moves beloning to the choice in the list
+                except Exception as e:
+                    print(f"[SCRIPT ERROR] Choice {self.script_idx} failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
         self.is_running = False
         if self._requested_phase:
@@ -236,8 +274,166 @@ class DroomrobotScript:
                 else:
                     sentence_idx = 0
 
+    #def set_user_model_variable(self, key: str, value):
+    #    self.user_model[key] = value
+    
+    # Added method to set user model variable and immediately save it to the Droomrobot database    
     def set_user_model_variable(self, key: str, value):
         self.user_model[key] = value
+        self.droomrobot.save_user_model(self.participant_id, self.user_model)
 
+    def set_user_model_variables(self, updates: dict):
+        self.user_model.update(updates)
+        self.droomrobot.save_user_model(self.participant_id, self.user_model)
+        
+    # Personalisation
+    def build_interaction_choice_droomplek(self) -> InteractionChoice:
+        interaction_choice = InteractionChoice('droomplek_raw_answer', InteractionChoiceCondition.HASVALUE)
+
+        def _store_first_payload():
+            payload = self.droomrobot.generate_droomplek_payload(
+                child_name=self.user_model['child_name'],
+                child_age=self.user_model['child_age'],
+                child_answer=self.user_model['droomplek_raw_answer']
+            )
+            self.set_user_model_variables({
+                'droomplek_speech_text': payload['speech_text'],
+                'droomplek_candidate': payload['dream_place_final'],
+                'droomplek_candidate_lidwoord': payload['dream_place_article'],
+                'place_decided': payload['place_decided'],
+            })
+
+        interaction_choice.add_move('success', _store_first_payload)
+
+        first_decision_choice = InteractionChoice('place_decided', InteractionChoiceCondition.MATCHVALUE)
+
+        # CASE 1: first answer is a valid place -> promote and ask for motivation
+        def _promote_first_payload():
+            self.set_user_model_variables({
+                'droomplek': self.user_model['droomplek_candidate'],
+                'droomplek_lidwoord': self.user_model['droomplek_candidate_lidwoord'],
+            })
+
+        first_decision_choice.add_move([True], _promote_first_payload)
+        first_decision_choice.add_move(
+            [True],
+            self.droomrobot.ask_open,
+            lambda: self.user_model['droomplek_speech_text'],
+            user_model_key='droomplek_motivatie'
+        )
+
+        # CASE 2: first answer vague/inappropriate -> ask once more
+        first_decision_choice.add_move(
+            [False],
+            self.droomrobot.ask_open,
+            lambda: self.user_model['droomplek_speech_text'],
+            user_model_key='droomplek_second_answer'
+        )
+
+        second_answer_choice = InteractionChoice('droomplek_second_answer', InteractionChoiceCondition.HASVALUE)
+
+        def _store_second_payload():
+            payload = self.droomrobot.generate_droomplek_payload(
+                child_name=self.user_model['child_name'],
+                child_age=self.user_model['child_age'],
+                child_answer=self.user_model['droomplek_second_answer']
+            )
+            self.set_user_model_variables({
+                'droomplek_speech_text_second': payload['speech_text'],
+                'droomplek_candidate_second': payload['dream_place_final'],
+                'droomplek_candidate_lidwoord_second': payload['dream_place_article'],
+                'place_decided_second': payload['place_decided'],
+            })
+
+        second_answer_choice.add_move('success', _store_second_payload)
+
+        second_decision_choice = InteractionChoice('place_decided_second', InteractionChoiceCondition.MATCHVALUE)
+
+        # CASE 2A: second answer is valid -> promote and ask for motivation
+        def _promote_second_payload():
+            self.set_user_model_variables({
+                'droomplek': self.user_model['droomplek_candidate_second'],
+                'droomplek_lidwoord': self.user_model['droomplek_candidate_lidwoord_second'],
+            })
+
+        second_decision_choice.add_move([True], _promote_second_payload)
+        second_decision_choice.add_move(
+            [True],
+            self.droomrobot.ask_open,
+            lambda: self.user_model['droomplek_speech_text_second'],
+            user_model_key='droomplek_motivatie'
+        )
+
+        # CASE 2B: second answer still not valid -> fallback to strand
+        def _store_strand_fallback():
+            self.set_user_model_variables({
+                'droomplek': 'strand',
+                'droomplek_lidwoord': 'het',
+                'droomplek_speech_text_final': (
+                    'Zullen we anders naar het strand? Ik vind dat altijd zo een fijne plek. '
+                    'Ik kan de golven bijna horen en het zand onder mijn voeten voelen. '
+                    'Weet je wat ik daar graag doe? Een zandkasteel bouwen met een vlag er op. '
+                    f"Wat zou jij op het strand willen doen {self.user_model['child_name']}?"
+                ),
+                'place_decided': True,
+                'place_decided_second': True,
+            })
+
+        second_decision_choice.add_move([False], _store_strand_fallback)
+        second_decision_choice.add_move(
+            [False],
+            self.droomrobot.ask_open,
+            lambda: self.user_model['droomplek_speech_text_final'],
+            user_model_key='droomplek_motivatie'
+        )
+
+        second_answer_choice.add_choice('success', second_decision_choice)
+
+        # Second answer missing entirely -> fallback to strand
+        second_answer_choice.add_move('fail', _store_strand_fallback)
+        second_answer_choice.add_move(
+            'fail',
+            self.droomrobot.ask_open,
+            lambda: self.user_model['droomplek_speech_text_final'],
+            user_model_key='droomplek_motivatie'
+        )
+
+        true_case_terminal = InteractionChoice('child_name', InteractionChoiceCondition.HASVALUE)
+        true_case_terminal.add_move('success', lambda: None)
+        first_decision_choice.add_choice(True, true_case_terminal)
+
+        first_decision_choice.add_choice(False, second_answer_choice)
+        interaction_choice.add_choice('success', first_decision_choice)
+
+        # First answer missing entirely -> fallback to strand
+        interaction_choice.add_move('fail', _store_strand_fallback)
+        interaction_choice.add_move(
+            'fail',
+            self.droomrobot.ask_open,
+            lambda: self.user_model['droomplek_speech_text_final'],
+            user_model_key='droomplek_motivatie'
+        )
+
+        return interaction_choice
+
+    def build_imagery_store_move(self):
+        """Returns an InteractionMove that generates and stores the full imagery payload after droomplek_motivatie is known."""
+        def _store_imagery_payload():
+            payload = self.droomrobot.generate_droomplek_imagery_payload(
+                child_name=self.user_model['child_name'],
+                child_age=self.user_model['child_age'],
+                droomplek=self.user_model['droomplek'],
+                droomplek_article=self.user_model['droomplek_lidwoord'],
+                motivatie=self.user_model.get('droomplek_motivatie', ''),
+            )
+            self.set_user_model_variables({
+                'transition_sentence': payload['transition_sentence'],
+                'guided_imagery_seed': payload['guided_imagery_seed'],
+                'guided_imagery_seed_2': payload['guided_imagery_seed_2'],
+                'intervention_preparation_sentences': payload['intervention_preparation_sentences'],
+                'intervention_procedure_sentences': payload['intervention_procedure_sentences'],
+            })
+        return InteractionMove(_store_imagery_payload)
+    
 
 

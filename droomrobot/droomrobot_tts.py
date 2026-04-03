@@ -48,102 +48,107 @@ class ElevenLabsTTS:
         self.websocket = None
         self.speaking_rate = max(0.7, min(speaking_rate, 1.2)) if speaking_rate else speaking_rate
         self.lock = asyncio.Lock()
-        # Development logging
         self.logger = logging.getLogger("droomrobot")
 
-    async def connect(self):
-        uri = (
+    def _voice_settings(self):
+        vs = {
+            "stability": 0.5,
+            "similarity_boost": 0.8,
+            "use_speaker_boost": False,
+            "chunk_length_schedule": [120, 160, 250, 290],
+        }
+        if self.speaking_rate is not None:
+            vs["speed"] = self.speaking_rate
+        return vs
+
+    def _ws_uri(self):
+        return (
             f"wss://api.elevenlabs.io/v1/text-to-speech/{self.voice_id}/stream-input"
             f"?model_id={self.model_id}"
             f"&output_format=pcm_{self.sample_rate}"
             f"&inactivity_timeout=180"
             f"&auto_mode=false"
         )
-        self.websocket = await websockets.connect(uri)
 
-        voice_settings = {
-                "stability": 0.5,
-                "similarity_boost": 0.8,
-                "use_speaker_boost": False,
-                "chunk_length_schedule": [120, 160, 250, 290]}
-        if self.speaking_rate is not None:
-            voice_settings["speed"] = self.speaking_rate
-
-        # Send initial config once
+    async def connect(self):
+        """Open a WebSocket and send the init space (without flush) to register voice settings."""
+        self.websocket = await asyncio.wait_for(websockets.connect(self._ws_uri()), timeout=8.0)
         await self.websocket.send(dumps({
             "text": " ",
-            "voice_settings": voice_settings,
-            "auto_mode": True,
+            "voice_settings": self._voice_settings(),
             "xi_api_key": self.elevenlabs_key,
         }))
 
     async def disconnect(self):
         if self.websocket:
             try:
-                await self.websocket.send(dumps({"text": ""}))  # end marker
+                await self.websocket.send(dumps({"text": ""}))
                 await self.websocket.close()
             except Exception as e:
                 self.logger.error(f"[TTS] Error while closing websocket: {e}")
             finally:
                 self.websocket = None
 
-    async def ping_connection(self):
-        try:
-            await self.websocket.ping()
-            return True
-        except:
-            return False
+    async def _open_and_speak(self, text):
+        """Open a fresh connection and speak text in one round trip.
 
-    async def drain_socket(self):
+        Combines voice settings + text + flush into the first message so there
+        is no separate init→speak handshake. Used when we know we need a fresh
+        connection (e.g. previous connection closed after a flush).
+        """
+        self.websocket = await asyncio.wait_for(websockets.connect(self._ws_uri()), timeout=8.0)
+        await self.websocket.send(dumps({
+            "text": text,
+            "voice_settings": self._voice_settings(),
+            "xi_api_key": self.elevenlabs_key,
+            "flush": True,
+        }))
+        return await self._collect_audio()
+
+    async def _collect_audio(self):
+        """Collect audio chunks until isFinal or inter-chunk timeout. Returns (bytes, success)."""
+        audio_chunks = []
+        timeout = 5.0  # 5s for first chunk; 0.5s between subsequent chunks
         try:
             while True:
-                await asyncio.wait_for(self.websocket.recv(), timeout=0.2)
-                self.logger.warning("[TTS] Had to drain the websocket.")
-        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
-            pass
+                try:
+                    message = await asyncio.wait_for(self.websocket.recv(), timeout=timeout)
+                    data = loads(message)
+                    if data.get("audio"):
+                        audio_chunks.append(base64.b64decode(data["audio"]))
+                        timeout = 0.5
+                    if data.get("isFinal"):
+                        break
+                except asyncio.TimeoutError:
+                    if audio_chunks:
+                        break  # Inter-chunk gap — response is complete
+                    self.logger.error('[TTS] No audio received from Elevenlabs')
+                    self.websocket = None
+                    return None, False
+        except (websockets.exceptions.ConnectionClosedOK,
+                websockets.exceptions.ConnectionClosedError,
+                Exception) as e:
+            self.logger.warning(f"[TTS] Connection closed during receive: {e}")
+            self.websocket = None
+            return b''.join(audio_chunks) if audio_chunks else None, bool(audio_chunks)
+
+        # Connection may have closed server-side after the flush response.
+        # Mark it None so next speak() opens fresh without the overhead of ping.
+        self.websocket = None
+        return b''.join(audio_chunks) if audio_chunks else None, True
 
     async def speak(self, text):
         async with self.lock:
-            # Reconnect if no active connection.
-            if not self.websocket or self.websocket.closed:
-                self.logger.warning("[TTS] Websocket not connected. Initiating reconnect.")
-                await self.connect()
-            if not await self.ping_connection():
-                self.logger.warning("[TTS] Websocket not connected. Initiating reconnect.")
-                await self.connect()
+            # Every speak() opens a fresh connection and sends voice settings +
+            # text in a single message. This avoids the separate init round trip
+            # and the ping check, since connections reliably close after each flush.
+            audio, success = await self._open_and_speak(text)
 
-            await self.drain_socket()
-            # Send sentence
-            await self.websocket.send(dumps({"text": text, "flush": True}))
+            if not success:
+                self.logger.warning("[TTS] Speak failed, retrying once.")
+                audio, _ = await self._open_and_speak(text)
 
-            while True:
-                try:
-                    message = await asyncio.wait_for(self.websocket.recv(), timeout=5.0)
-                    data = loads(message)
-
-                    if data.get("audio"):
-                        return base64.b64decode(data["audio"])
-                    if data.get("isFinal"):
-                        return None
-                except asyncio.TimeoutError:
-                    self.logger.error('[TTS] No audio received from Elevenlabs')
-                    self.websocket = None
-                    return None
-                except websockets.exceptions.ConnectionClosedOK:
-                    # Normal closure (1000), nothing to worry about
-                    self.logger.warning("[TTS] WebSocket closed cleanly by server.")
-                    self.websocket = None
-                    return None
-                except websockets.exceptions.ConnectionClosedError as e:
-                    # Abnormal closure
-                    self.logger.error(f"[TTS] WebSocket closed with error: {e}")
-                    self.websocket = None
-                    return None
-                except Exception as e:
-                    # Catch-all for JSON parsing or other issues
-                    self.logger.error(f"[TTS] Other failure in elevenlabs tts: {e}")
-                    self.websocket = None
-                    return None
+            return audio
 
 
 class TTSCacher:

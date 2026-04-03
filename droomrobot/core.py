@@ -12,11 +12,23 @@ from threading import Thread
 from time import sleep, strftime
 
 import numpy as np
-import mini.mini_sdk as MiniSdk
 
-from mini import MouthLampColor, MouthLampMode
-from mini.apis.api_action import PlayAction
-from mini.apis.api_expression import SetMouthLamp, PlayExpression
+# Optional import for mini SDK
+try:
+    import mini.mini_sdk as MiniSdk
+    from mini import MouthLampColor, MouthLampMode
+    from mini.apis.api_action import PlayAction
+    from mini.apis.api_expression import SetMouthLamp, PlayExpression
+    MINI_SDK_AVAILABLE = True
+except ImportError:
+    MINI_SDK_AVAILABLE = False
+    MiniSdk = None
+    MouthLampColor = None
+    MouthLampMode = None
+    PlayAction = None
+    SetMouthLamp = None
+    PlayExpression = None
+
 from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.devices.alphamini import Alphamini
@@ -37,6 +49,15 @@ from dotenv import load_dotenv
 from sic_framework.services.llm import GPTConf, GPT, GPTRequest
 
 from droomrobot.droomrobot_tts import TTSConf, GoogleTTSConf, ElevenLabsTTSConf, ElevenLabsTTS, TTSCacher
+
+# Load prompts from text files
+prompt_file = Path(__file__).parent / "resources" / "prompts" / "droomplek_choice.txt"
+with open(prompt_file, 'r', encoding='utf-8') as f:
+    droomplek_choice_prompt = f.read()
+
+imagery_prompt_file = Path(__file__).parent / "resources" / "prompts" / "droomplek_imagery.txt"
+with open(imagery_prompt_file, 'r', encoding='utf-8') as f:
+    droomplek_imagery_prompt = f.read()
 
 """
 Demo: AlphaMini recognizes user intent and replies using Dialogflow/Text-to-Speech and an LLM.
@@ -103,25 +124,6 @@ class InteractionConf:
             return wrapper
         return decorator
 
-class WiFiDevice:
-    """
-    WifiDevice class that the MiniSdk.connect() method expects. Taken from mini/mini_sdk.py. Only the ip address is relevant
-    """
-    def __init__(self, name: str = "", address: str = "localhost", port: int = -1, s_type: str = "", server: str = ""):
-        super().__init__()
-        self.address = address
-        self.port = port
-        self.type = s_type
-        self.server = server
-
-        if name.endswith(s_type):
-            self.name = name[: -(len(s_type) + 1)]
-        else:
-            self.name = name
-
-    def __repr__(self):
-        return str(self.__class__) + " name:" + self.name + " address:" + self.address + " port:" + str(
-            self.port) + " type:" + self.type + " server:" + self.server
 
 class Droomrobot:
     def __init__(self, sic_app: SICApplication, mini_ip, mini_id, mini_password, redis_ip,
@@ -148,9 +150,6 @@ class Droomrobot:
         self.background_thread = Thread(target=self._start_loop, daemon=True)
         self.background_thread.start()
 
-        # Mini IP address
-        self.mini_ip = mini_ip
-
         print('complete')
 
         print("\n SETTING UP OPENAI")
@@ -163,7 +162,7 @@ class Droomrobot:
 
         try:
             # Setup GPT client
-            conf = GPTConf(openai_key=environ["OPENAI_API_KEY"])
+            conf = GPTConf(openai_key=environ["OPENAI_API_KEY"], max_tokens=1000)
             self.gpt = GPT(conf=conf)
         except KeyError:
             self.logger.warning("No openAI key available")
@@ -195,8 +194,6 @@ class Droomrobot:
                 connect_to_elevenlabs_future.result()
                 asyncio.run_coroutine_threadsafe(self.tts.speak("Ik ben aan het initializeren"),
                                                  self.background_loop).result()
-                elevenlabs_thread = Thread(target=self._connect_elevenlabs, daemon=True)
-                elevenlabs_thread.start()
                 print('Elevenlabs TTS activated')
             except Exception as e:
                 self.logger.error("Failed to connect to elevenlabs", exc_info=e)
@@ -208,33 +205,62 @@ class Droomrobot:
 
         if not computer_test_mode:
             print("\n SETTING UP ALPHAMINI")
-            print("Connecting to SIC on alphamini")
-            self.mini_id = mini_id
-            self.mini = Alphamini(
-                ip=mini_ip,
-                mini_id=self.mini_id,
-                mini_password=mini_password,
-                redis_ip=redis_ip,
-                speaker_conf=MiniSpeakersConf(sample_rate=self.sample_rate),
-                bypass_install=True
-            )
-            self.speaker = self.mini.speaker
-            self.mic = self.mini.mic
-            self.mic = self.mini.mic
-            self.mic = self.mini.mic
-            self.device_name = "alphamini"
-
-            print("Connecting to miniSDK")
-            # Create asyncio event loop to keep connection open to miniSDK.
-            self.animation_futures = []
-            self.mini_api = None
-            connect_to_mini_sdk_future = asyncio.run_coroutine_threadsafe(self._connect_once(), self.background_loop)
             try:
-                connect_to_mini_sdk_future.result()
-                self.animate(AnimationType.ACTION, "009")  # Wake up
-                self.animate(AnimationType.EXPRESSION, "codemao20")  # Blink
+                print("Connecting to SIC on alphamini")
+                self.mini_id = mini_id
+                
+                # If we're in a thread without an event loop, create one for this thread
+                # This is needed because Alphamini initialization may use asyncio internally
+                try:
+                    asyncio.get_running_loop()
+                except RuntimeError:
+                    # No running loop in this thread, create a new one for this thread
+                    # but don't set it as the default (we use background_loop for actual async work)
+                    thread_loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(thread_loop)
+                
+                # Initialize Alphamini synchronously
+                self.mini = Alphamini(
+                    ip=mini_ip,
+                    mini_id=self.mini_id,
+                    mini_password=mini_password,
+                    redis_ip=redis_ip,
+                    speaker_conf=MiniSpeakersConf(sample_rate=self.sample_rate),
+                    bypass_install=False
+                )
+                self.speaker = self.mini.speaker
+                self.mic = self.mini.mic
+                self.device_name = "alphamini"
+                
+                # Connect to mini SDK in background loop
+                print("Connecting to miniSDK")
+                self.animation_futures = []
+                self.mini_api = None
+                
+                # Wait for the background loop to be ready
+                max_wait = 5  # seconds
+                waited = 0
+                while not self.background_loop.is_running() and waited < max_wait:
+                    sleep(0.1)
+                    waited += 0.1
+                
+                if not self.background_loop.is_running():
+                    raise RuntimeError("Background event loop failed to start")
+                
+                connect_future = asyncio.run_coroutine_threadsafe(
+                    self._connect_once(),
+                    self.background_loop
+                )
+                try:
+                    connect_future.result(timeout=30)
+                    self.animate(AnimationType.ACTION, "009")  # Wake up
+                    self.animate(AnimationType.EXPRESSION, "codemao20")  # Blink
+                except Exception as e:
+                    self.logger.error("Failed to connect to mini SDK", exc_info=e)
+                    
             except Exception as e:
-                self.logger.error("Failed to connect to mini device", exc_info=e)
+                self.logger.error("Failed to initialize Alphamini", exc_info=e)
+                raise
 
         else:
             print("\n SETTING UP COMPUTER")
@@ -347,8 +373,8 @@ class Droomrobot:
             sleep(sleep_time)
 
     def play_audio(self, audio_file, amplified=False, log=True):
-        audio_file_full_path = Path(__file__).parent.resolve() / audio_file
-        with wave.open(str(audio_file_full_path), 'rb') as wf:
+        audio_path = Path(__file__).parent / audio_file
+        with wave.open(str(audio_path), 'rb') as wf:
             # Get parameters
             sample_width = wf.getsampwidth()
             framerate = wf.getframerate()
@@ -544,17 +570,342 @@ class Droomrobot:
         return None
 
     def get_article(self, word):
-        gpt_response = self.gpt.request(
-            GPTRequest(
-                f'Retourneer het lidwoord van {word}. Retouneer alleen het lidwoord zelf bijv. "de" of "het" en geen andere informatie.'))
-        return gpt_response.response
+        response_text = self._gpt_request_with_timeout(
+            f'Retourneer het lidwoord van {word}. Retouneer alleen het lidwoord zelf bijv. "de" of "het" en geen andere informatie.',
+            max_tokens=10, timeout=8)
+        if response_text is None:
+            print(f"[GPT] get_article fallback for '{word}': using 'de'")
+            return 'de'
+        return response_text.strip()
 
     def get_adjective(self, word):
-        gpt_response = self.gpt.request(
-            GPTRequest(
-                f'Retourneer het bijvoeglijk naamwoord van {word}. Retourneer alleen het bijvoeglijk naamwoord zelf bijv. "groene" of "zachte" en geen andere informatie.'))
-        return gpt_response.response
+        response_text = self._gpt_request_with_timeout(
+            f'Retourneer het bijvoeglijk naamwoord van {word}. Retourneer alleen het bijvoeglijk naamwoord zelf bijv. "groene" of "zachte" en geen andere informatie.',
+            max_tokens=10, timeout=8)
+        if response_text is None:
+            print(f"[GPT] get_adjective fallback for '{word}': using word as-is")
+            return word
+        return response_text.strip()
 
+    def _extract_json_object(self, text: str) -> dict:
+        """
+        Robustly extract JSON even if the model accidentally wraps it in markdown fences,
+        adds extra text, or the response is truncated.
+        """
+        if text is None:
+            raise ValueError("GPT returned no text")
+
+        cleaned = text.strip()
+        print(f"[JSON] Input text length: {len(text)}, cleaned length: {len(cleaned)}")
+
+        # Remove markdown fences if present
+        if cleaned.startswith("```"):
+            print(f"[JSON] Removing markdown fences...")
+            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+            cleaned = re.sub(r"\s*```$", "", cleaned)
+            print(f"[JSON] After removing fences: {len(cleaned)} chars")
+
+        # Try direct parse first
+        try:
+            print(f"[JSON] Trying direct JSON parse...")
+            result = json.loads(cleaned)
+            print(f"[JSON] Direct parse succeeded! Keys: {list(result.keys())}")
+            return result
+        except json.JSONDecodeError as e:
+            print(f"[JSON] Direct parse failed: {e}")
+            pass
+
+        # Fallback 1: Find the start of JSON
+        start_idx = cleaned.find('{')
+        if start_idx == -1:
+            raise ValueError(f"Could not find JSON object start in: {text[:100]}...")
+
+        json_str = cleaned[start_idx:]
+        print(f"[JSON] Found JSON start at position {start_idx}, extracted {len(json_str)} chars")
+        print(f"[JSON] JSON content (first 200 chars): {json_str[:200]}...")
+        
+        # Try to fix truncated JSON by:
+        # 1. Closing any unterminated strings
+        # 2. Adding missing closing braces
+        
+        print(f"[JSON] Attempting to repair truncated JSON...")
+        
+        # Count braces and quotes to determine what's missing
+        brace_count = 0
+        quote_count = 0
+        in_string = False
+        escape_next = False
+        last_complete_pos = 0
+        
+        for i, char in enumerate(json_str):
+            if escape_next:
+                escape_next = False
+                continue
+                
+            if char == '\\' and in_string:
+                escape_next = True
+                continue
+                
+            if char == '"':
+                in_string = not in_string
+                quote_count += 1
+                if not in_string:  # Just closed a string
+                    last_complete_pos = i + 1
+                continue
+            
+            if not in_string:
+                if char == '{':
+                    brace_count += 1
+                    last_complete_pos = i + 1
+                elif char == '}':
+                    brace_count -= 1
+                    if brace_count >= 0:
+                        last_complete_pos = i + 1
+                elif char == ',' or char == ':':
+                    last_complete_pos = i + 1
+        
+        # Repair the JSON
+        # If we're in a string, close it
+        if in_string:
+            json_str = json_str + '"'
+        
+        # Add missing closing braces
+        json_str = json_str + ('}' * brace_count)
+        
+        try:
+            print(f"[JSON] Auto-repair attempt 1: closing string and braces...")
+            result = json.loads(json_str)
+            print(f"[JSON] Auto-repair succeeded!")
+            return result
+        except json.JSONDecodeError as e:
+            print(f"[JSON] Auto-repair 1 failed: {e}")
+        
+        # Fallback 2: Try truncating to the last complete value
+        if last_complete_pos > 0:
+            try:
+                truncated = json_str[:last_complete_pos]
+                # Try to make it valid JSON by removing trailing comma if present
+                if truncated.rstrip().endswith(','):
+                    truncated = truncated.rstrip()[:-1]
+                truncated += ('}' * brace_count)
+                
+                print(f"[JSON] Auto-repair attempt 2: truncate to last complete position...")
+                result = json.loads(truncated)
+                print(f"[JSON] Auto-repair succeeded!")
+                return result
+            except json.JSONDecodeError as e:
+                print(f"[JSON] Auto-repair 2 failed: {e}")
+        
+        # Fallback 3: Extract first {...} block with greedy regex and try to fix it
+        # Use greedy matching (.*)  to capture the COMPLETE JSON object, not just the first {...} pair
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)  # Greedy - matches from first { to last }
+        if match:
+            try:
+                potential = match.group(0)
+                # Close any unterminated strings
+                if potential.count('"') % 2 == 1:
+                    potential += '"'
+                # Add missing closing braces
+                open_braces = potential.count('{') - potential.count('}')
+                if open_braces > 0:
+                    potential += ('}' * open_braces)
+                
+                print(f"[JSON] Auto-repair attempt 3: greedy regex + repair...")
+                result = json.loads(potential)
+                print(f"[JSON] Auto-repair succeeded!")
+                return result
+            except json.JSONDecodeError as e:
+                print(f"[JSON] Auto-repair 3 failed: {e}")
+
+        raise ValueError(f"Could not extract valid JSON from GPT response: {text[:200]}...")
+
+    #def generate_droomplek_payload(self, child_name: str, child_age: int, child_answer: str) -> dict:
+        """
+        Calls GPT with the imported droomplek personalization prompt and returns validated JSON.
+        """
+        prompt = droomplek_personalisation_prompt.format(
+            naam=child_name,
+            leeftijd=child_age,
+            child_answer=child_answer
+        )
+
+        gpt_response = self.gpt.request(GPTRequest(prompt))
+        payload = self._extract_json_object(gpt_response.response)
+
+        required_keys = [
+            "speech_text",
+            "dream_place_final",
+            "dream_place_article",
+            "place_decided",
+            "guided_imagery_seed",
+        ]
+        for key in required_keys:
+            if key not in payload:
+                raise ValueError(f"Missing key in droomplek payload: {key}")
+
+        payload["speech_text"] = str(payload["speech_text"]).strip()
+        payload["dream_place_final"] = str(payload["dream_place_final"]).strip().lower()
+        payload["dream_place_article"] = str(payload["dream_place_article"]).strip().lower()
+        payload["place_decided"] = bool(payload["place_decided"])
+
+        if payload["guided_imagery_seed"] is not None:
+            payload["guided_imagery_seed"] = str(payload["guided_imagery_seed"]).strip()
+
+        return payload
+    def _gpt_request_with_timeout(self, prompt: str, max_tokens: int = 1000, timeout: int = 15):
+        """Send a GPT request in a thread with a timeout. Returns response text or None."""
+        import threading
+        gpt_response = [None]
+        gpt_error = [None]
+
+        def _request():
+            try:
+                gpt_response[0] = self.gpt.request(GPTRequest(prompt, max_tokens=max_tokens))
+            except Exception as e:
+                gpt_error[0] = e
+
+        thread = threading.Thread(target=_request, daemon=True)
+        thread.start()
+        thread.join(timeout=timeout)
+
+        if thread.is_alive():
+            print(f"[GPT] Request timed out after {timeout}s")
+            return None
+        if gpt_error[0]:
+            print(f"[GPT] Request failed: {repr(gpt_error[0])}")
+            return None
+        if not gpt_response[0]:
+            print(f"[GPT] No response returned")
+            return None
+        return gpt_response[0].response
+
+    def generate_droomplek_payload(self, child_name: str, child_age: int, child_answer: str) -> dict:
+        print(f"\n[DROOMPLEK] Starting generate_droomplek_payload")
+        print(f"[DROOMPLEK] Input: child_name={child_name}, child_age={child_age}, child_answer={child_answer}")
+
+        fallback_payload = {
+            'speech_text': f'Wat leuk dat je {child_answer} hebt gekozen! Dat is een fijne plek.',
+            'dream_place_final': 'strand',
+            'dream_place_article': 'het',
+            'place_decided': False,
+        }
+
+        if not self.gpt:
+            print(f"[DROOMPLEK] GPT not initialized, using fallback")
+            return fallback_payload
+
+        prompt = (
+            droomplek_choice_prompt +
+            f"\n\nCHILD INFORMATION:\n"
+            f"Name: {child_name}\n"
+            f"Age: {child_age}\n"
+            f"Child's answer about dream place: {child_answer}"
+        )
+        print(f"[DROOMPLEK] Prompt length: {len(prompt)}")
+
+        response_text = self._gpt_request_with_timeout(prompt, max_tokens=300)
+        if not response_text:
+            print(f"[DROOMPLEK] GPT failed, using fallback")
+            return fallback_payload
+
+        print(f"[DROOMPLEK] Response (first 300 chars): {response_text[:300]}")
+
+        try:
+            payload = self._extract_json_object(response_text)
+            required_keys = ["speech_text", "dream_place_final", "dream_place_article", "place_decided"]
+            for key in required_keys:
+                if key not in payload:
+                    print(f"[DROOMPLEK] Missing key '{key}', using fallback")
+                    return fallback_payload
+
+            payload["speech_text"] = str(payload["speech_text"]).strip()
+            payload["dream_place_final"] = str(payload["dream_place_final"]).strip().lower()
+            payload["dream_place_article"] = str(payload["dream_place_article"]).strip().lower()
+            payload["place_decided"] = bool(payload["place_decided"])
+            print(f"[DROOMPLEK] Payload validated: {payload}")
+            return payload
+        except Exception as e:
+            print(f"[DROOMPLEK] JSON parse error: {repr(e)}, using fallback")
+            return fallback_payload
+
+    def generate_droomplek_imagery_payload(self, child_name: str, child_age: int,
+                                           droomplek: str, droomplek_article: str,
+                                           motivatie: str) -> dict:
+        print(f"\n[IMAGERY] Starting generate_droomplek_imagery_payload")
+        print(f"[IMAGERY] Input: name={child_name}, age={child_age}, droomplek={droomplek}, motivatie={motivatie}")
+
+        fallback_payload = {
+            'transition_sentence': 'Oke, laten we samen gaan oefenen.',
+            'guided_imagery_seed': (
+                f'Stel je voor dat je bij {droomplek_article} {droomplek} bent. '
+                'Kijk maar eens in je hoofd om je heen, wat je allemaal op die mooie plek ziet. '
+                'Misschien ben je er alleen, of is er iemand bij je. '
+                'Kijk maar welke mooie kleuren je allemaal om je heen ziet. '
+                'En merk maar hoe fijn jij je op deze plek voelt.'
+            ),
+            'guided_imagery_seed_2': (
+                'Kijk maar weer naar alle mooie kleuren die er zijn, en voel hoe fijn het is om daar te zijn. '
+                'Luister maar naar alle fijne geluiden op die plek.'
+            ),
+            'intervention_preparation_sentences': [
+                f'Kijk maar naar de leuke dingen die je bij {droomplek_article} {droomplek} kunt doen.',
+                'Misschien ben je er alleen of juist met je vrienden.',
+                f'Wat een leuke plek, {droomplek_article} {droomplek}, die wil ik ook wel eens bezoeken.',
+            ],
+            'intervention_procedure_sentences': [
+                f'Je doet het fantastisch bij {droomplek_article} {droomplek}!',
+                'Adem rustig door, je bent helemaal in controle.',
+                f'Kijk maar rond op je droomplek, wat zie je allemaal bij {droomplek_article} {droomplek}?',
+                f'Wat ruik je eigenlijk bij {droomplek_article} {droomplek}?',
+                f'Wat voor geluiden hoor je op die mooie plek?',
+                f'Jouw droomplek bij {droomplek_article} {droomplek} is echt een fijne plek.',
+            ],
+        }
+
+        if not self.gpt:
+            print(f"[IMAGERY] GPT not initialized, using fallback")
+            return fallback_payload
+
+        prompt = (
+            droomplek_imagery_prompt +
+            f"\n\nCHILD INFORMATION:\n"
+            f"Name: {child_name}\n"
+            f"Age: {child_age}\n"
+            f"Droomplek: {droomplek}\n"
+            f"Droomplek article: {droomplek_article}\n"
+            f"Child's motivation (what they want to do there): {motivatie}"
+        )
+        print(f"[IMAGERY] Prompt length: {len(prompt)}")
+
+        response_text = self._gpt_request_with_timeout(prompt, max_tokens=700)
+        if not response_text:
+            print(f"[IMAGERY] GPT failed, using fallback")
+            return fallback_payload
+
+        print(f"[IMAGERY] Response (first 300 chars): {response_text[:300]}")
+
+        try:
+            payload = self._extract_json_object(response_text)
+            required_keys = [
+                "transition_sentence", "guided_imagery_seed", "guided_imagery_seed_2",
+                "intervention_preparation_sentences", "intervention_procedure_sentences"
+            ]
+            for key in required_keys:
+                if key not in payload:
+                    print(f"[IMAGERY] Missing key '{key}', using fallback")
+                    return fallback_payload
+
+            payload["transition_sentence"] = str(payload["transition_sentence"]).strip()
+            payload["guided_imagery_seed"] = str(payload["guided_imagery_seed"]).strip()
+            payload["guided_imagery_seed_2"] = str(payload["guided_imagery_seed_2"]).strip()
+            payload["intervention_preparation_sentences"] = [str(s).strip() for s in payload["intervention_preparation_sentences"]]
+            payload["intervention_procedure_sentences"] = [str(s).strip() for s in payload["intervention_procedure_sentences"]]
+            print(f"[IMAGERY] Payload validated successfully")
+            return payload
+        except Exception as e:
+            print(f"[IMAGERY] JSON parse error: {repr(e)}, using fallback")
+            return fallback_payload
+    
     def personalize(self, robot_input, user_age, user_input):
         gpt_response = self.gpt.request(
             GPTRequest(f'Je bent een sociale robot die praat met een kind van {str(user_age)} jaar oud.'
@@ -675,10 +1026,7 @@ class Droomrobot:
 
     async def _connect_once(self):
         if not self.mini_api:
-            # old method that used mutlicast to discover the device
-            # self.mini_api = await MiniSdk.get_device_by_name(self.mini_id, 10)
-            # new method that uses the ip address directly
-            self.mini_api = WiFiDevice(name=self.mini_id, address=self.mini_ip)
+            self.mini_api = await MiniSdk.get_device_by_name(self.mini_id, 10)
             await MiniSdk.connect(self.mini_api)
 
     @staticmethod
@@ -711,18 +1059,6 @@ class Droomrobot:
 
     def reset_interaction_conf(self):
         self.interaction_conf = InteractionConf()
-
-    def _connect_elevenlabs(self):
-        while True:
-            try:
-                asyncio.run_coroutine_threadsafe(self.tts.speak("Ik ben aan het initializeren"),
-                                                 self.background_loop).result()
-                self.logger.info('Elevenlabs still connected')
-            except Exception as e:
-                self.logger.error("Failed to connect to elevenlabs", exc_info=e)
-
-            sleep(150)
-
 
     @staticmethod
     def _random_speaking_act():
@@ -795,47 +1131,33 @@ class Droomrobot:
     @staticmethod
     def _split_text(text: str, max_len: int = 80, min_tail: int = 20):
         """
-            Split text into natural chunks of ~max_len characters.
-            - First, split by sentence boundaries (.?!)
-            - Then, split long sentences further at commas or spaces
-              while avoiding tiny fragments at the end.
-            """
+        Split text only at sentence boundaries (.?!) for natural speech flow.
+        Each chunk is one complete sentence. Only splits within a sentence if
+        it is extremely long (>300 chars), to avoid single massive TTS requests.
+        """
         text = text.strip()
 
-        if len(text) <= max_len:
-            return [text]
+        # Split at sentence boundaries only
+        sentences = re.split(r'(?<=[.?!])\s+', text)
 
         chunks = []
-
-        # Step 1: split at sentence boundaries, including no-space cases
-        sentences = re.split(r'(?<=[.?!])(?=\s|[A-Z])', text)
-
         for sentence in sentences:
             sentence = sentence.strip()
             if not sentence:
                 continue
 
-            while len(sentence) > max_len:
-                # Try to find a good split point
-                chunk = sentence[:max_len]
-
-                # Prefer splitting at last comma
-                break_pos = chunk.rfind(',')
-
-                if break_pos == -1:
-                    # otherwise split at last space
-                    break_pos = chunk.rfind(' ')
-
-                    if break_pos == -1 or break_pos < max_len // 3:
-                        # fallback: just split at max_len
-                        break_pos = max_len
-
-                # Avoid leaving tiny tail
-                if len(sentence) - break_pos < min_tail:
-                    break_pos = len(sentence)
-
-                chunks.append(sentence[:break_pos].strip())
-                sentence = sentence[break_pos:].strip()
+            # Only split sentences that are extremely long
+            if len(sentence) > 300:
+                while len(sentence) > 300:
+                    break_pos = sentence.rfind('.', 0, 300)
+                    if break_pos == -1:
+                        break_pos = sentence.rfind(',', 0, 300)
+                    if break_pos == -1:
+                        break_pos = sentence.rfind(' ', 0, 300)
+                    if break_pos == -1:
+                        break_pos = 300
+                    chunks.append(sentence[:break_pos].strip())
+                    sentence = sentence[break_pos:].strip()
 
             if sentence:
                 chunks.append(sentence)
