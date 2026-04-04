@@ -1,51 +1,36 @@
-import json
+# import demo-specific modules
 import os
-from datetime import datetime, timezone
 from pathlib import Path
-
 from dotenv import load_dotenv
 
+# import SIC framework components
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
+# import services, and message types
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
-    SetUsermodelValuesRequest,
-    GetUsermodelValuesRequest,
-    GetUsermodelRequest,
-    GetUsermodelKeysRequest,
-    DeleteUsermodelValuesRequest,
-    DeleteUserRequest,
-    DeleteNamespaceRequest,
     IngestVectorDocsRequest,
     QueryVectorDBRequest,
-    UsermodelKeyValuesMessage,
     VectorDBResultsMessage,
+    DeleteNamespaceRequest,
     SICSuccessMessage
 )
 
 
 class RAGDemo(SICApplication):
     """
-    Demonstrates using Redis datastore for RAG (Retrieval-Augmented Generation) scenarios.
+    Demonstrates vector-based document search using Redis datastore.
     
     This demo shows how to:
-    - Ingest PDF documents using built-in vector embedding capabilities
-    - Query documents using semantic similarity search
-    - Store conversation history and context
-    - Track user knowledge states and preferences
-    - Manage multi-turn conversations with persistent context
-    
-    The demo uses the redis_datastore service's built-in features for:
-    - PDF text extraction (via pypdf)
-    - Text chunking with configurable overlap
-    - OpenAI embeddings generation
-    - Vector similarity search
+    - Ingest PDF documents with automatic text extraction and chunking
+    - Generate embeddings using OpenAI
+    - Perform semantic similarity search over documents
     
     Prerequisites:
     1. Start Redis Stack: docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
-    2. Set OPENAI_API_KEY environment variable
+    2. Set OPENAI_API_KEY environment variable (in conf/.env or export)
     3. Start the datastore service: run-redis
     """
 
@@ -53,16 +38,21 @@ class RAGDemo(SICApplication):
         super(RAGDemo, self).__init__()
         self.datastore = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         
+        # Load environment variables (including OPENAI_API_KEY)
         env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
         load_dotenv(env_path)
+        
+        # Get API key from environment
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not self.openai_api_key:
+            self.logger.warning("OPENAI_API_KEY not found in environment")
 
         self.setup()
 
     def setup(self):
-        """Initialize Redis datastore for RAG."""
-
+        """Initialize Redis datastore connection."""
         redis_conf = RedisDatastoreConf(
             host="127.0.0.1",
             port=6379,
@@ -73,30 +63,104 @@ class RAGDemo(SICApplication):
         )
         self.datastore = RedisDatastore(conf=redis_conf)
     
-    def ingest_pdfs_from_directory(self):
-        """Ingest all PDF files from the vector_docs directory using built-in vector RAG."""
-        self.logger.info("\n=== Ingesting PDF Documents with Vector Embeddings ===")
+    def ingest_documents(self):
+        """
+        Ingest PDF documents from the vector_docs directory.
         
-        docs_dir = os.path.join(os.path.dirname(__file__), 'vector_docs')
+        Documents are stored in Redis Stack as follows:
         
-        if not os.path.exists(docs_dir):
+        1. **Vector Index**: Created with name "rag_demo_docs"
+           - Check indexes: FT._LIST
+           - View index info: FT.INFO rag_demo_docs
+        
+        2. **Document Chunks**: Stored as Redis hashes with keys:
+           - Pattern: vec:rag_demo_docs:demo:<file_hash>:<chunk_number>
+           - Example: vec:rag_demo_docs:demo:a3f5c8d9e1b2:0
+        
+        3. **Hash Fields** for each chunk:
+           - partition: "demo" (for filtering/isolation)
+           - doc_path: Full path to original PDF file
+           - chunk_id: Chunk number within the document
+           - content: Text content of the chunk
+           - embedding: Float32 vector (3072 dimensions for text-embedding-3-large)
+        
+        4. **Index Schema**: RediSearch creates the following searchable fields:
+           - partition (TAG): For filtering by partition
+           - doc_path (TEXT): Full-text searchable document path
+           - chunk_id (NUMERIC): Chunk number
+           - content (TEXT): Full-text searchable content
+           - embedding (VECTOR): HNSW index for similarity search
+        
+        You can inspect the data using redis-cli:
+        ```
+        # List all indexes
+        FT._LIST
+        
+        # Get index info
+        FT.INFO rag_demo_docs
+        
+        # List all document chunks
+        KEYS vec:rag_demo_docs:demo:*
+        
+        # View a specific chunk
+        HGETALL vec:rag_demo_docs:demo:<hash>:0
+        ```
+        """
+        self.logger.info("\n=== Ingesting PDF Documents ===")
+        
+        if not self.openai_api_key:
+            self.logger.error("✗ OPENAI_API_KEY not set")
+            self.logger.info("  Set it in conf/.env or: export OPENAI_API_KEY='your-key-here'")
+            return None
+        
+        docs_dir = Path(__file__).parent / "vector_docs"
+        
+        if not docs_dir.exists():
             self.logger.warning(f"Directory not found: {docs_dir}")
             return None
         
         self.logger.info(f"Processing PDFs from: {docs_dir}")
-        self.logger.info("Using OpenAI embeddings for semantic search capability")
+        self.logger.info("Extracting text, chunking, and generating embeddings...")
         
         try:
             result = self.datastore.request(
                 IngestVectorDocsRequest(
-                    input_path=docs_dir,
-                    index_name="rag_demo__docs",
+                    # Path to directory containing PDFs to ingest
+                    input_path=str(docs_dir),
+                    
+                    # OpenAI API key for generating embeddings
+                    openai_api_key=self.openai_api_key,
+                    
+                    # Redis index name (used for FT.SEARCH queries)
+                    # Will create keys like: vec:rag_demo_docs:demo:*
+                    index_name="rag_demo_docs",
+                    
+                    # Logical partition for isolating/filtering documents
+                    # Allows multiple document sets in the same index
                     partition="demo",
+                    
+                    # File glob pattern for matching files to ingest
+                    # "**/*.pdf" = recursively find all PDFs in subdirectories
                     glob="**/*.pdf",
+                    
+                    # Maximum characters per text chunk
+                    # Larger chunks = more context, but less granular retrieval
                     chunk_chars=1200,
+                    
+                    # Character overlap between consecutive chunks
+                    # Helps maintain context across chunk boundaries
                     chunk_overlap=150,
+                    
+                    # OpenAI embedding model to use
+                    # text-embedding-3-large = 3072 dimensions, high quality
                     embedding_model="text-embedding-3-large",
+                    
+                    # Delete existing documents in this partition before ingesting
+                    # False = append new docs, True = replace all docs in partition
                     override_existing=True,
+                    
+                    # Drop and recreate the entire index (destructive!)
+                    # True = delete index and all partitions, False = keep existing index
                     force_recreate_index=True
                 )
             )
@@ -105,273 +169,135 @@ class RAGDemo(SICApplication):
                 payload = result.payload
                 if payload.get('ok'):
                     for res in payload.get('results', []):
-                        self.logger.info(f"Ingested: {res.get('files', 0)} files, {res.get('chunks', 0)} chunks")
+                        self.logger.info(f"✓ Ingested {res.get('files', 0)} files → {res.get('chunks', 0)} chunks")
                         self.logger.info(f"  Index: {res.get('index', 'unknown')}")
                 return result
             
+        except RuntimeError as e:
+            error_msg = str(e)
+            if "RediSearch module is not available" in error_msg:
+                self.logger.error("✗ RediSearch module not found - Redis Stack required")
+                self.logger.info("  Install: docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest")
+            elif "openai_api_key parameter is required" in error_msg:
+                self.logger.error("✗ OpenAI API key not provided")
+                self.logger.info("  Set it in conf/.env or: export OPENAI_API_KEY='your-key-here'")
+            elif "Missing dependency: pypdf" in error_msg:
+                self.logger.error("✗ pypdf not installed")
+                self.logger.info("  Install: pip install pypdf")
+            elif "Missing dependency: openai" in error_msg:
+                self.logger.error("✗ openai not installed")
+                self.logger.info("  Install: pip install openai")
+            elif "Missing dependency: numpy" in error_msg:
+                self.logger.error("✗ numpy not installed")
+                self.logger.info("  Install: pip install numpy")
+            else:
+                self.logger.error(f"✗ Error: {e}")
+            return None
         except Exception as e:
-            self.logger.error(f"Error ingesting PDFs: {e}")
-            self.logger.info("Make sure OPENAI_API_KEY is set and pypdf is installed")
+            self.logger.error(f"✗ Unexpected error: {e}")
             return None
 
-    def run(self):
-        """Run RAG demo scenarios."""
-        try:
-            self.ingest_pdfs_from_directory()
-            self.demo_semantic_search()
-            self.demo_conversation_context()
-            self.demo_user_knowledge_state()
-            self.demo_multi_turn_conversation()
-            self.demo_context_retrieval()
-            self.demo_cleanup()
-        except Exception as e:
-            self.logger.error(f"Demo error: {e}")
-        finally:
-            self.shutdown()
-
-    def demo_semantic_search(self):
-        """Demonstrate semantic search over ingested documents using vector embeddings."""
-        self.logger.info("\n=== Semantic Search with Vector Embeddings ===")
+    def search_documents(self, query: str, k: int = 3):
+        """Search documents using semantic similarity."""
+        self.logger.info(f"\nQuery: '{query}'")
         
-        queries = [
-            "What is natural language processing?",
-            "How do robots detect human faces?",
-            "Tell me about social robotics"
-        ]
-        
-        for query in queries:
-            self.logger.info(f"\nQuery: {query}")
-            
-            try:
-                result = self.datastore.request(
-                    QueryVectorDBRequest(
-                        episode="rag_demo",
-                        character="docs",
-                        query_text=query,
-                        k=3,
-                        partition="demo",
-                        index_prefix="",
-                        embedding_model="text-embedding-3-large"
-                    )
-                )
-                
-                if isinstance(result, VectorDBResultsMessage):
-                    payload = result.payload
-                    self.logger.info(f"  Found {payload.get('total', 0)} results:")
-                    for res in payload.get('results', [])[:3]:
-                        self.logger.info(f"    Score: {res.get('score', 0):.4f}")
-                        self.logger.info(f"    Doc: {os.path.basename(res.get('doc_path', 'unknown'))}")
-                        self.logger.info(f"    Chunk {res.get('chunk_id', 0)}: {res.get('content', '')[:100]}...")
-                        
-            except Exception as e:
-                self.logger.error(f"  Search error: {e}")
-                self.logger.info("  Note: Make sure documents were ingested first")
-
-    def demo_document_storage(self):
-        """Demonstrate accessing vector search results."""
-        self.logger.info("\n=== Vector Database Query Example ===")
+        if not self.openai_api_key:
+            self.logger.error("  ✗ OPENAI_API_KEY not set")
+            return
         
         try:
             result = self.datastore.request(
                 QueryVectorDBRequest(
+                    # Index name components: <index_prefix><episode>__<character>
+                    # Results in index name: "rag_demo__docs"
                     episode="rag_demo",
                     character="docs",
-                    query_text="robotics and human interaction",
-                    k=5,
+                    
+                    # The search query text to find similar documents
+                    query_text=query,
+                    
+                    # OpenAI API key for generating query embedding
+                    openai_api_key=self.openai_api_key,
+                    
+                    # Number of top results to return (ranked by similarity)
+                    k=k,
+                    
+                    # Optional: filter results to specific partition
+                    # Must match partition used during ingestion
                     partition="demo",
+                    
+                    # Optional prefix for index name composition
+                    # Empty string means no prefix
+                    index_prefix="",
+                    
+                    # Must match the model used during ingestion
+                    # to ensure compatible embedding dimensions
                     embedding_model="text-embedding-3-large"
                 )
             )
             
             if isinstance(result, VectorDBResultsMessage):
                 payload = result.payload
-                self.logger.info(f"Index: {payload.get('index', 'unknown')}")
-                self.logger.info(f"Total results: {payload.get('total', 0)}")
+                total = payload.get('total', 0)
                 
+                if total == 0:
+                    self.logger.info("  No results found")
+                    return
+                
+                self.logger.info(f"  Found {total} results:")
                 for idx, res in enumerate(payload.get('results', []), 1):
-                    self.logger.info(f"\nResult {idx}:")
-                    self.logger.info(f"  Document: {os.path.basename(res.get('doc_path', 'unknown'))}")
-                    self.logger.info(f"  Similarity: {res.get('score', 0):.4f}")
-                    self.logger.info(f"  Content: {res.get('content', '')[:150]}...")
-        
+                    score = res.get('score', 0)
+                    doc_name = os.path.basename(res.get('doc_path', 'unknown'))
+                    content = res.get('content', '')[:120]
+                    
+                    self.logger.info(f"\n  {idx}. {doc_name} (similarity: {score:.4f})")
+                    self.logger.info(f"     {content}...")
+                    
+        except RuntimeError as e:
+            error_msg = str(e)
+            if "RediSearch module is not available" in error_msg:
+                self.logger.error("  ✗ RediSearch not available")
+            elif "openai_api_key parameter is required" in error_msg:
+                self.logger.error("  ✗ OpenAI API key not provided")
+            elif "does not exist" in error_msg:
+                self.logger.error("  ✗ Index not found - run ingestion first")
+            else:
+                self.logger.error(f"  ✗ Search error: {e}")
         except Exception as e:
-            self.logger.error(f"Query error: {e}")
+            self.logger.error(f"  ✗ Unexpected error: {e}")
 
-    def demo_conversation_context(self):
-        """Store and retrieve conversation history for context awareness."""
-        self.logger.info("\n=== Managing Conversation Context ===")
-        
-        conversation_id = 'conv_alice_001'
-        
-        conversation_data = {
-            'user_id': 'alice',
-            'start_time': datetime.now(timezone.utc).isoformat(),
-            'turn_count': '0',
-            'current_topic': 'greetings',
-            'sentiment': 'neutral',
-            'conversation_history': json.dumps([])
-        }
-        
-        self.datastore.request(
-            SetUsermodelValuesRequest(user_id=conversation_id, keyvalues=conversation_data)
-        )
-        self.logger.info(f"Initialized conversation: {conversation_id}")
-        
-        turns = [
-            {'speaker': 'user', 'text': 'Hello, can you help me with robotics?', 'topic': 'robotics'},
-            {'speaker': 'bot', 'text': 'Of course! What would you like to know?', 'topic': 'robotics'},
-            {'speaker': 'user', 'text': 'How do robots detect faces?', 'topic': 'face_detection'}
-        ]
-        
-        history = []
-        for idx, turn in enumerate(turns):
-            history.append(turn)
+    def run(self):
+        """Run the RAG demo."""
+        try:
+            # Step 1: Ingest documents
+            result = self.ingest_documents()
             
-            update = {
-                'turn_count': str(idx + 1),
-                'current_topic': turn['topic'],
-                'conversation_history': json.dumps(history),
-                'last_updated': datetime.now(timezone.utc).isoformat()
-            }
+            if result is None:
+                self.logger.error("\nDocument ingestion failed. Fix errors above and try again.")
+                return
             
-            self.datastore.request(
-                SetUsermodelValuesRequest(user_id=conversation_id, keyvalues=update)
-            )
-            self.logger.info(f"Turn {idx+1}: {turn['speaker']} - {turn['text'][:30]}...")
-        
-        final_context = self.datastore.request(GetUsermodelRequest(user_id=conversation_id))
-        self.logger.info(f"Conversation has {final_context.keyvalues['turn_count']} turns")
-
-    def demo_user_knowledge_state(self):
-        """Track what topics a user has encountered and their expertise."""
-        self.logger.info("\n=== Tracking User Knowledge State ===")
-        
-        user_id = 'alice'
-        
-        knowledge_state = {
-            'known_topics': json.dumps(['python', 'machine_learning']),
-            'learning_goals': json.dumps(['robotics', 'computer_vision']),
-            'expertise_level': 'intermediate',
-            'questions_asked': '0',
-            'topics_explored': json.dumps([])
-        }
-        
-        self.datastore.request(
-            SetUsermodelValuesRequest(user_id=user_id, keyvalues=knowledge_state)
-        )
-        self.logger.info(f"Initialized knowledge state for user: {user_id}")
-        
-        new_topics = ['face_detection', 'speech_recognition']
-        current_state = self.datastore.request(GetUsermodelRequest(user_id=user_id))
-        
-        topics_explored = json.loads(current_state.keyvalues['topics_explored'])
-        topics_explored.extend(new_topics)
-        questions_count = int(current_state.keyvalues['questions_asked']) + 2
-        
-        updates = {
-            'topics_explored': json.dumps(topics_explored),
-            'questions_asked': str(questions_count),
-            'last_active': datetime.now(timezone.utc).isoformat()
-        }
-        
-        self.datastore.request(
-            SetUsermodelValuesRequest(user_id=user_id, keyvalues=updates)
-        )
-        self.logger.info(f"Updated knowledge state - explored topics: {topics_explored}")
-
-    def demo_multi_turn_conversation(self):
-        """Simulate a multi-turn conversation with context persistence."""
-        self.logger.info("\n=== Multi-Turn Conversation with Context ===")
-        
-        session_id = 'session_bob_001'
-        
-        turns = [
-            {
-                'turn': 1,
-                'user_query': 'What is a Pepper robot?',
-                'retrieved_docs': json.dumps(['doc_robotics_001']),
-                'bot_response': 'Pepper is a humanoid social robot...',
-                'user_satisfied': 'true'
-            },
-            {
-                'turn': 2,
-                'user_query': 'Can it recognize emotions?',
-                'retrieved_docs': json.dumps(['doc_robotics_001', 'doc_ai_002']),
-                'bot_response': 'Yes, it has emotion recognition capabilities...',
-                'user_satisfied': 'true'
-            },
-            {
-                'turn': 3,
-                'user_query': 'How accurate is it?',
-                'retrieved_docs': json.dumps(['doc_ai_002']),
-                'bot_response': 'The accuracy depends on lighting and distance...',
-                'user_satisfied': 'false'
-            }
-        ]
-        
-        for turn_data in turns:
-            turn_num = turn_data['turn']
-            turn_key = f"turn_{turn_num}"
+            # Step 2: Perform semantic searches
+            self.logger.info("\n=== Semantic Search Examples ===")
             
-            self.datastore.request(
-                SetUsermodelValuesRequest(
-                    user_id=session_id,
-                    keyvalues={
-                        turn_key: json.dumps(turn_data),
-                        'current_turn': str(turn_num),
-                        'last_updated': datetime.now(timezone.utc).isoformat()
-                    }
-                )
-            )
-            self.logger.info(f"Turn {turn_num}: {turn_data['user_query'][:40]}...")
-        
-        session_data = self.datastore.request(GetUsermodelRequest(user_id=session_id))
-        self.logger.info(f"Session completed with {session_data.keyvalues['current_turn']} turns")
-        
-        keys = self.datastore.request(GetUsermodelKeysRequest(user_id=session_id))
-        self.logger.info(f"Session keys: {keys.keys}")
-
-    def demo_context_retrieval(self):
-        """Retrieve conversation context for generating responses."""
-        self.logger.info("\n=== Retrieving Context for Response Generation ===")
-        
-        session_id = 'session_bob_001'
-        
-        response = self.datastore.request(
-            GetUsermodelValuesRequest(
-                user_id=session_id,
-                keys=['turn_3', 'current_turn']
-            )
-        )
-        
-        if isinstance(response, UsermodelKeyValuesMessage):
-            self.logger.info(f"Retrieved context: {response.keyvalues}")
+            queries = [
+                "What is natural language processing?",
+                "How do robots detect human faces?",
+                "Explain social robotics and human-robot interaction"
+            ]
             
-            if response.keyvalues['turn_3']:
-                turn_3_data = json.loads(response.keyvalues['turn_3'])
-                self.logger.info(f"Last turn satisfied: {turn_3_data['user_satisfied']}")
-                self.logger.info("Context suggests user needs more detailed answer")
-
-    def demo_delete_operations(self):
-        """Clean up specific data."""
-        self.logger.info("\n=== Deleting Specific Fields ===")
-        
-        user_id = 'alice'
-        
-        response = self.datastore.request(
-            DeleteUsermodelValuesRequest(user_id=user_id, keys=['last_active'])
-        )
-        
-        if isinstance(response, SICSuccessMessage):
-            self.logger.info(f"Deleted 'last_active' field from {user_id}")
-
-    def demo_cleanup(self):
-        """Clean up demo data."""
-        self.logger.info("\n=== Cleaning Up Demo Data ===")
-        
-        response = self.datastore.request(DeleteNamespaceRequest())
-        if isinstance(response, SICSuccessMessage):
-            self.logger.info("Demo namespace cleaned up successfully")
+            for query in queries:
+                self.search_documents(query, k=2)
+            
+            # Step 3: Clean up
+            self.logger.info("\n=== Cleanup ===")
+            response = self.datastore.request(DeleteNamespaceRequest())
+            if isinstance(response, SICSuccessMessage):
+                self.logger.info("✓ Demo data cleaned up")
+                
+        except Exception as e:
+            self.logger.error(f"Demo error: {e}")
+        finally:
+            self.shutdown()
 
 
 if __name__ == "__main__":
