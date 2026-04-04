@@ -1,6 +1,9 @@
 # import basic SIC framework components
-from sic_framework.core.sic_application import SICApplication
+from pathlib import Path
+
+from dotenv import load_dotenv
 from sic_framework.core import sic_logging
+from sic_framework.core.sic_application import SICApplication
 
 # import services, and message types
 from sic_framework.services.datastore.redis_datastore import (
@@ -42,6 +45,11 @@ class UserModelDemo(SICApplication):
         # set log file path if needed
         # self.set_log_file("/path/to/logs")
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def setup(self):

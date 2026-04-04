@@ -6,6 +6,8 @@ import urllib.request
 
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.services.webserver.webserver_service import WebserverConf, Webserver
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 class WebserverDemo(SICApplication):
@@ -21,6 +23,11 @@ class WebserverDemo(SICApplication):
     def __init__(self):
         super(WebserverDemo, self).__init__()
         self.webserver = None
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def setup(self):

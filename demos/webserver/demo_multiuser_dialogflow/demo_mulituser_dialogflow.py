@@ -8,6 +8,8 @@ import webbrowser
 from dataclasses import dataclass
 from os.path import abspath, join
 from typing import Dict, Optional
+from pathlib import Path
+from dotenv import load_dotenv
 
 import numpy as np
 from sic_framework.core import sic_logging
@@ -60,6 +62,11 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self.keyfile_json = None
 
         self.set_log_level(sic_logging.INFO)
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def setup(self):

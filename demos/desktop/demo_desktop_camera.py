@@ -15,6 +15,8 @@ from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraCon
 
 # Import the device we will be using
 from sic_framework.devices.desktop import Desktop
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 class CameraDemo(SICApplication):
@@ -37,6 +39,11 @@ class CameraDemo(SICApplication):
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demoss/desktop/logs")
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def on_image(self, image_message: CompressedImageMessage):

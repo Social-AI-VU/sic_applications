@@ -1,6 +1,7 @@
 # import libraries for the demo
 import time
 from os import environ
+from pathlib import Path
 from dotenv import load_dotenv
 from os.path import abspath, join
 
@@ -29,16 +30,19 @@ class ReachyMiniWhisperDemo(SICApplication):
     2. An OpenAI API key must be set in conf/.env as OPENAI_API_KEY="your key".
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self):
         super(ReachyMiniWhisperDemo, self).__init__()
 
         self.mini = None
         self.whisper = None
-        self.env_path = env_path
-
+        
         self.set_log_level(sic_logging.INFO)
         # set log file path if needed
         # self.set_log_file("/path/to/logs")
+        
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
 
         self.setup()
 
@@ -50,9 +54,6 @@ class ReachyMiniWhisperDemo(SICApplication):
         self.logger.info("Setting up Whisper speech-to-text...")
 
         self.mini = ReachyMiniDevice(mode="sim")
-
-        if self.env_path:
-            load_dotenv(self.env_path)
 
         whisper_conf = WhisperConf(openai_key=environ["OPENAI_API_KEY"])
         self.whisper = SICWhisper(input_source=self.mini.mic, conf=whisper_conf)
@@ -81,5 +82,5 @@ class ReachyMiniWhisperDemo(SICApplication):
 
 
 if __name__ == "__main__":
-    demo = ReachyMiniWhisperDemo(env_path=abspath(join("..", "..", "conf", ".env")))
+    demo = ReachyMiniWhisperDemo()
     demo.run()

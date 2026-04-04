@@ -4,6 +4,8 @@ from sic_framework.core.sic_application import SICApplication
 
 # Import the device(s) we will be using
 from sic_framework.devices import Nao
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 class NaoButtonDemo(SICApplication):
@@ -29,6 +31,11 @@ class NaoButtonDemo(SICApplication):
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def on_button_press(self, button_message):

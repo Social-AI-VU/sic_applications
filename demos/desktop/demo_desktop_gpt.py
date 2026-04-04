@@ -1,5 +1,6 @@
 from os import environ
 from os.path import abspath, join
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -26,26 +27,26 @@ class ChatGPTDemo(SICApplication):
     2. run-gpt
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self):
         super(ChatGPTDemo, self).__init__()
 
         self.gpt = None
-        self.env_path = env_path
 
         # Maintain full chat history as role-based messages
         self.conversation = []
 
         # Configure logging
         self.set_log_level(sic_logging.INFO)
+        
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
 
         self.setup()
 
     def setup(self):
         """Initialize and configure the GPT service."""
         self.logger.info("Setting up unified GPT demo...")
-
-        if self.env_path:
-            load_dotenv(self.env_path)
 
         # This configuration is streaming-capable; whether a *request* actually
         # streams is controlled per-request via GPTRequest.stream.
@@ -148,5 +149,5 @@ class ChatGPTDemo(SICApplication):
 
 
 if __name__ == "__main__":
-    demo = ChatGPTDemo(env_path=abspath(join("..", "..", "conf", ".env")))
+    demo = ChatGPTDemo()
     demo.run()

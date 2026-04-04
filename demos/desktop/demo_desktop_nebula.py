@@ -1,3 +1,5 @@
+from pathlib import Path
+
 # Import basic preliminaries
 from os import environ
 
@@ -31,13 +33,12 @@ class NebulaDemo(SICApplication):
     2. run-gpt
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
         super(NebulaDemo, self).__init__()
 
         # Demo-specific initialization
         self.nebula = None
-        self.env_path = env_path
         self.context = []
         self.NUM_TURNS = 5
 
@@ -46,6 +47,10 @@ class NebulaDemo(SICApplication):
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
 
         self.setup()
 
@@ -57,8 +62,6 @@ class NebulaDemo(SICApplication):
         # Either add your env key to your systems variables (and do not provide an env_path) or
         # create a .env file in the conf/ folder and add your key there like this:
         # OPENAI_API_KEY="your key"
-        if self.env_path:
-            load_dotenv(self.env_path)
 
         # Setup Nebula
         conf = LLMConf(
@@ -115,5 +118,5 @@ class NebulaDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = NebulaDemo(env_path=abspath(join("..", "..", "conf", ".env")))
+    demo = NebulaDemo()
     demo.run()

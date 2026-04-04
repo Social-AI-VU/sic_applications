@@ -3,6 +3,7 @@
 import time
 from os import environ
 from os.path import abspath, join
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sic_framework.core import sic_logging
@@ -37,20 +38,23 @@ class WhisperDemo(SICApplication):
     Put your key in a .env file in the conf/env folder as OPENAI_API_KEY="your key"
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self):
         # Call parent constructor (handles singleton initialization)
         super(WhisperDemo, self).__init__()
 
         # Demo-specific initialization
         self.desktop = None
         self.whisper = None
-        self.env_path = env_path
 
         # Configure logging
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
 
         self.setup()
 
@@ -76,8 +80,6 @@ class WhisperDemo(SICApplication):
         # Either add your env key to your systems variables (and do not provide an env_path) or
         # create a .env file in the conf/ folder and add your key there like this:
         # OPENAI_API_KEY="your key"
-        if self.env_path:
-            load_dotenv(self.env_path)
 
         whisper_conf = WhisperConf(openai_key=environ["OPENAI_API_KEY"])
         self.whisper = SICWhisper(input_source=self.desktop.mic, conf=whisper_conf)
@@ -111,5 +113,5 @@ class WhisperDemo(SICApplication):
 if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
-    demo = WhisperDemo(env_path=abspath(join("..", "..", "conf", ".env")))
+    demo = WhisperDemo()
     demo.run()

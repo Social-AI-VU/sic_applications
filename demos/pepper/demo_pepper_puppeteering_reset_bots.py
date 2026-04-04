@@ -1,5 +1,7 @@
 # External imports
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 from sic_framework.core import sic_logging
 
@@ -68,6 +70,11 @@ class RobotManualDriveApp(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def setup(self):

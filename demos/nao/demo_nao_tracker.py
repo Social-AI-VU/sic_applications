@@ -1,6 +1,8 @@
 # Import basic preliminaries
 # Import libraries necessary for the demo
 import time
+from pathlib import Path
+from dotenv import load_dotenv
 
 from sic_framework.core.sic_application import SICApplication
 
@@ -35,6 +37,11 @@ class NaoTrackerDemo(SICApplication):
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def setup(self):

@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from dotenv import load_dotenv
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
@@ -21,6 +24,11 @@ class STMSortformerDemo(SICApplication):
         self.utils = None
         # Configure logging
         self.set_log_level(sic_logging.INFO)
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def setup(self):

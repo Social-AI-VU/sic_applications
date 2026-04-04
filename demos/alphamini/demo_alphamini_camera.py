@@ -10,6 +10,8 @@ from sic_framework.core.sic_application import SICApplication
 # Import the device we will be using
 from sic_framework.devices.alphamini import Alphamini
 from sic_framework.devices.common_mini.mini_camera import MiniCameraConf
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 class AlphaminiCameraDemo(SICApplication):
@@ -48,6 +50,11 @@ class AlphaminiCameraDemo(SICApplication):
         # Optionally enable file logging by uncommenting and setting a valid path:
         # self.set_log_file("/path/to/log/directory")
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def on_image(self, image_message: CompressedImageMessage):

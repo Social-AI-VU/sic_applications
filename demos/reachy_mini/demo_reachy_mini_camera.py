@@ -9,6 +9,8 @@ from sic_framework.core.sic_application import SICApplication
 # import devices, services, and message types
 from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.core.message_python2 import CompressedImageMessage
+from pathlib import Path
+from dotenv import load_dotenv
 
 class ReachyMiniCameraDemo(SICApplication):
     """
@@ -28,6 +30,11 @@ class ReachyMiniCameraDemo(SICApplication):
         # set log file path if needed
         # self.set_log_file("/path/to/logs")
 
+
+        # Load environment variables
+        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
+        load_dotenv(env_path)
+        
         self.setup()
 
     def on_image(self, image_message: CompressedImageMessage):
