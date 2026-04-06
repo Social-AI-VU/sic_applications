@@ -107,7 +107,7 @@ class RAGDemo(SICApplication):
         self.logger.info("\n=== Ingesting PDF Documents ===")
         
         if not self.openai_api_key:
-            self.logger.error("✗ OPENAI_API_KEY not set")
+            self.logger.error("[X] OPENAI_API_KEY not set")
             self.logger.info("  Set it in conf/.env or: export OPENAI_API_KEY='your-key-here'")
             return None
         
@@ -167,32 +167,32 @@ class RAGDemo(SICApplication):
                 payload = result.payload
                 if payload.get('ok'):
                     for res in payload.get('results', []):
-                        self.logger.info(f"✓ Ingested {res.get('files', 0)} files → {res.get('chunks', 0)} chunks")
+                        self.logger.info(f"[OK] Ingested {res.get('files', 0)} files -> {res.get('chunks', 0)} chunks")
                         self.logger.info(f"  Index: {res.get('index', 'unknown')}")
                 return result
             
         except RuntimeError as e:
             error_msg = str(e)
             if "RediSearch module is not available" in error_msg:
-                self.logger.error("✗ RediSearch module not found - Redis Stack required")
+                self.logger.error("[X] RediSearch module not found - Redis Stack required")
                 self.logger.info("  Install: docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest")
             elif "openai_api_key parameter is required" in error_msg:
-                self.logger.error("✗ OpenAI API key not provided")
+                self.logger.error("[X] OpenAI API key not provided")
                 self.logger.info("  Set it in conf/.env or: export OPENAI_API_KEY='your-key-here'")
             elif "Missing dependency: pypdf" in error_msg:
-                self.logger.error("✗ pypdf not installed")
+                self.logger.error("[X] pypdf not installed")
                 self.logger.info("  Install: pip install pypdf")
             elif "Missing dependency: openai" in error_msg:
-                self.logger.error("✗ openai not installed")
+                self.logger.error("[X] openai not installed")
                 self.logger.info("  Install: pip install openai")
             elif "Missing dependency: numpy" in error_msg:
-                self.logger.error("✗ numpy not installed")
+                self.logger.error("[X] numpy not installed")
                 self.logger.info("  Install: pip install numpy")
             else:
-                self.logger.error(f"✗ Error: {e}")
+                self.logger.error(f"[X] Error: {e}")
             return None
         except Exception as e:
-            self.logger.error(f"✗ Unexpected error: {e}")
+            self.logger.error(f"[X] Unexpected error: {e}")
             return None
 
     def search_documents(self, query: str, k: int = 3):
@@ -200,7 +200,7 @@ class RAGDemo(SICApplication):
         self.logger.info(f"\nQuery: '{query}'")
         
         if not self.openai_api_key:
-            self.logger.error("  ✗ OPENAI_API_KEY not set")
+            self.logger.error("  [X] OPENAI_API_KEY not set")
             return
         
         try:
@@ -248,15 +248,15 @@ class RAGDemo(SICApplication):
         except RuntimeError as e:
             error_msg = str(e)
             if "RediSearch module is not available" in error_msg:
-                self.logger.error("  ✗ RediSearch not available")
+                self.logger.error("  [X] RediSearch not available")
             elif "openai_api_key parameter is required" in error_msg:
-                self.logger.error("  ✗ OpenAI API key not provided")
+                self.logger.error("  [X] OpenAI API key not provided")
             elif "does not exist" in error_msg:
-                self.logger.error("  ✗ Index not found - run ingestion first")
+                self.logger.error("  [X] Index not found - run ingestion first")
             else:
-                self.logger.error(f"  ✗ Search error: {e}")
+                self.logger.error(f"  [X] Search error: {e}")
         except Exception as e:
-            self.logger.error(f"  ✗ Unexpected error: {e}")
+            self.logger.error(f"  [X] Unexpected error: {e}")
 
     def run(self):
         """Run the RAG demo."""
@@ -284,7 +284,7 @@ class RAGDemo(SICApplication):
             self.logger.info("\n=== Cleanup ===")
             response = self.datastore.request(DeleteNamespaceRequest())
             if isinstance(response, SICSuccessMessage):
-                self.logger.info("✓ Demo data cleaned up")
+                self.logger.info("[OK] Demo data cleaned up")
                 
         except Exception as e:
             self.logger.error(f"Demo error: {e}")
