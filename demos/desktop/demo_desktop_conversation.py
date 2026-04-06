@@ -4,7 +4,6 @@ import queue
 import threading
 from os import environ
 from os.path import abspath, join
-from pathlib import Path
 from subprocess import call
 
 # Import libraries necessary for the demo
@@ -12,7 +11,6 @@ from time import sleep
 
 import cv2
 import numpy as np
-from dotenv import load_dotenv
 from sic_framework.core import sic_logging, utils_cv2
 
 # Import the message type(s) we're using
@@ -114,11 +112,10 @@ class ConversationApp(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # set log file path if needed
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        # self.set_log_file_path("/path/to/logs")
         
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
 
         self.setup()
 

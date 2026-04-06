@@ -1,7 +1,5 @@
 # External imports
 import os
-from pathlib import Path
-from dotenv import load_dotenv
 
 from sic_framework.core import sic_logging
 
@@ -72,8 +70,7 @@ class RobotManualDriveApp(SICApplication):
 
 
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
         
         self.setup()
 

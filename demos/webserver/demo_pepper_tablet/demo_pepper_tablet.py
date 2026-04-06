@@ -13,8 +13,6 @@ from sic_framework.devices.common_pepper.pepper_tablet import (
     WifiConnectRequest,
 )
 from sic_framework.services.webserver.webserver_service import Webserver, WebserverConf
-from pathlib import Path
-from dotenv import load_dotenv
 
 
 # -------------------------------------------------------------------------------
@@ -50,8 +48,7 @@ class PepperTabletWebserverDemo(SICApplication):
 
 
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../../conf/.env")
         
         self.setup()
 

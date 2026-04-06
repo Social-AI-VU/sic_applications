@@ -4,8 +4,6 @@ import time
 import json
 import urllib.request
 import webbrowser
-from pathlib import Path
-from dotenv import load_dotenv
 
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core.utils import is_sic_instance
@@ -56,8 +54,7 @@ class AudienceSurveyDemo(SICApplication):
 
 
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../../conf/.env")
         
         self.setup()
 

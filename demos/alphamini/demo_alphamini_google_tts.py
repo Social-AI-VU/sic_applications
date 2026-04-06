@@ -1,7 +1,5 @@
 # Import basic preliminaries
 import json
-from pathlib import Path
-from dotenv import load_dotenv
 
 # Import libraries necessary for the demo
 from os.path import abspath, join
@@ -57,12 +55,11 @@ class AlphaminiGoogleTTSDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/path/to/logs")
+        # self.set_log_file_path("/path/to/logs")
 
 
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
         
         self.setup()
 

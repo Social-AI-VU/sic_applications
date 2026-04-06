@@ -1,8 +1,6 @@
 from os import environ
 from os.path import abspath, join
-from pathlib import Path
 
-from dotenv import load_dotenv
 
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
@@ -39,8 +37,7 @@ class ChatGPTDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
         
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
 
         self.setup()
 

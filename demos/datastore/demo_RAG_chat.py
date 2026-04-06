@@ -1,10 +1,8 @@
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
+# import basic preliminaries and SIC framework components
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
+# import services, and message types
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
@@ -17,6 +15,9 @@ from sic_framework.services.datastore.redis_datastore import (
 
 from sic_framework.services.llm import GPT, GPTConf, GPTRequest
 
+# import demo-specific modules
+from pathlib import Path
+import os
 
 class RAGChatDemo(SICApplication):
     """
@@ -38,7 +39,7 @@ class RAGChatDemo(SICApplication):
     2. Set OPENAI_API_KEY in conf/.env
     3. Start the datastore service: run-datastore-redis
     4. Start the GPT service: run-gpt
-    5. Install dependencies: pip install social-interaction-cloud[openai-gpt] python-dotenv
+    5. Install dependencies: pip install social-interaction-cloud[openai-gpt]
     """
 
     def __init__(self):
@@ -48,11 +49,12 @@ class RAGChatDemo(SICApplication):
         self.conversation = []
         
         self.set_log_level(sic_logging.INFO)
-        
-        # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
-        
+
+        # set log file path if needed (otherwise no logs will be written to file)
+        # self.set_log_file_path("/path/to/logs")
+
+        self.load_env("../../conf/.env")
+
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if not self.openai_api_key:
             self.logger.error("OPENAI_API_KEY not found in environment")
@@ -121,7 +123,7 @@ class RAGChatDemo(SICApplication):
                 IngestVectorDocsRequest(
                     input_path=str(docs_dir),
                     openai_api_key=self.openai_api_key,
-                    index_name="rag_chat_demo__docs",
+                    index_name="rag_chat_demo_docs",
                     partition="demo",
                     glob="**/*.pdf",
                     chunk_chars=800,
@@ -146,13 +148,11 @@ class RAGChatDemo(SICApplication):
         try:
             result = self.datastore.request(
                 QueryVectorDBRequest(
-                    episode="rag_chat_demo",
-                    character="docs",
+                    index_name="rag_chat_demo_docs",
                     query_text=query,
                     openai_api_key=self.openai_api_key,
                     k=k,
                     partition="demo",
-                    index_prefix="",
                     embedding_model="text-embedding-3-large"
                 )
             )

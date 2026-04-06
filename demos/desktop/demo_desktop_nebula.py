@@ -1,4 +1,3 @@
-from pathlib import Path
 
 # Import basic preliminaries
 from os import environ
@@ -6,7 +5,6 @@ from os import environ
 # Import libraries necessary for the demo
 from os.path import abspath, join
 
-from dotenv import load_dotenv
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 
@@ -46,11 +44,10 @@ class NebulaDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
         
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
 
         self.setup()
 

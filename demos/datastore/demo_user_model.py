@@ -1,7 +1,6 @@
-# import basic SIC framework components
-from pathlib import Path
+# import demo-specific modules
 
-from dotenv import load_dotenv
+# import basic SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 
@@ -19,7 +18,6 @@ from sic_framework.services.datastore.redis_datastore import (
     UsermodelKeysMessage,
     SICSuccessMessage
 )
-
 
 class UserModelDemo(SICApplication):
     """
@@ -43,12 +41,10 @@ class UserModelDemo(SICApplication):
 
         self.set_log_level(sic_logging.DEBUG)
         # set log file path if needed
-        # self.set_log_file("/path/to/logs")
-
+        # self.set_log_file_path("/path/to/logs")
 
         # Load environment variables
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
         
         self.setup()
 

@@ -1,7 +1,6 @@
 # import demo-specific modules
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 # import SIC framework components
 from sic_framework.core.sic_application import SICApplication
@@ -41,8 +40,7 @@ class RAGDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
         
         # Load environment variables (including OPENAI_API_KEY)
-        env_path = Path(__file__).parent.parent.parent / "conf" / ".env"
-        load_dotenv(env_path)
+        self.load_env("../../conf/.env")
         
         # Get API key from environment
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -208,10 +206,8 @@ class RAGDemo(SICApplication):
         try:
             result = self.datastore.request(
                 QueryVectorDBRequest(
-                    # Index name components: <index_prefix><episode>__<character>
-                    # Results in index name: "rag_demo__docs"
-                    episode="rag_demo",
-                    character="docs",
+                    # The Redis index name to query (must match ingestion)
+                    index_name="rag_demo_docs",
                     
                     # The search query text to find similar documents
                     query_text=query,
@@ -225,10 +221,6 @@ class RAGDemo(SICApplication):
                     # Optional: filter results to specific partition
                     # Must match partition used during ingestion
                     partition="demo",
-                    
-                    # Optional prefix for index name composition
-                    # Empty string means no prefix
-                    index_prefix="",
                     
                     # Must match the model used during ingestion
                     # to ensure compatible embedding dimensions
