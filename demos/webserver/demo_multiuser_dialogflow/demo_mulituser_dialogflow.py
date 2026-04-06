@@ -60,6 +60,10 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self.keyfile_json = None
 
         self.set_log_level(sic_logging.INFO)
+
+        # Load environment variables
+        self.load_env("../../../conf/.env")
+        
         self.setup()
 
     def setup(self):

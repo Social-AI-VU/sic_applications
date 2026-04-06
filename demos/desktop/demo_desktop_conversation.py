@@ -11,7 +11,6 @@ from time import sleep
 
 import cv2
 import numpy as np
-from dotenv import load_dotenv
 from sic_framework.core import sic_logging, utils_cv2
 
 # Import the message type(s) we're using
@@ -86,13 +85,12 @@ class ConversationApp(SICApplication):
     5. run-gpt
     """
 
-    def __init__(self, google_keyfile_path, env_path=None, local_tts=False):
+    def __init__(self, google_keyfile_path, local_tts=False):
         # Call parent constructor (handles singleton initialization)
         super(ConversationApp, self).__init__()
 
         # Demo-specific initialization
         self.google_keyfile_path = google_keyfile_path
-        self.env_path = env_path
         self.sample_rate_hertz = 44100
         self.language = "en"
         self.fx = 1.0
@@ -114,7 +112,10 @@ class ConversationApp(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # set log file path if needed
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/desktop/logs")
+        # self.set_log_file_path("/path/to/logs")
+        
+        # Load environment variables
+        self.load_env("../../conf/.env")
 
         self.setup()
 
@@ -149,8 +150,6 @@ class ConversationApp(SICApplication):
         # Either add your env key to your systems variables (and do not provide an env_path) or
         # create a .env file in the conf/ folder and add your key there like this:
         # OPENAI_API_KEY="your key"
-        if self.env_path:
-            load_dotenv(self.env_path)
         conf = GPTConf(openai_key=environ["OPENAI_API_KEY"])
         self.gpt = GPT(conf=conf)
 
@@ -301,7 +300,6 @@ if __name__ == "__main__":
         google_keyfile_path=abspath(
             join("..", "..", "conf", "google", "google-key.json")
         ),
-        env_path=abspath(join("..", "..", "conf", ".env")),
     )
     conversation_app.run_llm_conversation()
     # or

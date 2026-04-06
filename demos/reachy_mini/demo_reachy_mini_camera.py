@@ -26,8 +26,12 @@ class ReachyMiniCameraDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
         # set log file path if needed
-        # self.set_log_file("/path/to/logs")
+        # self.set_log_file_path("/path/to/logs")
 
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+        
         self.setup()
 
     def on_image(self, image_message: CompressedImageMessage):

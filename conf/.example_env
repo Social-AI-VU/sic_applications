@@ -1,0 +1,3 @@
+DB_IP=localhost
+DB_PASS=changemeplease
+OPENAI_API_KEY="XXX"

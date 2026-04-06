@@ -37,8 +37,12 @@ class DatabaseDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("")
+        # self.set_log_file_path("")
 
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+        
         self.setup()
 
     def setup(self):

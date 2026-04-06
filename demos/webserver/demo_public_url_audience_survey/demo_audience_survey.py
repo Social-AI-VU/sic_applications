@@ -52,6 +52,10 @@ class AudienceSurveyDemo(SICApplication):
 
         self.set_log_level(sic_logging.DEBUG)
 
+
+        # Load environment variables
+        self.load_env("../../../conf/.env")
+        
         self.setup()
 
     def setup(self):

@@ -21,6 +21,10 @@ class WebserverDemo(SICApplication):
     def __init__(self):
         super(WebserverDemo, self).__init__()
         self.webserver = None
+
+        # Load environment variables
+        self.load_env("../../../conf/.env")
+        
         self.setup()
 
     def setup(self):

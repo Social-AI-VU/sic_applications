@@ -30,10 +30,14 @@ class NaoSpeakersDemo(SICApplication):
         self.samplerate = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
+        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
 
         self.set_log_level(sic_logging.INFO)
 
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+        
         self.setup()
 
     def setup(self):

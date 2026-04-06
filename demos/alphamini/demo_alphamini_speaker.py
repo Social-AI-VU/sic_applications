@@ -16,7 +16,7 @@ class AlphaminiSpeakerWavDemo(SICApplication):
     """
     Alphamini speaker demo application.
 
-    Plays a local WAV file (``sic_applications/demos/media/test_sound.wav``)
+    Plays a local WAV file (``sic_applications/demos/_media/test_sound.wav``)
     through the Alphamini speakers using the MiniSpeaker component.
 
     NOTE: the sample rate of the speaker must match the sample rate of the audio from the WAV file.
@@ -33,19 +33,22 @@ class AlphaminiSpeakerWavDemo(SICApplication):
         self.mini = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/path/to/logs")
+        # self.set_log_file_path("/path/to/logs")
 
         self.set_log_level(sic_logging.INFO)
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
 
     def _load_wav(self):
         """
         Load the test WAV file and return (waveform_bytes, sample_rate).
 
-        The file is expected at ``sic_applications/demos/media/test_sound.wav``
+        The file is expected at ``sic_applications/demos/_media/test_sound.wav``
         relative to this script.
         """
         base_dir = dirname(dirname(__file__))
-        wav_path = abspath(join(base_dir, "media", "test_sound.wav"))
+        wav_path = abspath(join(base_dir, "_media", "test_sound.wav"))
 
         with wave.open(wav_path, "rb") as wf:
             sample_rate = wf.getframerate()

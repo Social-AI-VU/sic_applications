@@ -69,8 +69,12 @@ class DialogflowCXWebDemo(SICApplication):
         self.session_id = np.random.randint(10000)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/Users/apple/Desktop/logs")
+        # self.set_log_file_path("/Users/apple/Desktop/logs")
 
+
+        # Load environment variables
+        self.load_env("../../../conf/.env")
+        
         self.setup()
 
     def setup(self):

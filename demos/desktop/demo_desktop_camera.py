@@ -1,21 +1,15 @@
-# Import basic preliminaries
-# Queue for storing images
-import queue
-
-# Computer vision library for displaying images
-import cv2
+# Import basic preliminaries and SIC framework components
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import the message type we're using
+# Import devices, messages, and services we will be using
 from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.core.sic_application import SICApplication
-
-# Import the configuration for the component
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-
-# Import the device we will be using
 from sic_framework.devices.desktop import Desktop
 
+# import demo-specific modules
+import queue
+import cv2
 
 class CameraDemo(SICApplication):
     """
@@ -35,8 +29,11 @@ class CameraDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demoss/desktop/logs")
+        # self.set_log_file_path("path/to/logs")
 
+        # Load environment variables
+        self.load_env("../../conf/.env")
+        
         self.setup()
 
     def on_image(self, image_message: CompressedImageMessage):

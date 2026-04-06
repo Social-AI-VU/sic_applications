@@ -46,8 +46,12 @@ class AlphaminiCameraDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Optionally enable file logging by uncommenting and setting a valid path:
-        # self.set_log_file("/path/to/log/directory")
+        # self.set_log_file_path("/path/to/log/directory")
 
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+        
         self.setup()
 
     def on_image(self, image_message: CompressedImageMessage):

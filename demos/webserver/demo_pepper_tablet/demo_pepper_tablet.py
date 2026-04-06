@@ -46,6 +46,10 @@ class PepperTabletWebserverDemo(SICApplication):
         self.pepper = None
         self.webserver = None
 
+
+        # Load environment variables
+        self.load_env("../../../conf/.env")
+        
         self.setup()
 
     def setup(self):
