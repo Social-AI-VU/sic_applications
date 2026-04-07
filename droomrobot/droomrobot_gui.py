@@ -667,7 +667,7 @@ if __name__ == "__main__":
     sic_app = SICApplication()
     # can be DEBUG, INFO, WARNING, ERROR, CRITICAL
     sic_app.set_log_level(sic_logging.INFO)
-    sic_app.set_log_file("/system_logs")
+    sic_app.set_log_file_path("/system_logs")
 
     root = tk.Tk()
     app = DroomrobotGUI(root, sic_app)
