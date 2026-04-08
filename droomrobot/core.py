@@ -125,6 +125,28 @@ class InteractionConf:
         return decorator
 
 
+class WiFiDevice:
+    """
+    WifiDevice class that the MiniSdk.connect() method expects. Taken from mini/mini_sdk.py. Only the ip address is relevant.
+    Used instead of MiniSdk.get_device_by_name() to bypass multicast discovery, which does not work in all network environments.
+    """
+    def __init__(self, name: str = "", address: str = "localhost", port: int = -1, s_type: str = "", server: str = ""):
+        super().__init__()
+        self.address = address
+        self.port = port
+        self.type = s_type
+        self.server = server
+
+        if name.endswith(s_type):
+            self.name = name[: -(len(s_type) + 1)]
+        else:
+            self.name = name
+
+    def __repr__(self):
+        return str(self.__class__) + " name:" + self.name + " address:" + self.address + " port:" + str(
+            self.port) + " type:" + self.type + " server:" + self.server
+
+
 class Droomrobot:
     def __init__(self, sic_app: SICApplication, mini_ip, mini_id, mini_password, redis_ip,
                  google_keyfile_path, sample_rate_dialogflow_hertz=44100, dialogflow_language="nl", dialogflow_timeout=None,
@@ -149,6 +171,9 @@ class Droomrobot:
         self.background_loop = asyncio.new_event_loop()
         self.background_thread = Thread(target=self._start_loop, daemon=True)
         self.background_thread.start()
+
+        # Mini IP address (needed for WiFiDevice direct connection)
+        self.mini_ip = mini_ip
 
         print('complete')
 
@@ -226,7 +251,7 @@ class Droomrobot:
                     mini_password=mini_password,
                     redis_ip=redis_ip,
                     speaker_conf=MiniSpeakersConf(sample_rate=self.sample_rate),
-                    bypass_install=False
+                    bypass_install=True
                 )
                 self.speaker = self.mini.speaker
                 self.mic = self.mini.mic
@@ -1026,7 +1051,11 @@ class Droomrobot:
 
     async def _connect_once(self):
         if not self.mini_api:
-            self.mini_api = await MiniSdk.get_device_by_name(self.mini_id, 10)
+            # Connect directly via IP to bypass multicast discovery, which does not work in all network environments.
+            # See multicast-bypass PR for context.
+            self.mini_api = WiFiDevice(name=self.mini_id, address=self.mini_ip)
+            # Alternative: multicast discovery (slower, network-dependent):
+            # self.mini_api = await MiniSdk.get_device_by_name(self.mini_id, 10)
             await MiniSdk.connect(self.mini_api)
 
     @staticmethod
