@@ -1,3 +1,5 @@
+import threading
+
 from sic_framework.services.llm import GPTRequest
 
 from droomrobot.core import AnimationType, InteractionConf
@@ -24,9 +26,71 @@ class Bloedafname4(DroomrobotScript):
         else:
             print("Interaction part not recognized")
 
+        # Improvement 1 — Pre-cache all static TTS strings for this script upfront.
+        # Runs in a background thread so it does not delay the caller. By the time
+        # run() is called and the robot starts speaking, most lines will already be
+        # cached and will play back instantly without an ElevenLabs round-trip.
+        # Strings shared with other scripts (e.g. 'Tot straks, doei!') are deduplicated
+        # automatically by the TTS cache's content hash.
+        _static_lines = [
+            'Je kunt bijvoorbeeld kiezen uit het strand, de speeltuin of de ruimte. Of misschien weet jij zelf wel wat leuks!',
+            'Adem diep in door je neus.',
+            'en blaas langzaam uit door je mond.',
+            'Dat lichtje is magisch, en laadt jouw kracht op.',
+            'Stel je eens voor, hoe dat lichtje eruit ziet.',
+            'Is het geel, oranje, of misschien jouw lievelingskleur?',
+            'Sorry, dat verstond ik even niet goed. Weet je wat? Ik vind groen een mooie kleur. Laten we het lichtje groen maken.',
+            'Als je het nodig hebt, kun je diep in en uitademen om het lichtje aan te zetten, en je kracht te laten groeien.',
+            'Hartstikke goed, ik ben benieuwd hoe goed het lichtje je zometeen gaat helpen.',
+            'Als je je ogen lekker dicht had mag je ze nu weer open doen',
+            'Gelukkig wordt het steeds makkelijker als je het vaker oefent.',
+            'Ik ben benieuwd hoe goed het zometeen gaat.',
+            'Je zult zien dat dit je gaat helpen.',
+            'Tot straks, doei!',
+            'Omdat je net al zo goed hebt geoefend, zul je zien dat het nu nog beter en makkelijker gaat.',
+            'Je mag weer goed gaan zitten, en als je wilt je ogen dicht doen, zodat deze droomreis nog beter voor jou werkt.',
+            'Je mag weer goed gaan liggen, en als je wilt je ogen dicht doen, zodat deze droomreis nog beter voor jou werkt.',
+            'Je mag weer lekker voelen dat je in deze kamer bent, en als je wilt je ogen dicht doen, zodat deze droomreis nog beter voor jou werkt',
+            'Luister maar weer goed naar mijn stem, en merk maar dat andere geluiden in het ziekenhuis veel stiller worden.',
+            'Ga maar rustig ademen, zoals je dat gewend bent.',
+            'Adem rustig in.',
+            'en rustig uit.',
+            'Nu gaan we je lichtje weer aanzetten, net zoals je hebt geleerd.',
+            'Adem in door je neus.',
+            'en blaas rustig uit via je mond.',
+            'Zie het lichtje steeds sterker worden.',
+            'Zo word jij weer een superheld, en kun je jezelf helpen.',
+            'Dat betekent dat jouw kracht helemaal opgeladen is.',
+            'je kunt het lichtje nog sterker maken door met je tenen te wiebelen.',
+            'Het geeft een zachte, veilige gloed om je te helpen.',
+            'Adem diep in.',
+            'en blaas uit.',
+            'Merk maar hoe goed jij jezelf kunt helpen, je bent echt een superheld.',
+            'Dat was het weer.',
+            'Bedankt dat ik je mocht helpen vandaag.',
+            'Je hebt jezelf heel goed geholpen!.',
+            'Ga even lekker zitten zoals jij dat fijn vindt.',
+            'En nu je lekker bent gaan zitten.',
+            'Ga maar eens kijken hoe goed dat zit.',
+            'Als je goed zit.',
+            'mag je als je wilt je ogen dicht doen.',
+            'dan werkt het truukje het beste.',
+            'Ga even lekker liggen zoals jij dat fijn vindt.',
+            'En nu je lekker bent gaan liggen.',
+            'Het ligt vaak het lekkerste als je je lichaam zwaar maakt, ga maar eens kijken hoe goed dat ligt',
+            'Als je goed ligt.',
+            'Terwijl je hier zo in de kamer bent mag je je ogen dicht doen als je wilt',
+        ]
+        threading.Thread(
+            target=self.droomrobot.warm_tts_cache,
+            args=(_static_lines,),
+            daemon=True,
+            name='tts-warm-bloedafname4'
+        ).start()
+
     def _introduction(self):
         # Introductie uitleg robot + dier
-        interaction_conf = InteractionConf(amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
+        interaction_conf = InteractionConf(speaking_rate=0.75, sleep_time=0.5, amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
         self.add_move(self.droomrobot.set_interaction_conf, interaction_conf)
         intro_moves = IntroductionFactory.age4(droomrobot=self.droomrobot, interaction_context=self.interaction_context, user_model=self.user_model)
         self.add_moves(intro_moves)
@@ -108,7 +172,7 @@ class Bloedafname4(DroomrobotScript):
     def _intervention_preparation(self, phase_moves: InteractionChoice) -> InteractionChoice:
         phase_moves.add_move(InterventionPhase.PREPARATION.name, self.droomrobot.animate, AnimationType.ACTION, "random_short4", run_async=True)
         phase_moves.add_move(InterventionPhase.PREPARATION.name, self.droomrobot.animate, AnimationType.EXPRESSION, "emo_007", run_async=True)
-        interaction_conf = InteractionConf(amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
+        interaction_conf = InteractionConf(speaking_rate=0.75, sleep_time=0.5,amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
         phase_moves.add_move(InterventionPhase.PREPARATION.name, self.droomrobot.set_interaction_conf, interaction_conf)
         phase_moves.add_move(InterventionPhase.PREPARATION.name, self.droomrobot.say, lambda: f'Wat fijn dat ik je weer mag helpen, we gaan weer samen een droomreis naar {self.user_model['droomplek_lidwoord']} {self.user_model['droomplek']} maken.', animated=False)
         phase_moves.add_move(InterventionPhase.PREPARATION.name, self.droomrobot.say, 'Omdat je net al zo goed hebt geoefend, zul je zien dat het nu nog beter en makkelijker gaat.')
@@ -161,7 +225,7 @@ class Bloedafname4(DroomrobotScript):
         return phase_moves
 
     def _intervention_wrapup(self, phase_moves: InteractionChoice) -> InteractionChoice:
-        interaction_conf = InteractionConf(amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
+        interaction_conf = InteractionConf(speaking_rate=0.75, sleep_time=0.5, amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
         phase_moves.add_move(InterventionPhase.WRAPUP.name, self.droomrobot.set_interaction_conf, interaction_conf)
         phase_moves.add_move(InterventionPhase.WRAPUP.name, self.droomrobot.say, 'Dat was het weer.')
         phase_moves.add_move(InterventionPhase.WRAPUP.name, self.droomrobot.say, 'Bedankt dat ik je mocht helpen vandaag.')

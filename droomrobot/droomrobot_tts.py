@@ -241,14 +241,30 @@ class TTSCacher:
 
     def save_audio_file(self, tts_key: str, audio_bytes: bytes, sample_rate: int, sample_width: int = 2, channels: int = 1):
         subfolder = self.tts_cache_dir / tts_key[:self.subfolder_depth]
-        os.makedirs(subfolder, exist_ok=True)
-        filename = os.path.join(subfolder, f"{tts_key}.wav")
+        try:
+            os.makedirs(subfolder, exist_ok=True)
+        except PermissionError:
+            logging.getLogger("droomrobot").warning(
+                f"[TTS CACHE] Cannot create cache directory '{subfolder}'. "
+                f"This is usually caused by the cache being created with 'sudo' on a previous run. "
+                f"Fix with: sudo chown -R $USER '{self.tts_cache_dir}'"
+            )
+            return
 
-        with wave.open(filename, "wb") as wf:
-            wf.setnchannels(channels)
-            wf.setsampwidth(sample_width)  # 2 bytes = 16-bit
-            wf.setframerate(sample_rate)
-            wf.writeframes(audio_bytes)
+        filename = os.path.join(subfolder, f"{tts_key}.wav")
+        try:
+            with wave.open(filename, "wb") as wf:
+                wf.setnchannels(channels)
+                wf.setsampwidth(sample_width)  # 2 bytes = 16-bit
+                wf.setframerate(sample_rate)
+                wf.writeframes(audio_bytes)
+        except PermissionError:
+            logging.getLogger("droomrobot").warning(
+                f"[TTS CACHE] Cannot write cache file '{filename}'. "
+                f"This is usually caused by the cache being created with 'sudo' on a previous run. "
+                f"Fix with: sudo chown -R $USER '{self.tts_cache_dir}'"
+            )
+            return
 
         self.tts_cache[tts_key] = filename
         self._save_cache()

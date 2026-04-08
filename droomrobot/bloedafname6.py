@@ -1,3 +1,5 @@
+import threading
+
 from sic_framework.services.llm import GPTRequest
 
 from droomrobot.core import AnimationType, InteractionConf
@@ -23,9 +25,55 @@ class Bloedafname6(DroomrobotScript):
         else:
             print("Interaction part not recognized")
 
+        # Improvement 1 — Pre-cache all static TTS strings for this script upfront.
+        # Runs in a background thread so it does not delay the caller.
+        _static_lines = [
+            'Adem diep in door je neus.',
+            'en blaas langzaam uit door je mond.',
+            'Dat lichtje is magisch en laadt jouw kracht op.',
+            'Stel je eens voor hoe dat lichtje eruit ziet.',
+            'Is het geel, blauw of misschien jouw lievelingskleur?',
+            'Sorry, dat verstond ik even niet goed. Weet je wat? Ik vind groen een mooie kleur. Laten we het lichtje groen maken.',
+            'En iedere keer als je het nodig hebt, kun je zoals je nu geleerd hebt, een paar keer diep in en uit ademen.',
+            'Om het lichtje te activeren en jouw kracht te laten groeien.',
+            'Als je je ogen lekker dicht had mag je ze nu weer open doen',
+            'Gelukkig wordt het steeds makkelijker als je het vaker oefent.',
+            'Ik ben benieuwd hoe goed het zometeen gaat.',
+            'Je zult zien dat dit je gaat helpen.',
+            'Tot straks, doei!',
+            'Wat fijn dat ik je weer mag helpen, we gaan weer samen een droomreis maken.',
+            'Omdat je net al zo goed hebt geoefend, zul je zien dat het nu nog beter, en makkelijker gaat.',
+            'Adem rustig in.',
+            'en rustig uit.',
+            'Adem in via je neus.',
+            'en blaas rustig uit via je mond.',
+            'Adem diep in.',
+            'en blaas uit.',
+            'Dat was het weer.',
+            'Bedankt dat ik je mocht helpen vandaag.',
+            'Je hebt jezelf heel goed geholpen!.',
+            'Ga even lekker zitten zoals jij dat fijn vindt.',
+            'En nu je lekker bent gaan zitten.',
+            'Ga maar eens kijken hoe goed dat zit.',
+            'Als je goed zit.',
+            'mag je als je wilt je ogen dicht doen.',
+            'dan werkt het truukje het beste.',
+            'Ga even lekker liggen zoals jij dat fijn vindt.',
+            'En nu je lekker bent gaan liggen.',
+            'Het ligt vaak het lekkerste als je je lichaam zwaar maakt, ga maar eens kijken hoe goed dat ligt',
+            'Als je goed ligt.',
+            'Terwijl je hier zo in de kamer bent mag je je ogen dicht doen als je wilt,',
+        ]
+        threading.Thread(
+            target=self.droomrobot.warm_tts_cache,
+            args=(_static_lines,),
+            daemon=True,
+            name='tts-warm-bloedafname6'
+        ).start()
+
     def _introduction(self):
         # Introductie uitleg robot + dier
-        interaction_conf = InteractionConf(amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
+        interaction_conf = InteractionConf(speaking_rate=0.75, sleep_time=0.5, amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
         self.add_move(self.droomrobot.set_interaction_conf, interaction_conf)
         intro_moves = IntroductionFactory.age6_9(droomrobot=self.droomrobot,
                                                    interaction_context=self.interaction_context,
@@ -86,7 +134,7 @@ class Bloedafname6(DroomrobotScript):
                       sleep_time=2)
 
         # Goodbye introductie
-        interaction_conf = InteractionConf(amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
+        interaction_conf = InteractionConf(speaking_rate=0.75, sleep_time=0.5, amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
         self.add_move(self.droomrobot.set_interaction_conf, interaction_conf)
 
         self.add_move(self.droomrobot.say, 'Gelukkig wordt het steeds makkelijker als je het vaker oefent.')
@@ -192,7 +240,7 @@ class Bloedafname6(DroomrobotScript):
         return phase_moves
 
     def _intervention_wrapup(self, phase_moves: InteractionChoice) -> InteractionChoice:
-        interaction_conf = InteractionConf(amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
+        interaction_conf = InteractionConf(speaking_rate=0.75, sleep_time=0.5, amplified=self.audio_amplified, always_regenerate=self.always_regenerate)
         phase_moves.add_move(InterventionPhase.WRAPUP.name, self.droomrobot.set_interaction_conf, interaction_conf)
         phase_moves.add_move(InterventionPhase.WRAPUP.name, self.droomrobot.say, 'Dat was het weer.')
         phase_moves.add_move(InterventionPhase.WRAPUP.name, self.droomrobot.say, 'Bedankt dat ik je mocht helpen vandaag.')

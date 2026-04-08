@@ -8,6 +8,7 @@ from os import environ, fsync
 from os.path import exists
 from pathlib import Path
 import random as rand
+from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from time import sleep, strftime
 
@@ -346,53 +347,152 @@ class Droomrobot:
             timestamp = strftime("%Y-%m-%d %H:%M:%S")
             self._log_queue.put(f"[{timestamp}] recognition result: {recognition_result}")
 
+    def _prepare_chunk_audio(self, chunk: str, speaking_rate=None, amplified=False, always_regenerate=False) -> dict:
+        """
+        Synthesise one text chunk and return the audio as a dict.
+        Checks the TTS cache first — if a cache hit is found, no network call is made.
+        Safe to call from a background thread (used by say() for look-ahead pre-fetching
+        and by warm_tts_cache() for upfront parallel synthesis).
+
+        Returns:
+            {'cached': True,  'file': path}                          — cache hit
+            {'cached': False, 'bytes': bytes, 'sample_rate': int,
+             'tts_key': str}                                          — freshly synthesised
+        """
+        tts_key = self.tts_cacher.make_tts_key(chunk, self.tts_conf)
+
+        # Cache hit — no synthesis needed
+        if not always_regenerate:
+            audio_file = self.tts_cacher.load_audio_file(tts_key)
+            if audio_file:
+                return {'cached': True, 'file': audio_file, 'tts_key': tts_key}
+
+        # Synthesise via whichever TTS backend is active
+        if isinstance(self.tts_conf, ElevenLabsTTSConf):
+            # run_coroutine_threadsafe is thread-safe; the asyncio.Lock inside
+            # ElevenLabsTTS serialises concurrent calls automatically
+            audio_bytes = asyncio.run_coroutine_threadsafe(
+                self.tts.speak(chunk), self.background_loop
+            ).result()
+            sample_rate = self.sample_rate
+
+        elif isinstance(self.tts_conf, GoogleTTSConf):
+            reply = self.tts.request(GetSpeechRequest(
+                text=chunk,
+                voice_name=self.tts_conf.google_tts_voice_name,
+                ssml_gender=self.tts_conf.google_tts_voice_gender,
+                speaking_rate=speaking_rate or self.tts_conf.speaking_rate
+            ))
+            audio_bytes = reply.waveform
+            sample_rate = reply.sample_rate
+        else:
+            raise ValueError(f"TTS conf {self.tts_conf} is not supported")
+
+        if audio_bytes and amplified:
+            audio_bytes = self._amplify_audio(audio_bytes)
+
+        return {'cached': False, 'bytes': audio_bytes, 'sample_rate': sample_rate, 'tts_key': tts_key}
+
+    def _play_prepared_chunk(self, chunk: str, result: dict):
+        """
+        Play audio from the dict returned by _prepare_chunk_audio() and
+        save to cache if it was freshly synthesised.
+        """
+        if result['cached']:
+            self.log_utterance(speaker='robot', text=f'{chunk} (cache)')
+            self.play_audio(result['file'], log=False)
+        else:
+            if result.get('bytes'):
+                self.speaker.request(AudioRequest(result['bytes'], result['sample_rate']))
+                self.log_utterance(speaker='robot', text=chunk)
+                self.tts_cacher.save_audio_file(result['tts_key'], result['bytes'], result['sample_rate'])
+
+    def warm_tts_cache(self, texts: list):
+        """
+        Improvement 1 — Pre-cache static TTS strings upfront.
+
+        Synthesise a list of known static lines in parallel and store them in the TTS
+        cache before the interaction starts. During the live session every one of these
+        lines will be a cache hit, eliminating the ElevenLabs network round-trip
+        (~0.3–1s per line) while the child is watching.
+
+        Call this at the end of prepare() in each bloedafname script with all the
+        hardcoded say() strings that never change.
+        """
+        if not texts:
+            return
+
+        already_cached = 0
+        to_synthesise = []
+        for text in texts:
+            for chunk in self._split_text(text):
+                tts_key = self.tts_cacher.make_tts_key(chunk, self.tts_conf)
+                if self.tts_cacher.load_audio_file(tts_key):
+                    already_cached += 1
+                else:
+                    to_synthesise.append(chunk)
+
+        print(f"[TTS WARM] {already_cached} chunks already cached, synthesising {len(to_synthesise)} new chunks...")
+
+        def _warm_one(chunk):
+            try:
+                result = self._prepare_chunk_audio(chunk)
+                if not result['cached'] and result.get('bytes'):
+                    self.tts_cacher.save_audio_file(result['tts_key'], result['bytes'], result['sample_rate'])
+            except Exception as e:
+                self.logger.warning(f"[TTS WARM] Failed to pre-cache '{chunk[:40]}': {e}")
+
+        # Use multiple threads so cache checks and fast items run in parallel.
+        # ElevenLabs calls are still serialised by the asyncio.Lock inside ElevenLabsTTS.
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(_warm_one, chunk) for chunk in to_synthesise]
+            for f in futures:
+                f.result()  # surface any errors
+
+        print(f"[TTS WARM] Done.")
+
     @InteractionConf.apply_config_defaults('interaction_conf', ['speaking_rate', 'sleep_time', 'animated', 'amplified', 'always_regenerate'])
     def say(self, text, speaking_rate=None, sleep_time=None, animated=None, amplified=False, always_regenerate=False):
         text_chunks = self._split_text(text, max_len=80)
 
-        for chunk in text_chunks:
+        if not text_chunks:
+            return
 
+        if len(text_chunks) == 1:
+            # Single chunk — no look-ahead needed, keep it simple
+            chunk = text_chunks[0]
             if animated:
                 self.animate(AnimationType.EXPRESSION, self._random_speaking_eye_expression(), run_async=True)
                 self.animate(AnimationType.ACTION, self._random_speaking_act(), run_async=True)
+            result = self._prepare_chunk_audio(chunk, speaking_rate, amplified, always_regenerate)
+            self._play_prepared_chunk(chunk, result)
+        else:
+            # Improvement 3 — Pre-fetch next chunk's TTS while the current chunk plays.
+            # A single worker thread fetches audio ahead of time; because speaker.request()
+            # is blocking, synthesis of chunk N+1 overlaps with playback of chunk N,
+            # hiding the ElevenLabs round-trip (~0.3–1s) behind audio playback time.
+            with ThreadPoolExecutor(max_workers=1) as pre_fetch:
+                # Kick off synthesis of the first chunk immediately
+                next_future = pre_fetch.submit(
+                    self._prepare_chunk_audio, text_chunks[0], speaking_rate, amplified, always_regenerate
+                )
 
-            # Normalize and hash text
-            tts_key = self.tts_cacher.make_tts_key(chunk, self.tts_conf)
-            if not always_regenerate:
-                audio_file = self.tts_cacher.load_audio_file(tts_key)
-                if audio_file:
-                    self.log_utterance(speaker='robot', text=f'{chunk} (cache)')
-                    self.play_audio(audio_file, log=False)
-                    continue
+                for i, chunk in enumerate(text_chunks):
+                    # Retrieve the pre-fetched audio for this chunk
+                    result = next_future.result()
 
-            # Otherwise, generate TTS
-            if isinstance(self.tts_conf, GoogleTTSConf):
-                reply = self.tts.request(GetSpeechRequest(
-                    text=chunk,
-                    voice_name=self.tts_conf.google_tts_voice_name,
-                    ssml_gender=self.tts_conf.google_tts_voice_gender,
-                    speaking_rate=speaking_rate or self.tts_conf.speaking_rate
-                ))
-                audio_bytes = reply.waveform
-                sample_rate = reply.sample_rate
+                    # Submit synthesis for the next chunk BEFORE playing this one
+                    # so ElevenLabs work overlaps with the blocking speaker.request() call
+                    if i + 1 < len(text_chunks):
+                        next_future = pre_fetch.submit(
+                            self._prepare_chunk_audio, text_chunks[i + 1], speaking_rate, amplified, always_regenerate
+                        )
 
-            elif isinstance(self.tts_conf, ElevenLabsTTSConf):
-                # ElevenLabs TTS returns bytes
-                audio_bytes = asyncio.run_coroutine_threadsafe(self.tts.speak(chunk), self.background_loop).result()
-                sample_rate = self.sample_rate
-            else:
-                raise ValueError(f"TTS conf {self.tts_conf} is not supported")
+                    if animated:
+                        self.animate(AnimationType.EXPRESSION, self._random_speaking_eye_expression(), run_async=True)
+                        self.animate(AnimationType.ACTION, self._random_speaking_act(), run_async=True)
 
-            # Optional amplification
-            if audio_bytes and amplified:
-                audio_bytes = self._amplify_audio(audio_bytes)
-
-            # Play audio
-            self.speaker.request(AudioRequest(audio_bytes, sample_rate))
-            self.log_utterance(speaker='robot', text=chunk)
-
-            # Save to cache file
-            self.tts_cacher.save_audio_file(tts_key, audio_bytes, sample_rate)
+                    self._play_prepared_chunk(chunk, result)
 
         if sleep_time and sleep_time > 0:
             sleep(sleep_time)

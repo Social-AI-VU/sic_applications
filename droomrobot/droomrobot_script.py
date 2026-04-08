@@ -1,4 +1,6 @@
 import abc
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from threading import Event
 from time import sleep
@@ -159,10 +161,25 @@ class DroomrobotScript:
         self.audio_amplified = audio_amplified
         self.always_regenerate = always_regenerate
 
-        if 'droomplek' in self.user_model:
-            self.user_model['droomplek_lidwoord'] = self.droomrobot.get_article(self.user_model['droomplek'])
+        # Improvement 8 — Skip GPT if article/adjective already stored from a previous session.
+        # get_article() and get_adjective() each cost ~1-3s; if the user model already has
+        # these values (e.g. from the introduction session), there is no need to ask GPT again.
+        needs_article = 'droomplek' in self.user_model and 'droomplek_lidwoord' not in self.user_model
+        needs_adjective = 'kleur' in self.user_model and 'kleur_adjective' not in self.user_model
 
-        if 'kleur' in self.user_model:
+        if needs_article and needs_adjective:
+            # Improvement 2 — Both calls are fully independent, run them in parallel.
+            # Without this they run sequentially, costing 2-6s total. In parallel
+            # the combined cost equals the slower of the two (~1-3s).
+            print("[PREPARE] Running get_article and get_adjective in parallel...")
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                article_future = executor.submit(self.droomrobot.get_article, self.user_model['droomplek'])
+                adjective_future = executor.submit(self.droomrobot.get_adjective, self.user_model['kleur'])
+                self.user_model['droomplek_lidwoord'] = article_future.result()
+                self.user_model['kleur_adjective'] = adjective_future.result()
+        elif needs_article:
+            self.user_model['droomplek_lidwoord'] = self.droomrobot.get_article(self.user_model['droomplek'])
+        elif needs_adjective:
             self.user_model['kleur_adjective'] = self.droomrobot.get_adjective(self.user_model['kleur'])
 
     def add_move(self, func, *args, **kwargs):
@@ -173,6 +190,37 @@ class DroomrobotScript:
 
     def add_moves(self, moves: list):
         self.interaction_moves.extend(moves)
+
+    def _prefetch_next_static_say(self):
+        """
+        Improvement 5 — Script-level look-ahead TTS pre-fetch.
+
+        After a move completes, scan the upcoming moves for the next say() call whose
+        text is a plain static string (not a lambda). If found, kick off TTS synthesis
+        in a daemon thread so the audio is cached before that line actually runs.
+
+        This is most effective at transitions between moves where the current move takes
+        some time (e.g. dialogflow recognition, GPT call) — the next say() arrives to
+        a warm cache with no extra wait.
+
+        Only pre-fetches the immediate next static say() to avoid excessive background
+        network calls. Stops scanning at the first InteractionChoice since the branch
+        taken is unknown until runtime.
+        """
+        for i in range(self.script_idx, min(self.script_idx + 5, len(self.interaction_moves))):
+            move = self.interaction_moves[i]
+            if not isinstance(move, InteractionMove):
+                break  # stop at a choice — can't predict which branch will be taken
+            if move.func == self.droomrobot.say and move.args and isinstance(move.args[0], str):
+                text = move.args[0]
+                # Warm cache in a daemon thread so it never blocks the main script
+                threading.Thread(
+                    target=self.droomrobot.warm_tts_cache,
+                    args=([text],),
+                    daemon=True,
+                    name=f"tts-prefetch-{i}"
+                ).start()
+                return  # only pre-fetch one line at a time
 
     def run(self):
         if self.phases and self.phase_moves:
@@ -197,6 +245,8 @@ class DroomrobotScript:
                         self.user_model[move.user_model_key] = result
                         self.droomrobot.save_user_model(self.participant_id, self.user_model)
                     self.script_idx += 1
+                    # Improvement 5 — pre-fetch TTS for the next static say() in the background
+                    self._prefetch_next_static_say()
                 except Exception as e:
                     print(f"[SCRIPT ERROR] Move {self.script_idx} failed: {e}")
                     import traceback
@@ -209,7 +259,10 @@ class DroomrobotScript:
                     print(f"[SCRIPT] Current user_model keys: {list(self.user_model.keys())}")
                     moves = move.execute(self.user_model)
                     print(f"[SCRIPT] InteractionChoice resolved to {len(moves)} moves")
-                    self.interaction_moves[self.script_idx:self.script_idx + 1] = moves  # insert the moves beloning to the choice in the list
+                    self.interaction_moves[self.script_idx:self.script_idx + 1] = moves
+                    # Improvement 5 — after resolving a choice, pre-fetch the first static say()
+                    # in the newly inserted branch
+                    self._prefetch_next_static_say()
                 except Exception as e:
                     print(f"[SCRIPT ERROR] Choice {self.script_idx} failed: {e}")
                     import traceback
