@@ -21,47 +21,6 @@ class WebDAVSync:
     - Base URL MUST be:
         https://<host>/remote.php/dav/files/<username>/
     - Use an App Password
-
-    How to create an App Password for VU Research Drive (Nextcloud)
-    --------------------------------------------------------------
-
-    Using an App Password is REQUIRED for WebDAV access. Your normal VU password will not work.
-
-    Steps:
-
-    1. Go to Research Drive (Nextcloud):
-       https://vu.data.surf.nl
-
-    2. Log in with your VU credentials (SURFconext).
-
-    3. Open Settings:
-       - Click your profile icon (top-right corner)
-       - Select "Settings"
-
-    4. Navigate to Security:
-       - In the left sidebar, click "Security"
-
-    5. Create an App Password:
-       - Find the section "Devices & sessions"
-       - Enter a name (e.g., "Python WebDAV Sync")
-       - Click "Create new app password"
-
-    6. Copy the generated password:
-       - It will be shown only ONCE
-       - Save it securely
-
-    7. Use it in your code:
-
-       Example:
-           base_url = "https://vu.data.surf.nl/remote.php/dav/files/<vunetID>@vu.nl/"
-           username = "<vunetID>@vu.nl"
-           password = "<app-password>" # NOT your normal password
-
-    Important Notes:
-    ----------------
-    - App passwords bypass MFA (2FA), which is why they are required
-    - You can revoke them anytime from the Security page
-    - Create separate app passwords for different applications for safety
     """
 
     def __init__(self, base_url, username, password, time_threshold=2):
