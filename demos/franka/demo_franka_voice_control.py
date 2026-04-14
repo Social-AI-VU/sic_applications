@@ -33,6 +33,15 @@ class FrankaVoiceControlDemo(SICApplication):
     See getting started guide for instructions:
     https://social-ai-vu.github.io/social-interaction-cloud/getting_started/getting_started_franka.html
 
+    You will also need to have a Google Cloud API key file in the conf/google/google-key.json file.
+    You will need to have the Cloud Speech-to-Text API enabled in your Google Cloud Console.
+    See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html for instructions on how to get one.
+
+    Google Speech-to-Text dependency needs to be installed and the service needs to be running:
+    1. pip install --upgrade social-interaction-cloud[google-stt]
+        Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
+    2. run-google-stt (in a separate terminal)
+
     Voice commands:
     - "go home" or "home" → Robot returns to home position
     - "wave" or "waving" → Robot plays the wave motion
