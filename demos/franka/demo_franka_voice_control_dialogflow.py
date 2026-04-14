@@ -1,40 +1,37 @@
-# Import basic preliminaries
 # Import libraries necessary for the demo
 import json
+import time
 from os.path import abspath, join
 
-import numpy as np
+# import core SIC framework components
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import message types and requests
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.common_franka.franka_motion_recorder import (
     GoHomeRequest,
     PandaJointsRecording,
     PlayRecordingRequest,
 )
 from sic_framework.devices.desktop import Desktop
-
-# Import the device(s) we will be using
 from sic_framework.devices.franka import Franka
-
-# Import the service(s) we will be using
-from sic_framework.services.dialogflow.dialogflow import (
-    Dialogflow,
-    DialogflowConf,
-    GetIntentRequest,
+from sic_framework.services.google_stt.google_stt import (
+    GetStatementRequest,
+    GoogleSpeechToText,
+    GoogleSpeechToTextConf,
 )
 
 
 class FrankaVoiceControlDemo(SICApplication):
     """
     Franka voice control demo application.
-    Demonstrates controlling the Franka robot and executing prerecorded motions using voice commands via Dialogflow.
+    Demonstrates controlling the Franka robot and executing prerecorded motions using voice commands via Google STT.
 
     IMPORTANT:
     To run this demo, you need to install the correct version of the panda-python dependency.
     A version mismatch will cause problems.
-    See Installation point 3 for instructions:
-    https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
+    See getting started guide for instructions:
+    https://social-ai-vu.github.io/social-interaction-cloud/getting_started/getting_started_franka.html
 
     Voice commands:
     - "go home" or "home" → Robot returns to home position
@@ -46,7 +43,7 @@ class FrankaVoiceControlDemo(SICApplication):
         super(FrankaVoiceControlDemo, self).__init__()
 
         # Demo-specific initialization
-        self.dialogflow_keyfile_path = abspath(
+        self.google_keyfile_path = abspath(
             join("..", "..", "conf", "google", "google-key.json")
         )
         self.motion_file = "wave.motion"
@@ -54,38 +51,32 @@ class FrankaVoiceControlDemo(SICApplication):
         self.frequency = 1000
         self.desktop = None
         self.franka = None
-        self.dialogflow = None
-        self.session_id = np.random.randint(10000)
+        self.stt = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/franka/logs")
-
+        # self.set_log_file_path("/path/to/logs")
 
         # Load environment variables
         self.load_env("../../conf/.env")
         
         self.setup()
 
-    def on_dialog(self, message):
+    def on_stt(self, result):
         """
-        Callback function for Dialogflow recognition results.
+        Callback function for speech recognition results.
 
         Args:
-            message: The Dialogflow recognition result message.
+            result: The speech-to-text recognition result message.
 
         Returns:
             None
         """
-        if message.response:
-            if message.response.recognition_result.is_final:
-                self.logger.info(
-                    "Transcript: {}".format(
-                        message.response.recognition_result.transcript
-                    )
-                )
+        if hasattr(result.response, "alternatives") and result.response.alternatives:
+            transcript = result.response.alternatives[0].transcript
+            self.logger.info("Transcript: {}".format(transcript))
 
     def setup(self):
-        """Initialize and configure Desktop, Franka, and Dialogflow."""
+        """Initialize and configure Desktop, Franka, and Google STT."""
         self.logger.info("Starting Franka Voice Control Demo...")
 
         # Initialize devices
@@ -94,24 +85,25 @@ class FrankaVoiceControlDemo(SICApplication):
 
         # Load the key json file
         try:
-            with open(self.dialogflow_keyfile_path) as f:
+            with open(self.google_keyfile_path) as f:
                 keyfile_json = json.load(f)
         except FileNotFoundError:
             self.logger.warning("No keyfile found, using None")
             keyfile_json = None
 
-        # Set up Dialogflow
-        dialogflow_conf = DialogflowConf(
-            keyfile_json=keyfile_json, sample_rate_hertz=44100, language="en"
+        # Set up Google STT
+        stt_conf = GoogleSpeechToTextConf(
+            keyfile_json=keyfile_json,
+            sample_rate_hertz=44100,
+            language="en-US",
+            interim_results=False,
         )
 
-        self.dialogflow = Dialogflow(
-            conf=dialogflow_conf, input_source=self.desktop.mic
-        )
+        self.stt = GoogleSpeechToText(conf=stt_conf, input_source=self.desktop.mic)
 
-        self.logger.info("Initialized dialogflow... registering callback function")
+        self.logger.info("Initialized Google STT... registering callback function")
         # Register a callback function to act upon arrival of recognition_result
-        self.dialogflow.register_callback(callback=self.on_dialog)
+        self.stt.register_callback(callback=self.on_stt)
 
     def run(self):
         """Main application loop."""
@@ -120,13 +112,16 @@ class FrankaVoiceControlDemo(SICApplication):
         try:
             for i in range(self.num_turns):
                 self.logger.info(" ----- Conversation turn {}".format(i))
-                # Create context_name-lifespan pairs. If lifespan is set to 0, the context expires immediately
-                contexts_dict = {"name": 1}
-                reply = self.dialogflow.request(
-                    GetIntentRequest(self.session_id, contexts_dict)
-                )
+                reply = self.stt.request(GetStatementRequest())
+                if (
+                    not reply
+                    or not hasattr(reply.response, "alternatives")
+                    or not reply.response.alternatives
+                ):
+                    self.logger.info("No transcript received")
+                    continue
 
-                query_text = reply.response.query_result.query_text
+                query_text = reply.response.alternatives[0].transcript
                 self.logger.info("Query text: {}".format(query_text))
 
                 # Process voice commands
@@ -141,6 +136,8 @@ class FrankaVoiceControlDemo(SICApplication):
                     self.franka.motion_recorder.request(
                         PlayRecordingRequest(loaded_joints, self.frequency)
                     )
+                # Small delay between requests to allow proper cleanup
+                time.sleep(0.1)
 
             self.logger.info("Voice control demo completed successfully")
         except Exception as e:
