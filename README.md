@@ -3,8 +3,9 @@
 ## Installation
 1) Clone this repository: ```git clone https://github.com/Social-AI-VU/Droomrobot.git```
 2) Set-up virtual environment
-3) Install dependencies: pip install --upgrade social_interaction_cloud[dialogflow,google-tts,openai-gpt,alphamini]
-   1) On MacOS: pip install --upgrade 'social_interaction_cloud[dialogflow,google-tts,openai-gpt,alphamini]'
+3) Install dependencies: pip install --upgrade -r requirements.txt
+4) Duplicate conf/.example_env to conf/.env (or copy the .env you receive into conf)
+5) Copy the google_keyfile.json you receive into conf/google
 
 ### Run with Start Script (Windows)
 1. (Only once) Allow Script Execution via PowerShell
