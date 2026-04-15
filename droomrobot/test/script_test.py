@@ -63,7 +63,7 @@ if __name__ == '__main__':
     droomrobot = Droomrobot(mini_ip="10.0.0.155", mini_id="00268", mini_password="alphago",
                             redis_ip="10.0.0.204",
                             google_keyfile_path=abspath(join("../../conf", "dialogflow", "google_keyfile.json")),
-                            env_path=abspath(join("../../conf", "openai", ".openai_env")),
+                            env_path=abspath(join("../../conf", ".env")),
                             sample_rate_dialogflow_hertz=44100, dialogflow_language="nl",
                             dialogflow_timeout=10.0,
                             tts_conf=ElevenLabsTTSConf(),

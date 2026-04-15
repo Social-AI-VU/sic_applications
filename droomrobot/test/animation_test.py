@@ -98,6 +98,6 @@ if __name__ == '__main__':
     droomrobot = AnimationTest(mini_ip="192.168.178.111", mini_id="00167", mini_password="alphago",
                                redis_ip="192.168.178.84",
                                google_keyfile_path=abspath(join("../../conf", "dialogflow", "google_keyfile.json")),
-                               openai_key_path=abspath(join("../../conf", "openai", ".openai_env")),
+                               openai_key_path=abspath(join("../../conf", ".env")),
                                computer_test_mode=False)
     droomrobot.expressions('codemao')

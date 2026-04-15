@@ -22,39 +22,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__author__ = 'Lilo Huang <kuso.cc@gmail.com>'
-__version__ = '1.7.0'
+__author__ = "Lilo Huang <kuso.cc@gmail.com>"
+__version__ = "1.7.0"
 
+import os
+import platform
+import warnings
 from ctypes import *
 from ctypes.util import find_library
-import platform
+from struct import calcsize, unpack
+
 import numpy as np
-import math
-import warnings
-import os
-from struct import unpack, calcsize
 
 # default libTurboJPEG library path
 DEFAULT_LIB_PATHS = {
-    'Darwin': [
-        '/usr/local/opt/jpeg-turbo/lib/libturbojpeg.dylib',
-        '/opt/libjpeg-turbo/lib64/libturbojpeg.dylib',
-        '/opt/homebrew/opt/jpeg-turbo/lib/libturbojpeg.dylib'
+    "Darwin": [
+        "/usr/local/opt/jpeg-turbo/lib/libturbojpeg.dylib",
+        "/opt/libjpeg-turbo/lib64/libturbojpeg.dylib",
+        "/opt/homebrew/opt/jpeg-turbo/lib/libturbojpeg.dylib",
     ],
-    'Linux': [
-        '/usr/lib/x86_64-linux-gnu/libturbojpeg.so.0',
-        '/usr/lib64/libturbojpeg.so.0',
-        '/opt/libjpeg-turbo/lib64/libturbojpeg.so'
+    "Linux": [
+        "/usr/lib/x86_64-linux-gnu/libturbojpeg.so.0",
+        "/usr/lib64/libturbojpeg.so.0",
+        "/opt/libjpeg-turbo/lib64/libturbojpeg.so",
     ],
-    'FreeBSD': [
-        '/usr/local/lib/libturbojpeg.so.0',
-        '/usr/local/lib/libturbojpeg.so'
-    ],
-    'NetBSD': [
-        '/usr/pkg/lib/libturbojpeg.so.0',
-        '/usr/pkg/lib/libturbojpeg.so'
-    ],
-    'Windows': ['C:/libjpeg-turbo64/bin/turbojpeg.dll']
+    "FreeBSD": ["/usr/local/lib/libturbojpeg.so.0", "/usr/local/lib/libturbojpeg.so"],
+    "NetBSD": ["/usr/pkg/lib/libturbojpeg.so.0", "/usr/pkg/lib/libturbojpeg.so"],
+    "Windows": ["C:/libjpeg-turbo64/bin/turbojpeg.dll"],
 }
 
 # error codes
@@ -148,21 +142,19 @@ TJFLAG_STOPONWARNING = 8192
 TJFLAG_PROGRESSIVE = 16384
 TJFLAG_LIMITSCANS = 32768
 
+
 class CroppingRegion(Structure):
     _fields_ = [("x", c_int), ("y", c_int), ("w", c_int), ("h", c_int)]
 
+
 class ScalingFactor(Structure):
-    _fields_ = ('num', c_int), ('denom', c_int)
+    _fields_ = ("num", c_int), ("denom", c_int)
+
 
 CUSTOMFILTER = CFUNCTYPE(
-    c_int,
-    POINTER(c_short),
-    CroppingRegion,
-    CroppingRegion,
-    c_int,
-    c_int,
-    c_void_p
+    c_int, POINTER(c_short), CroppingRegion, CroppingRegion, c_int, c_int, c_void_p
 )
+
 
 class BackgroundStruct(Structure):
     """Struct to send data to fill_background callback function.
@@ -176,11 +168,9 @@ class BackgroundStruct(Structure):
     lum: c_int
         Luminance value to use as background when extending the image.
     """
-    _fields_ = [
-        ("w", c_int),
-        ("h", c_int),
-        ("lum", c_int)
-    ]
+
+    _fields_ = [("w", c_int), ("h", c_int), ("lum", c_int)]
+
 
 class TransformStruct(Structure):
     _fields_ = [
@@ -188,15 +178,19 @@ class TransformStruct(Structure):
         ("op", c_int),
         ("options", c_int),
         ("data", POINTER(BackgroundStruct)),
-        ("customFilter", CUSTOMFILTER)
+        ("customFilter", CUSTOMFILTER),
     ]
+
 
 # MCU for luminance is always 8
 MCU_WIDTH = 8
 MCU_HEIGHT = 8
 MCU_SIZE = 64
 
-def fill_background(coeffs_ptr, arrayRegion, planeRegion, componentID, transformID, transform_ptr):
+
+def fill_background(
+    coeffs_ptr, arrayRegion, planeRegion, componentID, transformID, transform_ptr
+):
     """Callback function for filling extended crop images with background
     color. The callback can be called multiple times for each component, each
     call providing a region (defined by arrayRegion) of the image.
@@ -228,22 +222,20 @@ def fill_background(coeffs_ptr, arrayRegion, planeRegion, componentID, transform
     if componentID == 0:
         coeff_array_size = arrayRegion.w * arrayRegion.h
         # Read the coefficients in the pointer as a np array (no copy)
-        ArrayType = c_short*coeff_array_size
+        ArrayType = c_short * coeff_array_size
         array_pointer = cast(coeffs_ptr, POINTER(ArrayType))
         coeffs = np.frombuffer(array_pointer.contents, dtype=np.int16)
         coeffs.shape = (
-            arrayRegion.h//MCU_WIDTH,
-            arrayRegion.w//MCU_HEIGHT,
-            MCU_SIZE
+            arrayRegion.h // MCU_WIDTH,
+            arrayRegion.w // MCU_HEIGHT,
+            MCU_SIZE,
         )
 
         # Cast the content of the transform pointer into a transform structure
         transform = cast(transform_ptr, POINTER(TransformStruct)).contents
         # Cast the content of the callback data pointer in the transform
         # structure to a background structure
-        background_data = cast(
-            transform.data, POINTER(BackgroundStruct)
-        ).contents
+        background_data = cast(transform.data, POINTER(BackgroundStruct)).contents
 
         # The coeff array is typically just one MCU heigh, but it is up to the
         # libjpeg implementation how to do it. The part of the coeff array that
@@ -256,28 +248,20 @@ def fill_background(coeffs_ptr, arrayRegion, planeRegion, componentID, transform
         # fill mcus left of image
         left_start_row = min(arrayRegion.y, background_data.h) - arrayRegion.y
         left_end_row = (
-            min(arrayRegion.y+arrayRegion.h, background_data.h)
-            - arrayRegion.y
+            min(arrayRegion.y + arrayRegion.h, background_data.h) - arrayRegion.y
         )
-        for x in range(background_data.w//MCU_WIDTH, planeRegion.w//MCU_WIDTH):
-            for y in range(
-                left_start_row//MCU_HEIGHT,
-                left_end_row//MCU_HEIGHT
-            ):
+        for x in range(background_data.w // MCU_WIDTH, planeRegion.w // MCU_WIDTH):
+            for y in range(left_start_row // MCU_HEIGHT, left_end_row // MCU_HEIGHT):
                 coeffs[y][x][0] = background_data.lum
 
         # fill mcus under image
-        bottom_start_row = (
-            max(arrayRegion.y, background_data.h) - arrayRegion.y
-        )
+        bottom_start_row = max(arrayRegion.y, background_data.h) - arrayRegion.y
         bottom_end_row = (
-            max(arrayRegion.y+arrayRegion.h, background_data.h)
-            - arrayRegion.y
+            max(arrayRegion.y + arrayRegion.h, background_data.h) - arrayRegion.y
         )
-        for x in range(0, planeRegion.w//MCU_WIDTH):
+        for x in range(0, planeRegion.w // MCU_WIDTH):
             for y in range(
-                bottom_start_row//MCU_HEIGHT,
-                bottom_end_row//MCU_HEIGHT
+                bottom_start_row // MCU_HEIGHT, bottom_end_row // MCU_HEIGHT
             ):
                 coeffs[y][x][0] = background_data.lum
 
@@ -293,9 +277,11 @@ def split_byte_into_nibbles(value):
 
 class TurboJPEG(object):
     """A Python wrapper of libjpeg-turbo for decoding and encoding JPEG image."""
+
     def __init__(self, lib_path=None):
         turbo_jpeg = cdll.LoadLibrary(
-            self.__find_turbojpeg() if lib_path is None else lib_path)
+            self.__find_turbojpeg() if lib_path is None else lib_path
+        )
         self.__init_decompress = turbo_jpeg.tjInitDecompress
         self.__init_decompress.restype = c_void_p
         self.__buffer_size = turbo_jpeg.tjBufSize
@@ -317,40 +303,94 @@ class TurboJPEG(object):
         self.__destroy.restype = c_int
         self.__decompress_header = turbo_jpeg.tjDecompressHeader3
         self.__decompress_header.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_ulong, POINTER(c_int),
-            POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_ulong,
+            POINTER(c_int),
+            POINTER(c_int),
+            POINTER(c_int),
+            POINTER(c_int),
+        ]
         self.__decompress_header.restype = c_int
         self.__decompress = turbo_jpeg.tjDecompress2
         self.__decompress.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_ulong, POINTER(c_ubyte),
-            c_int, c_int, c_int, c_int, c_int]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_ulong,
+            POINTER(c_ubyte),
+            c_int,
+            c_int,
+            c_int,
+            c_int,
+            c_int,
+        ]
         self.__decompress.restype = c_int
         self.__decompressToYUV2 = turbo_jpeg.tjDecompressToYUV2
         self.__decompressToYUV2.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_ulong, POINTER(c_ubyte),
-            c_int, c_int, c_int, c_int]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_ulong,
+            POINTER(c_ubyte),
+            c_int,
+            c_int,
+            c_int,
+            c_int,
+        ]
         self.__decompressToYUV2.restype = c_int
         self.__decompressToYUVPlanes = turbo_jpeg.tjDecompressToYUVPlanes
         self.__decompressToYUVPlanes.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_ulong, POINTER(POINTER(c_ubyte)),
-            c_int, POINTER(c_int), c_int, c_int]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_ulong,
+            POINTER(POINTER(c_ubyte)),
+            c_int,
+            POINTER(c_int),
+            c_int,
+            c_int,
+        ]
         self.__decompressToYUVPlanes.restype = c_int
         self.__compress = turbo_jpeg.tjCompress2
         self.__compress.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_int, c_int, c_int, c_int,
-            POINTER(c_void_p), POINTER(c_ulong), c_int, c_int, c_int]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_int,
+            c_int,
+            c_int,
+            c_int,
+            POINTER(c_void_p),
+            POINTER(c_ulong),
+            c_int,
+            c_int,
+            c_int,
+        ]
         self.__compress.restype = c_int
         self.__compressFromYUV = turbo_jpeg.tjCompressFromYUV
         self.__compressFromYUV.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_int, c_int, c_int, c_int,
-            POINTER(c_void_p), POINTER(c_ulong), c_int, c_int]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_int,
+            c_int,
+            c_int,
+            c_int,
+            POINTER(c_void_p),
+            POINTER(c_ulong),
+            c_int,
+            c_int,
+        ]
         self.__compressFromYUV.restype = c_int
         self.__init_transform = turbo_jpeg.tjInitTransform
         self.__init_transform.restype = c_void_p
         self.__transform = turbo_jpeg.tjTransform
         self.__transform.argtypes = [
-            c_void_p, POINTER(c_ubyte), c_ulong, c_int, POINTER(c_void_p),
-            POINTER(c_ulong), POINTER(TransformStruct), c_int]
+            c_void_p,
+            POINTER(c_ubyte),
+            c_ulong,
+            c_int,
+            POINTER(c_void_p),
+            POINTER(c_ulong),
+            POINTER(TransformStruct),
+            c_int,
+        ]
         self.__transform.restype = c_int
         self.__free = turbo_jpeg.tjFree
         self.__free.argtypes = [c_void_p]
@@ -358,12 +398,12 @@ class TurboJPEG(object):
         self.__get_error_str = turbo_jpeg.tjGetErrorStr
         self.__get_error_str.restype = c_char_p
         # tjGetErrorStr2 is only available in newer libjpeg-turbo
-        self.__get_error_str2 = getattr(turbo_jpeg, 'tjGetErrorStr2', None)
+        self.__get_error_str2 = getattr(turbo_jpeg, "tjGetErrorStr2", None)
         if self.__get_error_str2 is not None:
             self.__get_error_str2.argtypes = [c_void_p]
             self.__get_error_str2.restype = c_char_p
         # tjGetErrorCode is only available in newer libjpeg-turbo
-        self.__get_error_code = getattr(turbo_jpeg, 'tjGetErrorCode', None)
+        self.__get_error_code = getattr(turbo_jpeg, "tjGetErrorCode", None)
         if self.__get_error_code is not None:
             self.__get_error_code.argtypes = [c_void_p]
             self.__get_error_code.restype = c_int
@@ -380,7 +420,7 @@ class TurboJPEG(object):
 
     def decode_header(self, jpeg_buf):
         """decodes JPEG header and returns image properties as a tuple.
-           e.g. (width, height, jpeg_subsample, jpeg_colorspace)
+        e.g. (width, height, jpeg_subsample, jpeg_colorspace)
         """
         handle = self.__init_decompress()
         try:
@@ -391,11 +431,22 @@ class TurboJPEG(object):
             jpeg_array = np.frombuffer(jpeg_buf, dtype=np.uint8)
             src_addr = self.__getaddr(jpeg_array)
             status = self.__decompress_header(
-                handle, src_addr, jpeg_array.size, byref(width), byref(height),
-                byref(jpeg_subsample), byref(jpeg_colorspace))
+                handle,
+                src_addr,
+                jpeg_array.size,
+                byref(width),
+                byref(height),
+                byref(jpeg_subsample),
+                byref(jpeg_colorspace),
+            )
             if status != 0:
                 self.__report_error(handle)
-            return (width.value, height.value, jpeg_subsample.value, jpeg_colorspace.value)
+            return (
+                width.value,
+                height.value,
+                jpeg_subsample.value,
+                jpeg_colorspace.value,
+            )
         finally:
             self.__destroy(handle)
 
@@ -405,15 +456,24 @@ class TurboJPEG(object):
         try:
             jpeg_array = np.frombuffer(jpeg_buf, dtype=np.uint8)
             src_addr = self.__getaddr(jpeg_array)
-            scaled_width, scaled_height, _, _ = \
-                self.__get_header_and_dimensions(handle, jpeg_array.size, src_addr, scaling_factor)
+            scaled_width, scaled_height, _, _ = self.__get_header_and_dimensions(
+                handle, jpeg_array.size, src_addr, scaling_factor
+            )
             img_array = np.empty(
-                [scaled_height, scaled_width, tjPixelSize[pixel_format]],
-                dtype=np.uint8)
+                [scaled_height, scaled_width, tjPixelSize[pixel_format]], dtype=np.uint8
+            )
             dest_addr = self.__getaddr(img_array)
             status = self.__decompress(
-                handle, src_addr, jpeg_array.size, dest_addr, scaled_width,
-                0, scaled_height, pixel_format, flags)
+                handle,
+                src_addr,
+                jpeg_array.size,
+                dest_addr,
+                scaled_width,
+                0,
+                scaled_height,
+                pixel_format,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             return img_array
@@ -426,35 +486,55 @@ class TurboJPEG(object):
         try:
             jpeg_array = np.frombuffer(jpeg_buf, dtype=np.uint8)
             src_addr = self.__getaddr(jpeg_array)
-            scaled_width, scaled_height, jpeg_subsample, _ = \
-                self.__get_header_and_dimensions(handle, jpeg_array.size, src_addr, scaling_factor)
-            buffer_size = self.__buffer_size_YUV2(scaled_width, pad, scaled_height, jpeg_subsample)
+            scaled_width, scaled_height, jpeg_subsample, _ = (
+                self.__get_header_and_dimensions(
+                    handle, jpeg_array.size, src_addr, scaling_factor
+                )
+            )
+            buffer_size = self.__buffer_size_YUV2(
+                scaled_width, pad, scaled_height, jpeg_subsample
+            )
             buffer_array = np.empty(buffer_size, dtype=np.uint8)
             dest_addr = self.__getaddr(buffer_array)
             status = self.__decompressToYUV2(
-                handle, src_addr, jpeg_array.size, dest_addr, scaled_width,
-                pad, scaled_height, flags)
+                handle,
+                src_addr,
+                jpeg_array.size,
+                dest_addr,
+                scaled_width,
+                pad,
+                scaled_height,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             plane_sizes = list()
             plane_sizes.append((scaled_height, scaled_width))
             if jpeg_subsample != TJSAMP_GRAY:
                 for i in range(1, 3):
-                    plane_sizes.append((
-                        self.__plane_height(i, scaled_height, jpeg_subsample),
-                        self.__plane_width(i, scaled_width, jpeg_subsample)))
+                    plane_sizes.append(
+                        (
+                            self.__plane_height(i, scaled_height, jpeg_subsample),
+                            self.__plane_width(i, scaled_width, jpeg_subsample),
+                        )
+                    )
             return buffer_array, plane_sizes
         finally:
             self.__destroy(handle)
 
-    def decode_to_yuv_planes(self, jpeg_buf, scaling_factor=None, strides=(0, 0, 0), flags=0):
+    def decode_to_yuv_planes(
+        self, jpeg_buf, scaling_factor=None, strides=(0, 0, 0), flags=0
+    ):
         """decodes JPEG memory buffer to yuv planes."""
         handle = self.__init_decompress()
         try:
             jpeg_array = np.frombuffer(jpeg_buf, dtype=np.uint8)
             src_addr = self.__getaddr(jpeg_array)
-            scaled_width, scaled_height, jpeg_subsample, _ = \
-                self.__get_header_and_dimensions(handle, jpeg_array.size, src_addr, scaling_factor)
+            scaled_width, scaled_height, jpeg_subsample, _ = (
+                self.__get_header_and_dimensions(
+                    handle, jpeg_array.size, src_addr, scaling_factor
+                )
+            )
             num_planes = 3
             if jpeg_subsample == TJSAMP_GRAY:
                 num_planes = 1
@@ -463,21 +543,45 @@ class TurboJPEG(object):
             planes = list()
             for i in range(num_planes):
                 if strides[i] == 0:
-                    strides_addr[i] = self.__plane_width(i, scaled_width, jpeg_subsample)
+                    strides_addr[i] = self.__plane_width(
+                        i, scaled_width, jpeg_subsample
+                    )
                 else:
                     strides_addr[i] = strides[i]
-                planes.append(np.empty(
-                    (self.__plane_height(i, scaled_height, jpeg_subsample), strides_addr[i]), dtype=np.uint8))
+                planes.append(
+                    np.empty(
+                        (
+                            self.__plane_height(i, scaled_height, jpeg_subsample),
+                            strides_addr[i],
+                        ),
+                        dtype=np.uint8,
+                    )
+                )
                 dest_addr[i] = self.__getaddr(planes[i])
             status = self.__decompressToYUVPlanes(
-                handle, src_addr, jpeg_array.size, dest_addr, scaled_width, strides_addr, scaled_height, flags)
+                handle,
+                src_addr,
+                jpeg_array.size,
+                dest_addr,
+                scaled_width,
+                strides_addr,
+                scaled_height,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             return planes
         finally:
             self.__destroy(handle)
 
-    def encode(self, img_array, quality=85, pixel_format=TJPF_BGR, jpeg_subsample=TJSAMP_422, flags=0):
+    def encode(
+        self,
+        img_array,
+        quality=85,
+        pixel_format=TJPF_BGR,
+        jpeg_subsample=TJSAMP_422,
+        flags=0,
+    ):
         """encodes numpy array to JPEG memory buffer."""
         handle = self.__init_compress()
         try:
@@ -485,12 +589,24 @@ class TurboJPEG(object):
             jpeg_size = c_ulong()
             height, width = img_array.shape[:2]
             channel = tjPixelSize[pixel_format]
-            if channel > 1 and (len(img_array.shape) < 3 or img_array.shape[2] != channel):
-                raise ValueError('Invalid shape for image data')
+            if channel > 1 and (
+                len(img_array.shape) < 3 or img_array.shape[2] != channel
+            ):
+                raise ValueError("Invalid shape for image data")
             src_addr = self.__getaddr(img_array)
             status = self.__compress(
-                handle, src_addr, width, img_array.strides[0], height, pixel_format,
-                byref(jpeg_buf), byref(jpeg_size), jpeg_subsample, quality, flags)
+                handle,
+                src_addr,
+                width,
+                img_array.strides[0],
+                height,
+                pixel_format,
+                byref(jpeg_buf),
+                byref(jpeg_size),
+                jpeg_subsample,
+                quality,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             dest_buf = create_string_buffer(jpeg_size.value)
@@ -500,7 +616,9 @@ class TurboJPEG(object):
         finally:
             self.__destroy(handle)
 
-    def encode_from_yuv(self, img_array, height, width, quality=85, jpeg_subsample=TJSAMP_420, flags=0):
+    def encode_from_yuv(
+        self, img_array, height, width, quality=85, jpeg_subsample=TJSAMP_420, flags=0
+    ):
         """encodes numpy array to JPEG memory buffer."""
         handle = self.__init_compress()
         try:
@@ -508,8 +626,17 @@ class TurboJPEG(object):
             jpeg_size = c_ulong()
             src_addr = self.__getaddr(img_array)
             status = self.__compressFromYUV(
-                handle, src_addr, width, 4, height, jpeg_subsample,
-                byref(jpeg_buf), byref(jpeg_size), quality, flags)
+                handle,
+                src_addr,
+                width,
+                4,
+                height,
+                jpeg_subsample,
+                byref(jpeg_buf),
+                byref(jpeg_size),
+                quality,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             dest_buf = create_string_buffer(jpeg_size.value)
@@ -525,14 +652,26 @@ class TurboJPEG(object):
         try:
             jpeg_array = np.frombuffer(jpeg_buf, dtype=np.uint8)
             src_addr = self.__getaddr(jpeg_array)
-            scaled_width, scaled_height, jpeg_subsample, _ = self.__get_header_and_dimensions(
-                handle, jpeg_array.size, src_addr, scaling_factor)
+            scaled_width, scaled_height, jpeg_subsample, _ = (
+                self.__get_header_and_dimensions(
+                    handle, jpeg_array.size, src_addr, scaling_factor
+                )
+            )
             buffer_YUV_size = self.__buffer_size_YUV2(
-                scaled_height, 4, scaled_width, jpeg_subsample)
+                scaled_height, 4, scaled_width, jpeg_subsample
+            )
             img_array = np.empty([buffer_YUV_size])
             dest_addr = self.__getaddr(img_array)
             status = self.__decompressToYUV2(
-                handle, src_addr, jpeg_array.size, dest_addr, scaled_width, 4, scaled_height, flags)
+                handle,
+                src_addr,
+                jpeg_array.size,
+                dest_addr,
+                scaled_width,
+                4,
+                scaled_height,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             self.__destroy(handle)
@@ -540,8 +679,17 @@ class TurboJPEG(object):
             jpeg_buf = c_void_p()
             jpeg_size = c_ulong()
             status = self.__compressFromYUV(
-                handle, dest_addr, scaled_width, 4, scaled_height, jpeg_subsample, byref(jpeg_buf),
-                byref(jpeg_size), quality, flags)
+                handle,
+                dest_addr,
+                scaled_width,
+                4,
+                scaled_height,
+                jpeg_subsample,
+                byref(jpeg_buf),
+                byref(jpeg_size),
+                quality,
+                flags,
+            )
             if status != 0:
                 self.__report_error(handle)
             dest_buf = create_string_buffer(jpeg_size.value)
@@ -562,22 +710,38 @@ class TurboJPEG(object):
             jpeg_colorspace = c_int()
             jpeg_subsample = c_int()
             status = self.__decompress_header(
-                handle, src_addr, jpeg_array.size, byref(width), byref(height),
-                byref(jpeg_subsample), byref(jpeg_colorspace))
+                handle,
+                src_addr,
+                jpeg_array.size,
+                byref(width),
+                byref(height),
+                byref(jpeg_subsample),
+                byref(jpeg_colorspace),
+            )
             if status != 0:
                 self.__report_error(handle)
             x, w = self.__axis_to_image_boundaries(
-                x, w, width.value, preserve, tjMCUWidth[jpeg_subsample.value])
+                x, w, width.value, preserve, tjMCUWidth[jpeg_subsample.value]
+            )
             y, h = self.__axis_to_image_boundaries(
-                y, h, height.value, preserve, tjMCUHeight[jpeg_subsample.value])
+                y, h, height.value, preserve, tjMCUHeight[jpeg_subsample.value]
+            )
             dest_array = c_void_p()
             dest_size = c_ulong()
             region = CroppingRegion(x, y, w, h)
-            crop_transform = TransformStruct(region, TJXOP_NONE,
-                TJXOPT_CROP | (gray and TJXOPT_GRAY))
+            crop_transform = TransformStruct(
+                region, TJXOP_NONE, TJXOPT_CROP | (gray and TJXOPT_GRAY)
+            )
             status = self.__transform(
-                handle, src_addr, jpeg_array.size, 1, byref(dest_array), byref(dest_size),
-                byref(crop_transform), 0)
+                handle,
+                src_addr,
+                jpeg_array.size,
+                1,
+                byref(dest_array),
+                byref(dest_size),
+                byref(crop_transform),
+                0,
+            )
             dest_buf = create_string_buffer(dest_size.value)
             memmove(dest_buf, dest_array.value, dest_size.value)
             self.__free(dest_array)
@@ -587,7 +751,9 @@ class TurboJPEG(object):
         finally:
             self.__destroy(handle)
 
-    def crop_multiple(self, jpeg_buf, crop_parameters, background_luminance=1.0, gray=False):
+    def crop_multiple(
+        self, jpeg_buf, crop_parameters, background_luminance=1.0, gray=False
+    ):
         """Lossless crop and/or extension operations on jpeg image.
         Crop origin(s) needs be divisable by the MCU block size and inside
         the input image, or OSError: Invalid crop request is raised.
@@ -627,7 +793,7 @@ class TurboJPEG(object):
                 byref(image_width),
                 byref(image_height),
                 byref(jpeg_subsample),
-                byref(jpeg_colorspace)
+                byref(jpeg_colorspace),
             )
 
             if decompress_header_status != 0:
@@ -644,16 +810,15 @@ class TurboJPEG(object):
                 if self.__need_fill_background(
                     crop_region,
                     (image_width.value, image_height.value),
-                    background_luminance
+                    background_luminance,
                 ):
                     # Use callback to fill in background post-transform
                     callback_data = BackgroundStruct(
                         image_width,
                         image_height,
                         self.__map_luminance_to_dc_dct_coefficient(
-                            bytearray(jpeg_buf),
-                            background_luminance
-                        )
+                            bytearray(jpeg_buf), background_luminance
+                        ),
                     )
                     callback = CUSTOMFILTER(fill_background)
                     crop_transforms[i] = TransformStruct(
@@ -661,13 +826,13 @@ class TurboJPEG(object):
                         TJXOP_NONE,
                         TJXOPT_PERFECT | TJXOPT_CROP | (gray and TJXOPT_GRAY),
                         pointer(callback_data),
-                        callback
+                        callback,
                     )
                 else:
                     crop_transforms[i] = TransformStruct(
                         crop_region,
                         TJXOP_NONE,
-                        TJXOPT_PERFECT | TJXOPT_CROP | (gray and TJXOPT_GRAY)
+                        TJXOPT_PERFECT | TJXOPT_CROP | (gray and TJXOPT_GRAY),
                     )
 
             # Pointers to output image buffers and buffer size
@@ -683,7 +848,7 @@ class TurboJPEG(object):
                 dest_array,
                 dest_size,
                 crop_transforms,
-                TJFLAG_ACCURATEDCT
+                TJFLAG_ACCURATEDCT,
             )
 
             if transform_status != 0:
@@ -705,30 +870,42 @@ class TurboJPEG(object):
         finally:
             self.__destroy(handle)
 
-    def __get_header_and_dimensions(self, handle, jpeg_array_size, src_addr, scaling_factor):
+    def __get_header_and_dimensions(
+        self, handle, jpeg_array_size, src_addr, scaling_factor
+    ):
         """returns scaled image dimensions and header data"""
-        if scaling_factor is not None and \
-            scaling_factor not in self.__scaling_factors:
-            raise ValueError('supported scaling factors are ' +
-                str(self.__scaling_factors))
+        if scaling_factor is not None and scaling_factor not in self.__scaling_factors:
+            raise ValueError(
+                "supported scaling factors are " + str(self.__scaling_factors)
+            )
         width = c_int()
         height = c_int()
         jpeg_colorspace = c_int()
         jpeg_subsample = c_int()
         status = self.__decompress_header(
-            handle, src_addr, jpeg_array_size, byref(width), byref(height),
-            byref(jpeg_subsample), byref(jpeg_colorspace))
+            handle,
+            src_addr,
+            jpeg_array_size,
+            byref(width),
+            byref(height),
+            byref(jpeg_subsample),
+            byref(jpeg_colorspace),
+        )
         if status != 0:
             self.__report_error(handle)
         scaled_width = width.value
         scaled_height = height.value
         if scaling_factor is not None:
+
             def get_scaled_value(dim, num, denom):
                 return (dim * num + denom - 1) // denom
+
             scaled_width = get_scaled_value(
-                scaled_width, scaling_factor[0], scaling_factor[1])
+                scaled_width, scaling_factor[0], scaling_factor[1]
+            )
             scaled_height = get_scaled_value(
-                scaled_height, scaling_factor[0], scaling_factor[1])
+                scaled_height, scaling_factor[0], scaling_factor[1]
+            )
         return scaled_width, scaled_height, jpeg_subsample, jpeg_colorspace
 
     def __axis_to_image_boundaries(self, a, b, img_boundary, preserve, mcuBlock):
@@ -784,13 +961,9 @@ class TurboJPEG(object):
             True if crop operation require background fill operation.
         """
         return (
-            (
-                (crop_region.x + crop_region.w > image_size[0])
-                or
-                (crop_region.y + crop_region.h > image_size[1])
-            )
-            and (background_luminance != 0.5)
-        )
+            (crop_region.x + crop_region.w > image_size[0])
+            or (crop_region.y + crop_region.h > image_size[1])
+        ) and (background_luminance != 0.5)
 
     @staticmethod
     def __find_dqt(jpeg_data, dqt_index):
@@ -811,21 +984,18 @@ class TurboJPEG(object):
         """
         offset = 0
         while offset < len(jpeg_data):
-            dct_table_offset = jpeg_data[offset:].find(b'\xFF\xDB')
+            dct_table_offset = jpeg_data[offset:].find(b"\xFF\xDB")
             if dct_table_offset == -1:
                 break
             dct_table_offset += offset
             dct_table_length = unpack(
-                '>H',
-                jpeg_data[dct_table_offset+2:dct_table_offset+4]
+                ">H", jpeg_data[dct_table_offset + 2 : dct_table_offset + 4]
             )[0]
             dct_table_id_offset = dct_table_offset + 4
-            table_index, _ = split_byte_into_nibbles(
-                jpeg_data[dct_table_id_offset]
-            )
+            table_index, _ = split_byte_into_nibbles(jpeg_data[dct_table_id_offset])
             if table_index == dqt_index:
                 return dct_table_offset
-            offset += dct_table_offset+dct_table_length
+            offset += dct_table_offset + dct_table_length
         return None
 
     @classmethod
@@ -849,22 +1019,20 @@ class TurboJPEG(object):
         if dqt_offset is None:
             raise ValueError(
                 "Quantisation table {dqt_index} not found in header".format(
-                    dqt_index=dqt_index)
+                    dqt_index=dqt_index
+                )
             )
-        precision_offset = dqt_offset+4
+        precision_offset = dqt_offset + 4
         precision = split_byte_into_nibbles(jpeg_data[precision_offset])[0]
         if precision == 0:
-            unpack_type = '>b'
+            unpack_type = ">b"
         elif precision == 1:
-            unpack_type = '>h'
+            unpack_type = ">h"
         else:
-            raise ValueError('Not valid precision definition in dqt')
+            raise ValueError("Not valid precision definition in dqt")
         dc_offset = dqt_offset + 5
         dc_length = calcsize(unpack_type)
-        dc_value = unpack(
-            unpack_type,
-            jpeg_data[dc_offset:dc_offset+dc_length]
-        )[0]
+        dc_value = unpack(unpack_type, jpeg_data[dc_offset : dc_offset + dc_length])[0]
         return dc_value
 
     @classmethod
@@ -911,39 +1079,42 @@ class TurboJPEG(object):
 
     def __find_turbojpeg(self):
         """returns default turbojpeg library path if possible"""
-        lib_path = find_library('turbojpeg')
+        lib_path = find_library("turbojpeg")
         if lib_path is not None:
             return lib_path
         for lib_path in DEFAULT_LIB_PATHS[platform.system()]:
             if os.path.exists(lib_path):
                 return lib_path
-        if platform.system() == 'Linux' and 'LD_LIBRARY_PATH' in os.environ:
-            ld_library_path = os.environ['LD_LIBRARY_PATH']
-            for path in ld_library_path.split(':'):
-                lib_path = os.path.join(path, 'libturbojpeg.so.0')
+        if platform.system() == "Linux" and "LD_LIBRARY_PATH" in os.environ:
+            ld_library_path = os.environ["LD_LIBRARY_PATH"]
+            for path in ld_library_path.split(":"):
+                lib_path = os.path.join(path, "libturbojpeg.so.0")
                 if os.path.exists(lib_path):
                     return lib_path
         raise RuntimeError(
-            'Unable to locate turbojpeg library automatically. '
-            'You may specify the turbojpeg library path manually.\n'
-            'e.g. jpeg = TurboJPEG(lib_path)')
+            "Unable to locate turbojpeg library automatically. "
+            "You may specify the turbojpeg library path manually.\n"
+            "e.g. jpeg = TurboJPEG(lib_path)"
+        )
 
     def __getaddr(self, nda):
         """returns the memory address for a given ndarray"""
-        return cast(nda.__array_interface__['data'][0], POINTER(c_ubyte))
+        return cast(nda.__array_interface__["data"][0], POINTER(c_ubyte))
 
     @property
     def scaling_factors(self):
         return self.__scaling_factors
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     jpeg = TurboJPEG()
-    in_file = open('input.jpg', 'rb')
+    in_file = open("input.jpg", "rb")
     img_array = jpeg.decode(in_file.read())
     in_file.close()
-    out_file = open('output.jpg', 'wb')
+    out_file = open("output.jpg", "wb")
     out_file.write(jpeg.encode(img_array))
     out_file.close()
     import cv2
-    cv2.imshow('image', img_array)
+
+    cv2.imshow("image", img_array)
     cv2.waitKey(0)

@@ -56,7 +56,7 @@ if __name__ == '__main__':
     tts_conf = ElevenLabsTTSConf()
     test = TTSTest(mini_ip="192.168.178.251", mini_id="00041", mini_password="mini", redis_ip="192.168.178.84",
                    google_keyfile_path=abspath(join("../../conf", "dialogflow", "google_keyfile.json")),
-                   openai_key_path=abspath(join("../../conf", "openai", ".openai_env")),
+                   openai_key_path=abspath(join("../../conf", ".env")),
                    tts_conf=tts_conf,
                    computer_test_mode=False)
     test.speak()

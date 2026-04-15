@@ -82,7 +82,7 @@ class DroomrobotGUI:
         self.mini_password = tk.StringVar(value=self.config.get("mini_password", "alphago"))
         self.redis_ip = tk.StringVar(value=self.config.get("redis_ip", "192.168.178.84"))
         self.google_keyfile = tk.StringVar(value=self.config.get("google_keyfile", "google_keyfile.json"))
-        self.openai_keyfile = tk.StringVar(value=self.config.get("openai_keyfile", ".openai_env"))
+        self.openai_keyfile = tk.StringVar(value=self.config.get("openai_keyfile", ".env"))
         self.dialogflow_timeout = tk.StringVar(value=str(self.config.get("dialogflow_timeout", "15.0")))
         self.debug_mode = tk.BooleanVar(value=self.config.get("debug_mode", False))
         self.audio_amplified = tk.BooleanVar(value=self.config.get("audio_amplification", False))

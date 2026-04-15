@@ -59,8 +59,7 @@ dialogflow agent. That gives all the necessary intents and entities that are par
 
 Thirdly, you need an openAI key:
 5. Generate your personal openai api key here: https://platform.openai.com/api-keys
-6. Either add your openai key to your systems variables or
-create a .openai_env file in the conf/openai folder and add your key there like this:
+6. Either add your openai key to your systems variables or add it to the conf/.env file
 OPENAI_API_KEY="your key"
 
 Forth, the redis server, Dialogflow, Google TTS and OpenAI gpt service need to be running:
@@ -156,7 +155,7 @@ class Droomrobot:
         print("\n SETTING UP OPENAI")
         # Generate your personal openai api key here: https://platform.openai.com/api-keys
         # Either add your openai key to your systems variables (and comment the next line out) or
-        # create a .openai_env file in the conf/openai folder and add your key there like this:
+        # add it to the conf/.env file like this:
         # OPENAI_API_KEY="your key"
         if env_path:
             load_dotenv(env_path)

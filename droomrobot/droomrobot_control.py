@@ -115,7 +115,7 @@ class DroomrobotControl:
 #                                redis_ip="192.168.178.84",
 #                                google_keyfile_path=abspath(
 #                                    join("../conf", "dialogflow", "google_keyfile.json")),
-#                                openai_key_path=abspath(join("../conf", "openai", ".openai_env")),
+#                                openai_key_path=abspath(join("../conf", ".env")),
 #                                default_speaking_rate=0.8, computer_test_mode=False)
 #
 #     droomrobot_control.start(participant_id='996',

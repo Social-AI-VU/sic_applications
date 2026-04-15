@@ -34,7 +34,7 @@ if __name__ == '__main__':
                                mini_ip="192.168.2.19`", mini_id="00041", mini_password="mini",
                                redis_ip="192.168.2.7",
                                google_keyfile_path=root / 'conf' / 'dialogflow' / "google_keyfile.json",
-                               env_path=root / 'conf' / 'openai' / ".openai_env",
+                               env_path=root / 'conf' / '.evn',
                                computer_test_mode=True)
 
     video_interaction(droomrobot_control.droomrobot)
