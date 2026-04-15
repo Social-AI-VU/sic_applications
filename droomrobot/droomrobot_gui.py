@@ -6,7 +6,6 @@ from pathlib import Path
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from threading import Thread
-from os.path import abspath, join
 
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
@@ -461,8 +460,8 @@ class DroomrobotGUI:
                 google_tts_voice_gender=self.setting_2.get())
 
         root = Path(__file__).parent.parent.resolve()
-        google_keyfile_path = root / 'conf' / 'dialogflow' / self.google_keyfile.get()
-        openai_keyfile_path = root / 'conf' / 'openai' / self.openai_keyfile.get()
+        google_keyfile_path = root / 'conf' / 'google' / self.google_keyfile.get()
+        openai_keyfile_path = root / 'conf' / self.openai_keyfile.get()
         self.droomrobot_control = DroomrobotControl()
         self.droomrobot_control.connect(
             sic_app=self.sic_app,
