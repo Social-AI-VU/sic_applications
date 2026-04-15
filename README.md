@@ -1,7 +1,7 @@
 # Droomrobot
 
 ## Installation
-1) Clone this repository: ```git clone https://github.com/Social-AI-VU/droomrobot_python.git```
+1) Clone this repository: ```git clone https://github.com/Social-AI-VU/Droomrobot.git```
 2) Set-up virtual environment
 3) Install dependencies: pip install --upgrade social_interaction_cloud[dialogflow,google-tts,openai-gpt,alphamini]
    1) On MacOS: pip install --upgrade 'social_interaction_cloud[dialogflow,google-tts,openai-gpt,alphamini]'
