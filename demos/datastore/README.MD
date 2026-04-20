@@ -71,7 +71,7 @@ run-redis \
   --redis-conf /absolute/path/to/redis.conf
 ```
 
-- Mounts the config file to `/usr/local/etc/redis/redis.conf`
+- Mounts the config file to `/redis-stack.conf`
 - Starts Redis using that config file
 - Prefer this for explicit, versioned control of persistence/password/memory settings
 
