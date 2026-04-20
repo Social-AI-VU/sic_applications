@@ -31,15 +31,14 @@ class UserModelDemo(SICApplication):
     - Delete specific fields or entire users
     
     Prerequisites:
-    1. Start Redis server: redis-server conf/redis-store.conf OR docker run -d --name redis-stack -p 6379:6379 -e REDIS_ARGS="--requirepass changemeplease" -p 8001:8001 redis/redis-stack:latest
-    2. Start the datastore service: run-redis
+    1. Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
     """
 
     def __init__(self):
         super(UserModelDemo, self).__init__()
         self.datastore = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         
         # set log file path if needed
         # self.set_log_file_path("/path/to/logs")

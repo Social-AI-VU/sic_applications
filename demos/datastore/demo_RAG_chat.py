@@ -35,11 +35,10 @@ class RAGChatDemo(SICApplication):
     - Multi-turn conversation with context
 
     Prerequisites:
-    1. Start Redis Stack: docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 -e REDIS_ARGS="--requirepass changemeplease" redis/redis-stack:latest
-    2. Set OPENAI_API_KEY in conf/.env
-    3. Start the datastore service: run-redis
+    1. Install dependencies: pip install social-interaction-cloud[openai-gpt]
+    2. Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
+    3. Set OPENAI_API_KEY in conf/.env
     4. Start the GPT service: run-gpt
-    5. Install dependencies: pip install social-interaction-cloud[openai-gpt]
     """
 
     def __init__(self):
