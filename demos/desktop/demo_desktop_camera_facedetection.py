@@ -67,7 +67,9 @@ class FaceDetectionDemo(SICApplication):
         Returns:
             None
         """
-        self.imgs_buffer.put(image_message.image)
+        if self.shutdown_event.is_set():
+            return
+        self._put_latest(self.imgs_buffer, image_message.image)
 
     def on_faces(self, message: BoundingBoxesMessage):
         """
@@ -79,7 +81,30 @@ class FaceDetectionDemo(SICApplication):
         Returns:
             None
         """
-        self.faces_buffer.put(message.bboxes)
+        if self.shutdown_event.is_set():
+            return
+        self._put_latest(self.faces_buffer, message.bboxes)
+
+    @staticmethod
+    def _put_latest(q: queue.Queue, item):
+        """
+        Put the newest item in a size-1 queue without blocking callback threads.
+
+        If full, drop the stale item and try once more.
+        """
+        try:
+            q.put_nowait(item)
+        except queue.Full:
+            try:
+                q.get_nowait()
+            except queue.Empty:
+                pass
+            try:
+                q.put_nowait(item)
+            except queue.Full:
+                # Another producer won the race; dropping one item is fine for
+                # this visualization demo.
+                pass
 
     def setup(self):
         """Initialize and configure the desktop camera and face detection service."""
