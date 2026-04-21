@@ -1,22 +1,19 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import json
-import time
-from os.path import abspath, join
-
-from sic_framework.core import sic_logging
+# import basic SIC framework components
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import the device(s) we will be using
+# Import devices, messages, and services we will be using
 from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
 from sic_framework.services.google_stt.google_stt import (
     GetStatementRequest,
     GoogleSpeechToText,
     GoogleSpeechToTextConf,
 )
 
+# Import demo-specific modules
+from os.path import abspath, join
+import json
+import time
 
 class GoogleSTTDemo(SICApplication):
     """
@@ -47,7 +44,6 @@ class GoogleSTTDemo(SICApplication):
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file_path("/path/to/log")
-
 
         # Load environment variables
         self.load_env("../../conf/.env")

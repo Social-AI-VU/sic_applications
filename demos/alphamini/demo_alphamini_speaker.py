@@ -1,7 +1,3 @@
-# Import preliminaries
-import wave
-from os.path import abspath, dirname, join
-
 # import basic SIC framework libraries
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
@@ -11,6 +7,9 @@ from sic_framework.devices.alphamini import Alphamini
 from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
 
+# Import demo-specific modules
+import wave
+from os.path import abspath, dirname, join
 
 class AlphaminiSpeakerWavDemo(SICApplication):
     """
