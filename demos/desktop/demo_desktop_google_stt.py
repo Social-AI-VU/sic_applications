@@ -33,7 +33,7 @@ class GoogleSTTDemo(SICApplication):
     See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide
     """
 
-    def __init__(self, google_keyfile_path, mic_device_index=None):
+    def __init__(self, google_keyfile_path):
         # Call parent constructor (handles singleton initialization)
         super(GoogleSTTDemo, self).__init__()
 
@@ -42,11 +42,10 @@ class GoogleSTTDemo(SICApplication):
         self.desktop_mic = None
         self.google_keyfile_path = google_keyfile_path
         self.stt = None
-        self.mic_device_index = mic_device_index
-        self.mic_sample_rate_hz = 48000
+        self.mic_sample_rate_hz = 44100
 
         # Configure logging
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file_path("/path/to/log")
@@ -103,7 +102,6 @@ class GoogleSTTDemo(SICApplication):
         # initialize the desktop device with explicit microphone settings
         mic_conf = MicrophoneConf(
             sample_rate=self.mic_sample_rate_hz,
-            device_index=self.mic_device_index,
         )
         self.desktop = Desktop(mic_conf=mic_conf)
         self.desktop_mic = self.desktop.mic
@@ -151,6 +149,5 @@ if __name__ == "__main__":
     # This will be the single SICApplication instance for the process
     demo = GoogleSTTDemo(
         google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")),
-        mic_device_index=5 # Set to a concrete PyAudio input index if needed
     )
     demo.run()

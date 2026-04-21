@@ -12,7 +12,7 @@ class DesktopMicRecordingDemo(SICApplication):
     def __init__(self):
         super(DesktopMicRecordingDemo, self).__init__()
         self.record_seconds = 5
-        self.mic_conf = MicrophoneConf(sample_rate=48000, device_index=5)
+        self.mic_conf = MicrophoneConf(sample_rate=44100)
         self.output_path = "desktop_mic_{stamp}.wav".format(
             stamp=datetime.now().strftime("%Y%m%d_%H%M%S")
         )

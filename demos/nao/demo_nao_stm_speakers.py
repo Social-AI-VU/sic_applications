@@ -29,7 +29,7 @@ class NaoSpeakersDemo(SICApplication):
         self.samplerate = None
         self.channels = None  # mono / stereo
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
 
         # Load environment variables
         self.load_env("../../conf/.env")

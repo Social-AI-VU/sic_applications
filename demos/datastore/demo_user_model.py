@@ -39,7 +39,7 @@ class UserModelDemo(SICApplication):
         super(UserModelDemo, self).__init__()
         self.datastore = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         
         # set log file path if needed
         # self.set_log_file_path("/path/to/logs")
