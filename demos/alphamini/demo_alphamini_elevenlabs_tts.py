@@ -14,7 +14,8 @@ from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
 class AlphaminiElevenLabsTTSDemo(SICApplication):
     """
     Alphamini ElevenLabs Text-to-Speech demo application.
-    Demonstrates how to use the ElevenLabs TTS service to have the Alphamini speak.
+    Demonstrates how to use the ElevenLabs TTS service to have the Alphamini
+    speak.
 
     Requirements:
     1. ElevenLabs TTS service must be installed and running
@@ -41,11 +42,17 @@ class AlphaminiElevenLabsTTSDemo(SICApplication):
     def setup(self):
         self.logger.info("Setting up ElevenLabs Text-to-Speech...")
 
-        load_dotenv(abspath(join(dirname(__file__), "..", "..", "conf", ".env")))
-        self.api_key = self._provided_api_key or os.getenv("ELEVENLABS_API_KEY")
+        load_dotenv(
+            abspath(join(dirname(__file__), "..", "..", "conf", ".env"))
+        )
+        self.api_key = (
+            self._provided_api_key or os.getenv("ELEVENLABS_API_KEY")
+        )
 
         if not self.api_key:
-            raise ValueError("No ElevenLabs API key found. Set ELEVENLABS_API_KEY.")
+            raise ValueError(
+                "No ElevenLabs API key found. Set ELEVENLABS_API_KEY."
+            )
 
         tts_conf = ElevenLabsTTSConf(
             api_key=self.api_key,
@@ -63,7 +70,16 @@ class AlphaminiElevenLabsTTSDemo(SICApplication):
         try:
             reply = self.tts.request(
                 GetElevenLabsSpeechRequest(
-                    text="Hello, I am an Alphamini robot testing the ElevenLabs text to speech service in Social Interaction Cloud. This is a slightly longer example so we can check whether the full audio plays correctly from beginning to end. If everything is working well, there should be no truncation, no missing words, and the voice should sound natural.",
+                    text=(
+                        "Hello, I am an Alphamini robot testing the"
+                        " ElevenLabs text to speech service in Social"
+                        " Interaction Cloud. This is a slightly longer"
+                        " example so we can check whether the full audio"
+                        " plays correctly from beginning to end. If"
+                        " everything is working well, there should be no"
+                        " truncation, no missing words, and the voice"
+                        " should sound natural."
+                    ),
                     mode="batch",
                 )
             )
@@ -78,7 +94,9 @@ class AlphaminiElevenLabsTTSDemo(SICApplication):
             )
 
             self.logger.info("Alphamini speaking...")
-            self.mini.speaker.request(AudioRequest(reply.waveform, reply.sample_rate))
+            self.mini.speaker.request(
+                AudioRequest(reply.waveform, reply.sample_rate)
+            )
 
             self.logger.info("Speech playback completed")
 

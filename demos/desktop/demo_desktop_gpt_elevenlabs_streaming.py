@@ -56,12 +56,18 @@ class GPTElevenLabsStreamingDemo(SICApplication):
         if self.env_path:
             load_dotenv(self.env_path)
 
-        self.api_key = self._provided_api_key or os.getenv("ELEVENLABS_API_KEY")
+        self.api_key = (
+            self._provided_api_key or os.getenv("ELEVENLABS_API_KEY")
+        )
 
         if not self.api_key:
-            raise ValueError("No ElevenLabs API key found. Set ELEVENLABS_API_KEY.")
+            raise ValueError(
+                "No ElevenLabs API key found. Set ELEVENLABS_API_KEY."
+            )
 
-        self.desktop = Desktop(speakers_conf=SpeakersConf(sample_rate=SAMPLE_RATE))
+        self.desktop = Desktop(
+            speakers_conf=SpeakersConf(sample_rate=SAMPLE_RATE)
+        )
 
         tts_conf = ElevenLabsTTSConf(
             api_key=self.api_key,
@@ -72,7 +78,9 @@ class GPTElevenLabsStreamingDemo(SICApplication):
 
         conf = GPTConf(
             openai_key=environ["OPENAI_API_KEY"],
-            system_message="You are a helpful assistant. Keep responses concise.",
+            system_message=(
+                "You are a helpful assistant. Keep responses concise."
+            ),
             model="gpt-4o-mini",
             max_tokens=300,
         )
@@ -95,7 +103,7 @@ class GPTElevenLabsStreamingDemo(SICApplication):
             print(message.response, end="", flush=True)
             self._text_buffer += message.response
 
-            # Split on sentence boundaries; keep the trailing incomplete fragment
+            # Split on sentence boundaries; keep trailing incomplete fragment
             parts = _SENTENCE_BOUNDARY.split(self._text_buffer)
             for sentence in parts[:-1]:
                 sentence = sentence.strip()
@@ -126,7 +134,11 @@ class GPTElevenLabsStreamingDemo(SICApplication):
                 reply = self.tts.request(
                     GetElevenLabsSpeechRequest(text=sentence, mode="batch")
                 )
-                self.logger.info("Got {} bytes, playing audio...".format(len(reply.waveform)))
+                self.logger.info(
+                    "Got {} bytes, playing audio...".format(
+                        len(reply.waveform)
+                    )
+                )
                 self.desktop.speakers.request(
                     AudioRequest(reply.waveform, reply.sample_rate)
                 )
@@ -135,7 +147,9 @@ class GPTElevenLabsStreamingDemo(SICApplication):
                 self.logger.error("TTS error: {}".format(e))
 
     def run(self):
-        self.logger.info("GPT + ElevenLabs Streaming Demo. Type 'quit' to exit.")
+        self.logger.info(
+            "GPT + ElevenLabs Streaming Demo. Type 'quit' to exit."
+        )
 
         try:
             while not self.shutdown_event.is_set():
@@ -154,7 +168,7 @@ class GPTElevenLabsStreamingDemo(SICApplication):
                     except queue.Empty:
                         break
 
-                # Audio player starts immediately and consumes sentences as they arrive
+                # Audio thread starts immediately, consumes queued sentences
                 audio_thread = threading.Thread(
                     target=self._speak_sentences, daemon=True
                 )
