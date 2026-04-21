@@ -11,6 +11,7 @@ from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
     ElevenLabsTTS,
     ElevenLabsTTSConf,
     GetElevenLabsSpeechRequest,
+    ElevenLabsSpeechResult,
 )
 
 
