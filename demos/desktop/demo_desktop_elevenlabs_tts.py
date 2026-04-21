@@ -3,16 +3,11 @@ import os
 from sic_framework.core import sic_logging
 from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.core.sic_application import SICApplication
-
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
-
 from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
-    ElevenLabsTTS,
-    ElevenLabsTTSConf,
-    GetElevenLabsSpeechRequest,
-    ElevenLabsSpeechResult,
-)
+    ElevenLabsSpeechResult, ElevenLabsTTS, ElevenLabsTTSConf,
+    GetElevenLabsSpeechRequest)
 
 
 class ElevenLabsTTSDemo(SICApplication):
