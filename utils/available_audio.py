@@ -1,4 +1,12 @@
+"""
+This script lists available audio input (microphones) and output (speakers) devices on the system using the pyaudio library.
+
+When run as a script, it will print the name and other basic information for each detected microphone and speaker device.
+Intended for use in environments where you need to determine device indices for configuring audio input/output in other applications.
+"""
+
 import pyaudio
+import json
 
 
 class AvailableAudio:
@@ -18,6 +26,9 @@ class AvailableAudio:
                 dev = self.p.get_device_info_by_index(i)
                 if dev.get("maxInputChannels") > 0:
                     print(f"Input Device id {i} - {dev.get('name')}")
+                    print(f"    - Index: {dev.get('index')}")
+                    print(f"    - Sample rate: {dev.get('defaultSampleRate')}")
+                    # print(json.dumps(dev, indent=4))
             except Exception:
                 continue  # Skip problematic devices
 

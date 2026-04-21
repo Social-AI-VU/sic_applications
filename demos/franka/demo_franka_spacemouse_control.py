@@ -1,7 +1,3 @@
-# Import libraries necessary for the demo
-import numpy as np
-from scipy.spatial.transform import Rotation
-
 # import core SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
@@ -15,6 +11,10 @@ from sic_framework.devices.common_franka.franka_motion import (
 )
 from sic_framework.devices.desktop import Desktop
 from sic_framework.devices.franka import Franka
+
+# Import libraries necessary for the demo
+import numpy as np
+from scipy.spatial.transform import Rotation
 
 
 class MouseStateHandler:
