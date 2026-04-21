@@ -79,12 +79,13 @@ class PepperTabletWebserverDemo(SICApplication):
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         webfiles_dir = os.path.join(current_dir, "webfiles")
+        app_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
 
         conf = WebserverConf(
             host="0.0.0.0",
             port=WEB_PORT,
             templates_dir=webfiles_dir,
-            static_dir=webfiles_dir,
+            static_dir=app_root,
         )
         self.webserver = Webserver(conf=conf)
         self.logger.info("Webserver started on port %d", WEB_PORT)

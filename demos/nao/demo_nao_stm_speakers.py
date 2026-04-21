@@ -1,6 +1,7 @@
 # Import basic preliminaries
 # Import libraries necessary for the demo
 import wave
+from os.path import abspath, dirname, join
 
 import numpy as np
 from sic_framework.core import sic_logging
@@ -23,7 +24,8 @@ class NaoSpeakersDemo(SICApplication):
         super(NaoSpeakersDemo, self).__init__()
 
         self.nao_ip = "10.15.3.234"
-        self.audio_file = "sample.wav"
+        app_root = dirname(dirname(dirname(__file__)))
+        self.audio_file = abspath(join(app_root, "example_media", "audio", "demo_audio.wav"))
         self.nao = None
         self.wavefile = None
         self.samplerate = None
