@@ -13,6 +13,7 @@ from sic_framework.devices.common_franka.franka_motion_recorder import (
     PandaJointsRecording,
     PlayRecordingRequest,
 )
+from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
 from sic_framework.devices.desktop import Desktop
 from sic_framework.devices.franka import Franka
 from sic_framework.services.google_stt.google_stt import (
@@ -58,6 +59,8 @@ class FrankaVoiceControlDemo(SICApplication):
         self.motion_file = "wave.motion"
         self.num_turns = 25
         self.frequency = 1000
+        self.mic_sample_rate_hz = 48000
+        self.mic_device_index = 5
         self.desktop = None
         self.franka = None
         self.stt = None
@@ -70,6 +73,32 @@ class FrankaVoiceControlDemo(SICApplication):
         
         self.setup()
 
+    @staticmethod
+    def _extract_transcript(result_message):
+        """
+        Extract a transcript string from a Google STT RecognitionResult message.
+        """
+        if not result_message or not hasattr(result_message, "response"):
+            return None
+
+        response = result_message.response
+
+        # Google STT service may return an empty dict when no final result is available.
+        if isinstance(response, dict):
+            return None
+
+        # Common case for this demo: response is a StreamingRecognitionResult with alternatives.
+        if hasattr(response, "alternatives") and response.alternatives:
+            return response.alternatives[0].transcript
+
+        # Fallback for full StreamingRecognizeResponse objects (if returned by configuration changes).
+        if hasattr(response, "results") and response.results:
+            first_result = response.results[0]
+            if hasattr(first_result, "alternatives") and first_result.alternatives:
+                return first_result.alternatives[0].transcript
+
+        return None
+
     def on_stt(self, result):
         """
         Callback function for speech recognition results.
@@ -80,8 +109,8 @@ class FrankaVoiceControlDemo(SICApplication):
         Returns:
             None
         """
-        if hasattr(result.response, "alternatives") and result.response.alternatives:
-            transcript = result.response.alternatives[0].transcript
+        transcript = self._extract_transcript(result)
+        if transcript:
             self.logger.info("Transcript: {}".format(transcript))
 
     def setup(self):
@@ -89,7 +118,11 @@ class FrankaVoiceControlDemo(SICApplication):
         self.logger.info("Starting Franka Voice Control Demo...")
 
         # Initialize devices
-        self.desktop = Desktop()
+        mic_conf = MicrophoneConf(
+            sample_rate=self.mic_sample_rate_hz,
+            device_index=self.mic_device_index,
+        )
+        self.desktop = Desktop(mic_conf=mic_conf)
         self.franka = Franka()
 
         # Load the key json file
@@ -103,7 +136,7 @@ class FrankaVoiceControlDemo(SICApplication):
         # Set up Google STT
         stt_conf = GoogleSpeechToTextConf(
             keyfile_json=keyfile_json,
-            sample_rate_hertz=44100,
+            sample_rate_hertz=self.mic_sample_rate_hz,
             language="en-US",
             interim_results=False,
         )
@@ -122,15 +155,12 @@ class FrankaVoiceControlDemo(SICApplication):
             for i in range(self.num_turns):
                 self.logger.info(" ----- Conversation turn {}".format(i))
                 reply = self.stt.request(GetStatementRequest())
-                if (
-                    not reply
-                    or not hasattr(reply.response, "alternatives")
-                    or not reply.response.alternatives
-                ):
+                query_text = self._extract_transcript(reply)
+                if not query_text:
                     self.logger.info("No transcript received")
+                    time.sleep(0.1)
                     continue
 
-                query_text = reply.response.alternatives[0].transcript
                 self.logger.info("Query text: {}".format(query_text))
 
                 # Process voice commands
