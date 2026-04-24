@@ -39,3 +39,6 @@ conf/.env
 # Ignore dialogflow keyfiles
 conf/google/*.json
 
+# NarDial files
+demos/nardial/participants/*
+demos/nardial/tts_cache/*

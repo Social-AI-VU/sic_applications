@@ -1,0 +1,154 @@
+[
+  {
+    "id": "welcome_and_name",
+    "type": "functional",
+    "functional_type": "greeting",
+    "_doc": "Collect and persist a user name, then branch on whether we got an answer.",
+    "moves": [
+      { "type": "say", "text": "Hi! I am your planning assistant for today." },
+      {
+        "type": "ask_open",
+        "text": "Before we start, what name should I use for you?",
+        "set_variable": "first_name",
+        "outcomes": { "*": "name_provided" },
+        "default_outcome": "name_missing"
+      },
+      {
+        "type": "branch",
+        "on": "outcome",
+        "cases": {
+          "name_provided": [
+            { "type": "say", "text": "Great to meet you, %first_name%." }
+          ],
+          "name_missing": [
+            { "type": "say", "text": "No worries, we can continue without a name." }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "plan_activity",
+    "type": "chitchat",
+    "theme": "planning",
+    "topics": ["planning", "hobbies", "daily routine"],
+    "_doc": "Use options, save the choice, and branch by outcome labels.",
+    "moves": [
+      {
+        "type": "ask_options",
+        "text": "What sounds best for your next relaxing activity: reading, walking, or cooking?",
+        "options": ["reading", "walking", "cooking"],
+        "set_variable": "preferred_activity",
+        "add_interest_from_variable": "preferred_activity",
+        "outcomes": {
+          "reading": "activity_reading",
+          "walking": "activity_walking",
+          "cooking": "activity_cooking"
+        },
+        "default_outcome": "activity_other"
+      },
+      {
+        "type": "branch",
+        "on": "outcome",
+        "cases": {
+          "activity_reading": [
+            { "type": "say", "text": "Nice choice. Reading can be very calming." }
+          ],
+          "activity_walking": [
+            { "type": "say", "text": "A walk sounds refreshing!" }
+          ],
+          "activity_cooking": [
+            { "type": "say", "text": "Cooking something tasty sounds fun." }
+          ],
+          "activity_other": [
+            { "type": "say", "text": "That sounds interesting too." }
+          ]
+        }
+      },
+      {
+        "type": "ask_yesno",
+        "text": "Do you want to do that activity today?",
+        "set_variable": "wants_activity_today",
+        "llm_followup": "Reply in one short, encouraging sentence that mirrors the user's answer and keeps the tone supportive."
+      }
+    ]
+  },
+  {
+    "id": "adapt_to_user_energy",
+    "type": "narrative",
+    "thread": "adaptive_planning",
+    "position": 1,
+    "dependencies": ["plan_activity"],
+    "_doc": "Demonstrates branching directly on a persisted user_model variable.",
+    "moves": [
+      {
+        "type": "ask_options",
+        "text": "How is your energy level right now: high or low?",
+        "options": ["high", "low"],
+        "set_variable": "energy_level",
+        "outcomes": { "high": "energy_high" },
+        "default_outcome": "energy_low"
+      },
+      {
+        "type": "ask_open",
+        "text": "What usually helps you recharge?",
+        "set_variable": "recharge_habit",
+        "outcomes": { "*": "habit_shared" },
+        "default_outcome": "habit_missing"
+      },
+      {
+        "type": "branch",
+        "on": "outcome",
+        "cases": {
+          "habit_shared": [
+            { "type": "say", "text": "Thanks for sharing. %recharge_habit% sounds like a good strategy." }
+          ],
+          "habit_missing": [
+            { "type": "say", "text": "That's okay. We can find what works over time." }
+          ]
+        }
+      },
+      {
+        "type": "branch",
+        "on": "energy_level",
+        "cases": {
+          "high": [
+            { "type": "say", "text": "Since your energy is high, start with a longer %preferred_activity% session." }
+          ],
+          "low": [
+            { "type": "say", "text": "Since your energy is low, begin with 10 calm minutes of %preferred_activity%." }
+          ]
+        }
+      },
+      {
+        "type": "play",
+        "audio": "audio/planning_chime.wav"
+      },
+      {
+        "type": "motion_sequence",
+        "motion_sequence": "motions/Stand/Emotions/Positive/Happy_1"
+      },
+      {
+        "type": "animation",
+        "animation_name": "animations/Stand/Gestures/Enthusiastic_4"
+      },
+      {
+        "type": "ask_llm",
+        "prompt": "Ask one concise follow-up question to help the user commit to their plan for today. Keep it friendly and practical.",
+        "max_turns": 1,
+        "set_variable": "plan_commitment"
+      }
+    ]
+  },
+  {
+    "id": "structured_goodbye",
+    "type": "functional",
+    "functional_type": "farewell",
+    "dependencies": ["welcome_and_name"],
+    "_doc": "Wrap up with persisted variables from earlier in the agenda.",
+    "moves": [
+      { "type": "say", "text": "Thanks for planning with me, %first_name%." },
+      { "type": "say", "text": "I hope your %preferred_activity% moment goes well. Goodbye!" }
+    ]
+  }
+]
