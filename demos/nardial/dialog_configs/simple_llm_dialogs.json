@@ -1,0 +1,36 @@
+[
+  {
+    "id": "simple_llm_welcome",
+    "type": "functional",
+    "functional_type": "greeting",
+    "moves": [
+      {
+        "type": "say",
+        "text": "Hi, I am a simple NarDial LLM demo. Tell me what you would like to talk about."
+      }
+    ]
+  },
+  {
+    "id": "simple_llm_chat",
+    "type": "llm_based",
+    "dependencies": ["simple_llm_welcome"],
+    "prompt": "You are a friendly, concise conversational assistant in a simple NarDial demo. Respond naturally to the user, keep answers brief for spoken interaction, and ask one clear follow-up question when helpful. If the user says they are done, respond briefly and include <<QUIT>>.",
+    "max_turns": 5,
+    "speak_first": false,
+    "duration": 60,
+    "quit_phrases": ["done", "quit", "stop", "goodbye", "bye"],
+    "moves": []
+  },
+  {
+    "id": "simple_llm_goodbye",
+    "type": "functional",
+    "functional_type": "farewell",
+    "dependencies": ["simple_llm_chat"],
+    "moves": [
+      {
+        "type": "say",
+        "text": "Thanks for chatting. Goodbye!"
+      }
+    ]
+  }
+]

@@ -47,6 +47,7 @@ You MUST run these in separate terminals BEFORE starting the demo:
 # Path to your Google credentials (used for speech recognition + TTS if using Google)
 # You can replace this with your own path or environment-based config
 google_keyfile_path = join("..", "..", "conf", "google", "google-key.json")
+env_file_path = join("..", "..", "conf", ".env")
 
 if __name__ == '__main__':
     # =========================
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     # Choose where the conversation runs:
     # - Desktop: uses your computer's mic + speakers
     # - Pepper: connects to a Pepper robot (requires IP)
+    # or any other device of your liking
 
     device = Desktop(
         speakers_conf=SpeakersConf(
@@ -72,7 +74,8 @@ if __name__ == '__main__':
 
     interaction_config = InteractionConfig(
         google_keyfile_path=google_keyfile_path,
-        keyboard_input=True
+        keyboard_input=True,
+        env_file_path=env_file_path,
 
         # Change language (affects ASR + TTS + dialogflow)
         # language="nl",
@@ -80,8 +83,8 @@ if __name__ == '__main__':
         # Optional: specify microphone manually
         # microphone_device=1,
 
-        # Optional: path to OpenAI key (if not using default location)
-        # openai_key_path="path/to/.openai_env",
+        # Optional: path to environment variables (if not using default location)
+        # env_file_path="path/to/.env",
 
         # Add a pause after the agent speaks (seconds)
         # post_speech_delay=0.5,
