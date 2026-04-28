@@ -1,14 +1,8 @@
-# import libraries for the demo
-import time
-from os import environ
-from os.path import abspath, join
-
-
-# import SIC framework components
-from sic_framework.core import sic_logging
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# import devices, services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.services.openai_whisper_stt.whisper_stt import (
     GetTranscript,
@@ -16,6 +10,12 @@ from sic_framework.services.openai_whisper_stt.whisper_stt import (
     Transcript,
     WhisperConf,
 )
+
+# import demo-specific modules
+from os.path import abspath, join
+from os import environ
+import time
+
 
 class ReachyMiniWhisperDemo(SICApplication):
     """
@@ -35,7 +35,8 @@ class ReachyMiniWhisperDemo(SICApplication):
         self.whisper = None
         
         self.set_log_level(sic_logging.INFO)
-        # set log file path if needed
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file_path("/path/to/log/directory")
         
         # Load environment variables

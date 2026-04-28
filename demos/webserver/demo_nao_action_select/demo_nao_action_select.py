@@ -1,10 +1,9 @@
-import os
-import threading
-import time
-
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core.utils import is_sic_instance
 from sic_framework.core import sic_logging
+
+# import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Nao
 from sic_framework.devices.common_naoqi.naoqi_autonomous import NaoRestRequest
 from sic_framework.devices.common_naoqi.naoqi_motion import (
@@ -16,6 +15,12 @@ from sic_framework.services.webserver.webserver_service import (
     Webserver,
     WebserverConf,
 )
+
+# import demo-specific modules
+import threading
+import time
+import os
+
 
 class NaoActionSelectDemo(SICApplication):
     """
@@ -44,6 +49,8 @@ class NaoActionSelectDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../../conf/.env")

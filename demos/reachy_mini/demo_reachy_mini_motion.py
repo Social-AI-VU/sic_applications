@@ -1,8 +1,8 @@
-# import SIC framework components
-from sic_framework.core import sic_logging
+# import basic SIC framework components
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# import devices, services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.devices.common_reachy_mini.reachy_mini_motion import (
     ReachyMiniAntennaRequest,
@@ -24,9 +24,9 @@ class ReachyMiniMotionDemo(SICApplication):
         self.mini = None
 
         self.set_log_level(sic_logging.INFO)
-        # set log file path if needed
-        # self.set_log_file_path("/path/to/log/directory")
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

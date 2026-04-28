@@ -1,20 +1,9 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import json
-import os
-import threading
-import time
-import urllib.request
-import webbrowser
-from os.path import abspath, join
-
-import numpy as np
-from sic_framework.core import sic_logging
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core.utils import is_sic_instance
-from sic_framework.core.message_python2 import AudioMessage
+from sic_framework.core import sic_logging
 
-# Import the services we will be using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.services.dialogflow_cx.dialogflow_cx import (
     DetectIntentRequest,
     DialogflowCX,
@@ -28,6 +17,17 @@ from sic_framework.services.webserver.webserver_service import (
     Webserver,
     WebserverConf,
 )
+from sic_framework.core.message_python2 import AudioMessage
+
+# Import demo-specific modules
+from os.path import abspath, join
+import urllib.request
+import numpy as np
+import webbrowser
+import threading
+import json
+import time
+import os
 
 
 class DialogflowCXWebDemo(SICApplication):
@@ -63,14 +63,13 @@ class DialogflowCXWebDemo(SICApplication):
         self.start_listening_event = threading.Event()
         self.worker_thread: threading.Thread | None = None
 
-        self.set_log_level(sic_logging.INFO)
-
         # Random session ID is necessary for Dialogflow CX
         self.session_id = np.random.randint(10000)
 
-        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/logs")
+        self.set_log_level(sic_logging.INFO)
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../../conf/.env")

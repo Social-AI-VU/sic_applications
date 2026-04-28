@@ -1,18 +1,18 @@
-# import libraries for the demo
-import queue
-import cv2
-
-# import SIC framework components
-from sic_framework.core import sic_logging, utils_cv2
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging, utils_cv2
 
-# import devices, services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices.reachy_mini import ReachyMiniDevice
 from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
 from sic_framework.services.face_detection.face_detection import FaceDetection
+
+# import demo-specific modules
+import queue
+import cv2
 
 
 class ReachyMiniFaceDetectionDemo(SICApplication):
@@ -35,9 +35,9 @@ class ReachyMiniFaceDetectionDemo(SICApplication):
         self.face_det = None
 
         self.set_log_level(sic_logging.INFO)
-        # set log file path if needed
-        # self.set_log_file_path("/path/to/log/directory")
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")
