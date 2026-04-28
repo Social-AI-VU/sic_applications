@@ -1,11 +1,16 @@
-import os
+# Import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
+from sic_framework.services.webserver.webserver_service import WebserverConf, Webserver
+
+# Import libraries necessary for the demo
+import urllib.request
+import webbrowser
 import threading
 import time
-import webbrowser
-import urllib.request
-
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.services.webserver.webserver_service import WebserverConf, Webserver
+import os
 
 
 class WebserverDemo(SICApplication):
@@ -21,6 +26,11 @@ class WebserverDemo(SICApplication):
     def __init__(self):
         super(WebserverDemo, self).__init__()
         self.webserver = None
+
+        self.set_log_level(sic_logging.INFO)
+        
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../../conf/.env")

@@ -1,15 +1,9 @@
-# External imports
-import os
-
+# import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-
-# Import the device(s) we will be using
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Pepper
-
-# Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoRestRequest,
     NaoSetAutonomousLifeRequest,
@@ -21,16 +15,17 @@ from sic_framework.devices.common_naoqi.naoqi_motion import (
     NaoqiSmartStiffnessRequest,
 )
 
+# import demo-specific modules
+import os
+
+
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # Configuration
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-# Set Redis password environment variable
-os.environ["REDIS_PASSWORD"] = "changemeplease"
 
 # Robot IPs
 PUPPET_IP = "XXX"
 PERFORMER_IP = "XXX"
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Manual Drive Application
@@ -68,6 +63,8 @@ class RobotManualDriveApp(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

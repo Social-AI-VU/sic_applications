@@ -2,7 +2,7 @@
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# import services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
@@ -18,6 +18,7 @@ from sic_framework.services.llm import GPT, GPTConf, GPTRequest
 # import demo-specific modules
 from pathlib import Path
 import os
+
 
 class RAGChatDemo(SICApplication):
     """
@@ -35,11 +36,10 @@ class RAGChatDemo(SICApplication):
     - Multi-turn conversation with context
 
     Prerequisites:
-    1. Start Redis Stack: docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 -e REDIS_ARGS="--requirepass changemeplease" redis/redis-stack:latest
-    2. Set OPENAI_API_KEY in conf/.env
-    3. Start the datastore service: run-datastore-redis
+    1. Install dependencies: pip install social-interaction-cloud[openai-gpt]
+    2. Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
+    3. Set OPENAI_API_KEY in conf/.env
     4. Start the GPT service: run-gpt
-    5. Install dependencies: pip install social-interaction-cloud[openai-gpt]
     """
 
     def __init__(self):
@@ -51,7 +51,7 @@ class RAGChatDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # set log file path if needed (otherwise no logs will be written to file)
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         self.load_env("../../conf/.env")
 

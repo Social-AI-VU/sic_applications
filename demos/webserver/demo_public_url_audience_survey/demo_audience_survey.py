@@ -1,19 +1,23 @@
-import os
-import threading
-import time
-import json
-import urllib.request
-import webbrowser
-
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core.utils import is_sic_instance
 from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.services.webserver.webserver_service import (
     ButtonClicked,
     WebInfoMessage,
     Webserver,
     WebserverConf,
 )
+
+# Import demo-specific modules
+import urllib.request
+import webbrowser
+import threading
+import time
+import json
+import os
 
 
 class AudienceSurveyDemo(SICApplication):
@@ -50,8 +54,10 @@ class AudienceSurveyDemo(SICApplication):
         self._vote_counts = {opt: 0 for opt in self.options}
         self._audience_url = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../../conf/.env")

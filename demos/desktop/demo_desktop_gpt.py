@@ -1,10 +1,13 @@
-from os import environ
-from os.path import abspath, join
-
-
-from sic_framework.core import sic_logging
+# Import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the service(s), and message(s) we will be using
 from sic_framework.services.llm import GPT, GPTConf, GPTRequest
+
+# Import demo-specific modules
+from os.path import abspath, join
+from os import environ
 
 
 class ChatGPTDemo(SICApplication):

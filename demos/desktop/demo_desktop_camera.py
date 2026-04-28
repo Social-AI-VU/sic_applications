@@ -11,6 +11,7 @@ from sic_framework.devices.desktop import Desktop
 import queue
 import cv2
 
+
 class CameraDemo(SICApplication):
     """
     Desktop camera demo application.
