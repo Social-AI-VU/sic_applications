@@ -50,7 +50,7 @@ class AudienceSurveyDemo(SICApplication):
         self._vote_counts = {opt: 0 for opt in self.options}
         self._audience_url = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
 
 
         # Load environment variables
