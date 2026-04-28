@@ -70,9 +70,7 @@ class NaoSpeakersDemo(SICApplication):
 
         # Initialize the NAO robot
         self.nao = Nao(
-            ip=self.nao_ip,
-            dev_test=True,
-            test_repo="/home/sandergs/Documents/sic_dev/social-interaction-cloud",
+            ip=self.nao_ip
         )
 
     def run(self):

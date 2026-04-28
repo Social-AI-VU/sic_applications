@@ -39,7 +39,7 @@ class UserModelDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
         
-        # set log file path if needed
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables

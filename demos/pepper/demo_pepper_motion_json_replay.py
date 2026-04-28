@@ -1,15 +1,9 @@
-# External imports
-import json
-
+# import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-
-# Import the device(s) we will be using
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Pepper
-
-# Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoRestRequest,
     NaoWakeUpRequest,
@@ -21,9 +15,13 @@ from sic_framework.devices.common_naoqi.naoqi_motion_recorder import (
 )
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 
+# import demo-specific modules
+import json
+
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # Configuration
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
 CHAIN = ["Head", "LArm", "RArm"]
 MOTION_JSON_FILE = "pepper_motion_nod.json"
 ROBOT_IP = "XXX"

@@ -1,16 +1,15 @@
-# Import basic preliminaries
-import argparse
-
-from sic_framework.core import sic_logging
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import the device(s) we will be using
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Pepper
-
-# Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoSetAutonomousLifeRequest,
 )
+
+# import demo-specific modules
+import argparse
 
 
 class PepperAutonomousLifeDemo(SICApplication):
@@ -31,6 +30,9 @@ class PepperAutonomousLifeDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
 
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("path/to/log/directory")
+
         # Load environment variables
         self.load_env("../../conf/.env")
         
@@ -39,7 +41,7 @@ class PepperAutonomousLifeDemo(SICApplication):
     def setup(self):
         """Initialize the Pepper device."""
         self.logger.info("Connecting to Pepper")
-        self.pepper = Pepper(ip=self.robot_ip, dev_test=True)
+        self.pepper = Pepper(ip=self.robot_ip)
         self.logger.info("Pepper connected successfully.")
 
     def run(self):
