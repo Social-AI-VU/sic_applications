@@ -4,6 +4,7 @@ from sic_framework.core import sic_logging
 
 # Import devices, messages, and services we will be using
 from sic_framework.devices.desktop import Desktop
+from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
 from sic_framework.services.google_stt.google_stt import (
     GetStatementRequest,
     GoogleSpeechToText,
@@ -38,6 +39,7 @@ class GoogleSTTDemo(SICApplication):
         self.desktop_mic = None
         self.google_keyfile_path = google_keyfile_path
         self.stt = None
+        self.mic_sample_rate_hz = 44100
 
         # Configure logging
         self.set_log_level(sic_logging.INFO)
@@ -50,6 +52,32 @@ class GoogleSTTDemo(SICApplication):
         
         self.setup()
 
+    @staticmethod
+    def _extract_transcript(result_message):
+        """
+        Extract a transcript string from a Google STT RecognitionResult message.
+        """
+        if not result_message or not hasattr(result_message, "response"):
+            return None
+
+        response = result_message.response
+
+        # Google STT service may return an empty dict when no final result is available.
+        if isinstance(response, dict):
+            return None
+
+        # Common case for this demo: response is a StreamingRecognitionResult with alternatives.
+        if hasattr(response, "alternatives") and response.alternatives:
+            return response.alternatives[0].transcript
+
+        # Fallback for full StreamingRecognizeResponse objects.
+        if hasattr(response, "results") and response.results:
+            first_result = response.results[0]
+            if hasattr(first_result, "alternatives") and first_result.alternatives:
+                return first_result.alternatives[0].transcript
+
+        return None
+
     def on_stt(self, result):
         """
         Callback function for interim speech-to-text results.
@@ -60,24 +88,27 @@ class GoogleSTTDemo(SICApplication):
         Returns:
             None
         """
-        if hasattr(result.response, "alternatives") and result.response.alternatives:
-            transcript = result.response.alternatives[0].transcript
+        transcript = self._extract_transcript(result)
+        if transcript:
             print("Interim result:\n", transcript)
 
     def setup(self):
         """Initialize and configure the desktop microphone and speech-to-text service."""
         self.logger.info("Setting up Google Speech-to-Text...")
 
-        # initialize the desktop device to get the microphone
-        self.desktop = Desktop()
+        # initialize the desktop device with explicit microphone settings
+        mic_conf = MicrophoneConf(
+            sample_rate=self.mic_sample_rate_hz,
+        )
+        self.desktop = Desktop(mic_conf=mic_conf)
         self.desktop_mic = self.desktop.mic
 
         # initialize the speech-to-text service
         stt_conf = GoogleSpeechToTextConf(
             keyfile_json=json.load(open(self.google_keyfile_path)),
-            sample_rate_hertz=44100,
+            sample_rate_hertz=self.mic_sample_rate_hz,
             language="en-US",
-            interim_results=False,
+            interim_results=False
         )
 
         self.stt = GoogleSpeechToText(conf=stt_conf, input_source=self.desktop_mic)
@@ -95,15 +126,12 @@ class GoogleSTTDemo(SICApplication):
                 # For more info on what is returned, see Google's documentation on the response object:
                 # https://cloud.google.com/php/docs/reference/cloud-speech/latest/V2.StreamingRecognizeResponse
                 result = self.stt.request(GetStatementRequest())
-                if (
-                    not result
-                    or not hasattr(result.response, "alternatives")
-                    or not result.response.alternatives
-                ):
+                transcript = self._extract_transcript(result)
+                if not transcript:
                     print("No transcript received")
+                    time.sleep(0.1)
                     continue
                 # alternative is a list of possible transcripts, we take the first one which is the most likely
-                transcript = result.response.alternatives[0].transcript
                 print("User said:\n", transcript)
                 # Small delay between requests to allow proper cleanup
                 time.sleep(0.1)
@@ -117,8 +145,6 @@ if __name__ == "__main__":
     # Create and run the demo
     # This will be the single SICApplication instance for the process
     demo = GoogleSTTDemo(
-        google_keyfile_path=abspath(
-            join("..", "..", "conf", "google", "google-key.json")
-        )
+        google_keyfile_path=abspath(join("..", "..", "conf", "google", "google-key.json")),
     )
     demo.run()

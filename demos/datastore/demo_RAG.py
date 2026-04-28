@@ -28,9 +28,8 @@ class RAGDemo(SICApplication):
     - Perform semantic similarity search over documents
     
     Prerequisites:
-    1. Start Redis Stack: docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+    1. Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
     2. Set OPENAI_API_KEY environment variable (in conf/.env or export)
-    3. Start the datastore service: run-redis
     """
 
     def __init__(self):

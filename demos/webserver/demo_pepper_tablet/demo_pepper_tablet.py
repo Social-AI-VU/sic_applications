@@ -42,7 +42,7 @@ class PepperTabletWebserverDemo(SICApplication):
     def __init__(self):
         super(PepperTabletWebserverDemo, self).__init__()
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         self.pepper = None
         self.webserver = None
 
