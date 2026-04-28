@@ -1,10 +1,8 @@
-# import demo-specific modules
-
 # import basic SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 
-# import services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
@@ -18,6 +16,7 @@ from sic_framework.services.datastore.redis_datastore import (
     UsermodelKeysMessage,
     SICSuccessMessage
 )
+
 
 class UserModelDemo(SICApplication):
     """
@@ -42,7 +41,7 @@ class UserModelDemo(SICApplication):
         self.set_log_level(sic_logging.DEBUG)
         
         # set log file path if needed
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

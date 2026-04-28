@@ -2,7 +2,7 @@
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# import services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
@@ -18,6 +18,7 @@ from sic_framework.services.llm import GPT, GPTConf, GPTRequest
 # import demo-specific modules
 from pathlib import Path
 import os
+
 
 class RAGChatDemo(SICApplication):
     """
@@ -51,7 +52,7 @@ class RAGChatDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # set log file path if needed (otherwise no logs will be written to file)
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         self.load_env("../../conf/.env")
 

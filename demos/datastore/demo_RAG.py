@@ -1,12 +1,8 @@
-# import demo-specific modules
-import os
-from pathlib import Path
-
-# import SIC framework components
+# import basic SIC framework components
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# import services, and message types
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
@@ -16,6 +12,10 @@ from sic_framework.services.datastore.redis_datastore import (
     DeleteNamespaceRequest,
     SICSuccessMessage
 )
+
+# import demo-specific modules
+import os
+from pathlib import Path
 
 
 class RAGDemo(SICApplication):
@@ -38,6 +38,9 @@ class RAGDemo(SICApplication):
         self.datastore = None
 
         self.set_log_level(sic_logging.INFO)
+
+        # set log file path if needed
+        # self.set_log_file_path("/path/to/log/directory")
         
         # Load environment variables (including OPENAI_API_KEY)
         self.load_env("../../conf/.env")

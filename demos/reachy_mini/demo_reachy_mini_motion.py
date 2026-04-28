@@ -25,7 +25,7 @@ class ReachyMiniMotionDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
         # set log file path if needed
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
 
         # Load environment variables

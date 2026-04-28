@@ -32,7 +32,7 @@ class AlphaminiSpeakerWavDemo(SICApplication):
         self.mini = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         self.set_log_level(sic_logging.INFO)
 
