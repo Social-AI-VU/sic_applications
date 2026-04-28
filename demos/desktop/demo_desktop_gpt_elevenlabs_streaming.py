@@ -1,19 +1,26 @@
-import os
-import queue
-import re
-import threading
-from os import environ
-from os.path import abspath, dirname, join
-
-from dotenv import load_dotenv
-from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import AudioRequest
+# Import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
+from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
-    ElevenLabsTTS, ElevenLabsTTSConf, GetElevenLabsSpeechRequest)
+    ElevenLabsTTS, 
+    ElevenLabsTTSConf, 
+    GetElevenLabsSpeechRequest
+    )
 from sic_framework.services.llm import GPT, GPTConf, GPTRequest
+
+# import demo-specific modules
+from os.path import abspath, dirname, join
+from dotenv import load_dotenv
+from os import environ
+import threading
+import queue
+import os
+import re
 
 # Matches whitespace following a sentence-ending punctuation mark
 _SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+")
@@ -50,6 +57,13 @@ class GPTElevenLabsStreamingDemo(SICApplication):
         self._gpt_done = threading.Event()
 
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file_path is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+
         self.setup()
 
     def setup(self):

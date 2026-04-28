@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-# Import basic preliminaries
-from sic_framework.core import sic_logging
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import the device(s) we will be using
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Pepper
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoRestRequest,
@@ -14,8 +13,6 @@ from sic_framework.devices.common_naoqi.naoqi_motion import (
     NaoqiBreathingRequest,
     NaoqiSmartStiffnessRequest,
 )
-
-# Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_stiffness import Stiffness
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import (
     NaoqiTextToSpeechRequest,
@@ -27,9 +24,6 @@ from sic_framework.devices.common_pepper.pepper_motion_streamer import (
 )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Puppeteering Application
-# ─────────────────────────────────────────────────────────────────────────────
 class PepperPuppeteeringDemo(SICApplication):
     """
     Pepper puppeteering demo application (Baseline).
@@ -67,8 +61,7 @@ class PepperPuppeteeringDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/pepper/logs")
-
+        # self.set_log_file_path("path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

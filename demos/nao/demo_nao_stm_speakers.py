@@ -1,16 +1,15 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import wave
-
-import numpy as np
+# Import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import message types
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.core.message_python2 import AudioRequest
-from sic_framework.core.sic_application import SICApplication
-
-# Import the device(s) we will be using
 from sic_framework.devices import Nao
+
+# Import demo-specific modules
+from os.path import abspath, dirname, join
+import numpy as np
+import wave
 
 
 class NaoSpeakersDemo(SICApplication):
@@ -22,14 +21,18 @@ class NaoSpeakersDemo(SICApplication):
     def __init__(self):
         super(NaoSpeakersDemo, self).__init__()
 
-        self.nao_ip = "10.15.3.234"
-        self.audio_file = "sample.wav"
+        self.nao_ip = "XXX"
+        app_root = dirname(dirname(dirname(__file__)))
+        self.audio_file = abspath(join(app_root, "example_media", "audio", "demo_audio.wav"))
         self.nao = None
         self.wavefile = None
         self.samplerate = None
         self.channels = None  # mono / stereo
 
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")
@@ -67,9 +70,7 @@ class NaoSpeakersDemo(SICApplication):
 
         # Initialize the NAO robot
         self.nao = Nao(
-            ip=self.nao_ip,
-            dev_test=True,
-            test_repo="/home/sandergs/Documents/sic_dev/social-interaction-cloud",
+            ip=self.nao_ip
         )
 
     def run(self):

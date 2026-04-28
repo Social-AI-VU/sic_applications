@@ -1,9 +1,4 @@
-# Import libraries necessary for the demo
-import json
-import time
-from os.path import abspath, join
-
-# import core SIC framework components
+# import basic SIC framework components
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
@@ -21,6 +16,11 @@ from sic_framework.services.google_stt.google_stt import (
     GoogleSpeechToText,
     GoogleSpeechToTextConf,
 )
+
+# Import demo-specific libraries
+import json
+import time
+from os.path import abspath, join
 
 
 class FrankaVoiceControlDemo(SICApplication):
@@ -66,7 +66,7 @@ class FrankaVoiceControlDemo(SICApplication):
         self.stt = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

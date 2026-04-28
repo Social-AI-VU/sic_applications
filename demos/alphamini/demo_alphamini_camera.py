@@ -1,15 +1,16 @@
-# Import basic preliminaries
+# import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
+from sic_framework.devices.common_mini.mini_camera import MiniCameraConf
+from sic_framework.core.message_python2 import CompressedImageMessage
+from sic_framework.devices.alphamini import Alphamini
+
+# Import demo-specific modules
 import queue
 import time
 import cv2
-
-from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import CompressedImageMessage
-from sic_framework.core.sic_application import SICApplication
-
-# Import the device we will be using
-from sic_framework.devices.alphamini import Alphamini
-from sic_framework.devices.common_mini.mini_camera import MiniCameraConf
 
 
 class AlphaminiCameraDemo(SICApplication):
@@ -45,9 +46,8 @@ class AlphaminiCameraDemo(SICApplication):
         # Configure logging
         self.set_log_level(sic_logging.INFO)
 
-        # Optionally enable file logging by uncommenting and setting a valid path:
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
         # self.set_log_file_path("/path/to/log/directory")
-
 
         # Load environment variables
         self.load_env("../../conf/.env")

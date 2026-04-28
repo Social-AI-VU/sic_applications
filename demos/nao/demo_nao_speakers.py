@@ -1,15 +1,14 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import wave
-
+# import basic SIC framework components
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import message types
+# import devices, messages, and services we will be using
 from sic_framework.core.message_python2 import AudioRequest
-from sic_framework.core.sic_application import SICApplication
-
-# Import the device(s) we will be using
 from sic_framework.devices import Nao
+
+# import demo-specific modules
+from os.path import abspath, dirname, join
+import wave
 
 
 class NaoSpeakersDemo(SICApplication):
@@ -24,16 +23,16 @@ class NaoSpeakersDemo(SICApplication):
 
         # Demo-specific initialization
         self.nao_ip = "XXX"
-        self.audio_file = "test_sound.wav"
+        app_root = dirname(dirname(dirname(__file__)))
+        self.audio_file = abspath(join(app_root, "example_media", "audio", "demo_audio.wav"))
         self.nao = None
         self.wavefile = None
         self.samplerate = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         self.set_log_level(sic_logging.INFO)
-
 
         # Load environment variables
         self.load_env("../../conf/.env")

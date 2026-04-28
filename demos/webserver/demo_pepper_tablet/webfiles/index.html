@@ -10,7 +10,7 @@
         - an image,
         - an audio clip, and
         - a video
-      all from the same `webfiles/` directory.
+      from the shared `example_media/` directory.
     -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -63,7 +63,7 @@
       <div class="card">
         <h1>Pepper Tablet Media Demo</h1>
         <p>Single page showing multiple media types from one demo.</p>
-        <p class="muted">Put media files in this same <code>webfiles/</code> folder.</p>
+        <p class="muted">Media files are served from <code>example_media/</code>.</p>
       </div>
 
       <div class="card warning">
@@ -77,26 +77,26 @@
 
       <div class="card">
         <h2>Image</h2>
-        <img src="/static/demo_image.jpg" alt="Demo image" />
-        <p class="muted">Expected file: <code>demo_image.jpg</code></p>
+        <img src="/static/example_media/images/demo_image.jpg" alt="Demo image" />
+        <p class="muted">Expected file: <code>example_media/images/demo_image.jpg</code></p>
       </div>
 
       <div class="card">
         <h2>Audio</h2>
         <audio controls>
-          <source src="/static/demo_audio.wav" type="audio/wav" />
+          <source src="/static/example_media/audio/demo_audio.wav" type="audio/wav" />
           Your browser does not support audio.
         </audio>
-        <p class="muted">Expected file: <code>demo_audio.wav</code></p>
+        <p class="muted">Expected file: <code>example_media/audio/demo_audio.wav</code></p>
       </div>
 
       <div class="card">
         <h2>Video</h2>
         <video controls autoplay muted playsinline>
-          <source src="/static/demo_video.mp4" type="video/mp4" />
+          <source src="/static/example_media/video/demo_video.mp4" type="video/mp4" />
           Your browser does not support video.
         </video>
-        <p class="muted">Expected file: <code>demo_video.mp4</code></p>
+        <p class="muted">Expected file: <code>example_media/video/demo_video.mp4</code></p>
       </div>
     </div>
   </body>

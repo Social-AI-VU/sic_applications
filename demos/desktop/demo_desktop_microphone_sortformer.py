@@ -1,5 +1,8 @@
-from sic_framework.core import sic_logging
+# Import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.streaming_sortformer import (
@@ -19,8 +22,12 @@ class STMSortformerDemo(SICApplication):
         self.desktop_mic = None
         self.sortformer = None
         self.utils = None
+
         # Configure logging
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file_path is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

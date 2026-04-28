@@ -1,29 +1,22 @@
-# Import basic preliminaries
-# Queue for storing images
-import queue
-
-# Computer vision library for displaying images
-import cv2
+# Import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging, utils_cv2
 
-# Import the message type(s) we're using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
-from sic_framework.core.sic_application import SICApplication
-
-# Import the configuration(s) for the components
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-
-# Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
 from sic_framework.services.object_detection.object_detection import (
     ObjectDetection,
     ObjectDetectionConf,
 )
+
+# Import demo-specific modules
+import queue
+import cv2
 
 
 class ObjectDetectionDemo(SICApplication):
@@ -56,8 +49,7 @@ class ObjectDetectionDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/log")
-
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

@@ -1,14 +1,21 @@
-import os
-from os.path import abspath, dirname, join
-
-from dotenv import load_dotenv
-from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import AudioRequest
+# Import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.alphamini import Alphamini
 from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
+from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
-    ElevenLabsTTS, ElevenLabsTTSConf, GetElevenLabsSpeechRequest)
+    ElevenLabsTTS, 
+    ElevenLabsTTSConf, 
+    GetElevenLabsSpeechRequest
+    )
+
+# import demo-specific modules
+from os.path import abspath, dirname, join
+from dotenv import load_dotenv
+import os
 
 
 class AlphaminiElevenLabsTTSDemo(SICApplication):
@@ -26,10 +33,11 @@ class AlphaminiElevenLabsTTSDemo(SICApplication):
     def __init__(self, api_key=None, mode="batch"):
         super(AlphaminiElevenLabsTTSDemo, self).__init__()
 
-        self.mini_ip = "10.0.0.211"
-        self.mini_id = "00039"
-        self.mini_password = "alphago"
-        self.redis_ip = "10.0.0.177"
+        # Update these values for your setup.
+        self.mini_ip = "XXX"
+        self.mini_id = "000XXX"
+        self.mini_password = "XXX"
+        self.redis_ip = "XXX"
 
         self.mini = None
         self.tts = None
@@ -37,6 +45,13 @@ class AlphaminiElevenLabsTTSDemo(SICApplication):
         self.mode = mode
 
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+        
         self.setup()
 
     def setup(self):
