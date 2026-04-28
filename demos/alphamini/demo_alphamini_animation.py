@@ -8,6 +8,7 @@ from sic_framework.devices.alphamini import Alphamini, SDKAnimationType
 # Import demo-specific modules
 import time
 
+
 class AlphaminiAnimationDemo(SICApplication):
     """
     Alphamini animation demo application.

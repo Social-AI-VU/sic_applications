@@ -11,6 +11,7 @@ from sic_framework.devices.common_mini.mini_speaker import MiniSpeakersConf
 import wave
 from os.path import abspath, dirname, join
 
+
 class AlphaminiSpeakerWavDemo(SICApplication):
     """
     Alphamini speaker demo application.
@@ -43,10 +44,10 @@ class AlphaminiSpeakerWavDemo(SICApplication):
         """
         Load the test WAV file and return (waveform_bytes, sample_rate).
 
-        The file is expected at ``sic_applications/example_media/audio/test_sound.wav``.
+        The file is expected at ``sic_applications/example_media/audio/demo_audio.wav``.
         """
         app_root = dirname(dirname(dirname(__file__)))
-        wav_path = abspath(join(app_root, "example_media", "audio", "test_sound.wav"))
+        wav_path = abspath(join(app_root, "example_media", "audio", "demo_audio.wav"))
 
         with wave.open(wav_path, "rb") as wf:
             sample_rate = wf.getframerate()

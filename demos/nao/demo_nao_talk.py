@@ -1,14 +1,9 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-from time import sleep
-
-from sic_framework.core import sic_logging
+# Import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import the device(s) we will be using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Nao
-
-# Import message types and requests
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoRestRequest,
     NaoWakeUpRequest,
@@ -17,6 +12,9 @@ from sic_framework.devices.common_naoqi.naoqi_motion import NaoqiAnimationReques
 from sic_framework.devices.common_naoqi.naoqi_text_to_speech import (
     NaoqiTextToSpeechRequest,
 )
+
+# Import demo-specific modules
+from time import sleep
 
 
 class NaoTalkDemo(SICApplication):
@@ -34,10 +32,9 @@ class NaoTalkDemo(SICApplication):
         self.nao = None
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         self.set_log_level(sic_logging.INFO)
-
 
         # Load environment variables
         self.load_env("../../conf/.env")
