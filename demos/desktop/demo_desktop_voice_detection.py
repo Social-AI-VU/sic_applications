@@ -1,19 +1,17 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import time
-
-from sic_framework.core import sic_logging
+# Import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import the device(s) we will be using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
 from sic_framework.services.voice_detection.voice_detection import (
     VoiceDetection,
     VoiceDetectionConf,
     VoiceDetectionMessage,
 )
+
+# Import libraries necessary for the demo
+import time
 
 
 class VoiceDetectionDemo(SICApplication):
@@ -41,7 +39,7 @@ class VoiceDetectionDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/log")
+        # self.set_log_file_path("/path/to/log/directory")
 
 
         # Load environment variables

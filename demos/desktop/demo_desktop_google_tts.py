@@ -1,26 +1,20 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import json
-from os.path import abspath, join
-
+# Import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import the message type(s) we're using
-from sic_framework.core.message_python2 import AudioRequest
-from sic_framework.core.sic_application import SICApplication
-
-# Import configuration(s) for the components
-from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-
-# Import the device(s) we will be using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
 from sic_framework.services.google_tts.google_tts import (
     GetSpeechRequest,
     Text2Speech,
     Text2SpeechConf,
 )
+from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+from sic_framework.core.message_python2 import AudioRequest
+
+# Import demo-specific modules
+from os.path import abspath, join
+import json
 
 
 class GoogleTTSDemo(SICApplication):
@@ -50,7 +44,7 @@ class GoogleTTSDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/log")
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

@@ -2,7 +2,7 @@
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging, utils_cv2
 
-# Import devices, messages, and services we will be using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.core.message_python2 import (
     AudioRequest,
     BoundingBoxesMessage,
@@ -11,14 +11,12 @@ from sic_framework.core.message_python2 import (
 
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.dialogflow.dialogflow import (
     Dialogflow,
     DialogflowConf,
     GetIntentRequest,
 )
-
 from sic_framework.services.face_detection.face_detection import FaceDetection
 from sic_framework.services.google_tts.google_tts import (
     GetSpeechRequest,
@@ -37,7 +35,6 @@ import threading
 import queue
 import json
 import cv2
-
 
 
 class ConversationApp(SICApplication):

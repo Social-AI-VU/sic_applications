@@ -15,6 +15,7 @@ from os.path import abspath, join
 import numpy as np
 import json
 
+
 class DialogflowCXDemo(SICApplication):
     """
     Dialogflow CX (Conversational Agents) demo application using Desktop microphone for intent detection.
@@ -50,7 +51,7 @@ class DialogflowCXDemo(SICApplication):
         self.session_id = np.random.randint(10000)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/log")
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

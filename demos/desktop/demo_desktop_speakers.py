@@ -8,8 +8,8 @@ from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
 
 # import demo-specific modules
-import wave
 from os.path import abspath, dirname, join
+import wave
 
 
 class DesktopSpeakersDemo(SICApplication):
@@ -33,6 +33,7 @@ class DesktopSpeakersDemo(SICApplication):
         # self.set_log_file_path("/path/to/log/directory")
 
         self.load_env("../../conf/.env")
+        
         self.setup()
 
     def setup(self):

@@ -1,6 +1,5 @@
-import os
-
 from utils.webdav_sync import WebDAVSync
+import os
 
 
 class WebDAVDemo:

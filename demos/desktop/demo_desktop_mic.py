@@ -1,11 +1,15 @@
+# Import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
+
+# Import the device(s), service(s), and message(s) we will be using
+from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
+
+# Import demo-specific modules
+from datetime import datetime
+import pyaudio
 import time
 import wave
-from datetime import datetime
-
-import pyaudio
-
-from sic_framework.core.sic_application import SICApplication
-from sic_framework.devices.common_desktop.desktop_microphone import MicrophoneConf
 
 
 class DesktopMicRecordingDemo(SICApplication):
@@ -20,6 +24,15 @@ class DesktopMicRecordingDemo(SICApplication):
         self.pa = None
         self.stream = None
 
+        self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file_path is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
+
+        # Load environment variables
+        self.load_env("../../conf/.env")
+
+        # Setup the demo
         self.setup()
 
     def setup(self):
