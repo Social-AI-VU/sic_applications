@@ -8,14 +8,14 @@ from sic_framework.core.sic_application import SICApplication
 from sic_framework.services.datastore.redis_datastore import (
     RedisDatastoreConf,
     RedisDatastore,
-    SetUsermodelValuesRequest,
-    GetUsermodelValuesRequest,
-    GetUsermodelKeysRequest,
-    GetUsermodelRequest,
-    DeleteUsermodelValuesRequest,
-    DeleteUserRequest,
-    UsermodelKeyValuesMessage,
-    UsermodelKeysMessage,
+    SetScopedKeyValuesRequest,
+    GetScopedKeyValuesRequest,
+    GetScopedKeysRequest,
+    GetScopedRecordRequest,
+    DeleteScopedKeyValuesRequest,
+    DeleteScopedRecordRequest,
+    ScopedKeyValuesMessage,
+    ScopedKeysMessage,
     SICSuccessMessage
 )
 
@@ -31,15 +31,14 @@ class UserModelDemo(SICApplication):
     - Delete specific fields or entire users
     
     Prerequisites:
-    1. Start Redis server: redis-server conf/redis-store.conf OR docker run -d --name redis-stack -p 6379:6379 -e REDIS_ARGS="--requirepass changemeplease" -p 8001:8001 redis/redis-stack:latest
-    2. Start the datastore service: run-datastore-redis
+    1. Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
     """
 
     def __init__(self):
         super(UserModelDemo, self).__init__()
         self.datastore = None
 
-        self.set_log_level(sic_logging.DEBUG)
+        self.set_log_level(sic_logging.INFO)
         
         # set log file path if needed
         # self.set_log_file_path("/path/to/logs")
@@ -98,7 +97,7 @@ class UserModelDemo(SICApplication):
         
         for user_id, profile in users.items():
             response = self.datastore.request(
-                SetUsermodelValuesRequest(user_id=user_id, keyvalues=profile)
+                SetScopedKeyValuesRequest(scope_id=user_id, keyvalues=profile)
             )
             if isinstance(response, SICSuccessMessage):
                 self.logger.info(f"Created profile for {user_id}")
@@ -108,11 +107,11 @@ class UserModelDemo(SICApplication):
         self.logger.info("\n=== Retrieving User Data ===")
         
         response = self.datastore.request(
-            GetUsermodelValuesRequest(user_id='user_001', keys=['name', 'language'])
+            GetScopedKeyValuesRequest(scope_id='user_001', keys=['name', 'language'])
         )
         
-        if isinstance(response, UsermodelKeyValuesMessage):
-            self.logger.info(f"User {response.user_id} data: {response.keyvalues}")
+        if isinstance(response, ScopedKeyValuesMessage):
+            self.logger.info(f"User {response.scope_id} data: {response.keyvalues}")
 
     def demo_update_preferences(self):
         """Update user preferences and interaction count."""
@@ -125,23 +124,23 @@ class UserModelDemo(SICApplication):
         }
         
         response = self.datastore.request(
-            SetUsermodelValuesRequest(user_id='user_001', keyvalues=updates)
+            SetScopedKeyValuesRequest(scope_id='user_001', keyvalues=updates)
         )
         
         if isinstance(response, SICSuccessMessage):
             self.logger.info("Updated user preferences")
             
-            full_model = self.datastore.request(GetUsermodelRequest(user_id='user_001'))
+            full_model = self.datastore.request(GetScopedRecordRequest(scope_id='user_001'))
             self.logger.info(f"Updated profile: {full_model.keyvalues}")
 
     def demo_inspect_keys(self):
         """List all keys in a user model."""
         self.logger.info("\n=== Inspecting User Model Keys ===")
         
-        response = self.datastore.request(GetUsermodelKeysRequest(user_id='user_002'))
+        response = self.datastore.request(GetScopedKeysRequest(scope_id='user_002'))
         
-        if isinstance(response, UsermodelKeysMessage):
-            self.logger.info(f"User {response.user_id} has keys: {response.keys}")
+        if isinstance(response, ScopedKeysMessage):
+            self.logger.info(f"User {response.scope_id} has keys: {response.keys}")
 
     def demo_delete_operations(self):
         """Demonstrate deleting fields and users."""
@@ -149,15 +148,15 @@ class UserModelDemo(SICApplication):
         
         self.logger.info("Deleting 'age' field from user_002")
         response = self.datastore.request(
-            DeleteUsermodelValuesRequest(user_id='user_002', keys=['age'])
+            DeleteScopedKeyValuesRequest(scope_id='user_002', keys=['age'])
         )
         
         if isinstance(response, SICSuccessMessage):
-            model = self.datastore.request(GetUsermodelRequest(user_id='user_002'))
+            model = self.datastore.request(GetScopedRecordRequest(scope_id='user_002'))
             self.logger.info(f"User model after deletion: {model.keyvalues}")
         
         self.logger.info("Deleting entire user_002")
-        response = self.datastore.request(DeleteUserRequest(user_id='user_002'))
+        response = self.datastore.request(DeleteScopedRecordRequest(scope_id='user_002'))
         
         if isinstance(response, SICSuccessMessage):
             self.logger.info("User_002 deleted successfully")
@@ -177,11 +176,11 @@ class UserModelDemo(SICApplication):
             }
             
             self.datastore.request(
-                SetUsermodelValuesRequest(user_id=user_id, keyvalues=interaction_data)
+                SetScopedKeyValuesRequest(scope_id=user_id, keyvalues=interaction_data)
             )
             self.logger.info(f"Interaction {i+1} recorded")
         
-        final_model = self.datastore.request(GetUsermodelRequest(user_id=user_id))
+        final_model = self.datastore.request(GetScopedRecordRequest(scope_id=user_id))
         self.logger.info(f"Final user model: {final_model.keyvalues}")
 
 
