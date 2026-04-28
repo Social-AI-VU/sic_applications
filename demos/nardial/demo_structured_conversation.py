@@ -1,32 +1,23 @@
-import sys
-from os.path import abspath, dirname, join
-
-from sic_framework.devices import Pepper
-from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-from sic_framework.devices.desktop import Desktop
-
-from nardial.conversation_agent import ConversationAgent
-from nardial.interaction_orchestrator import InteractionConfig
-from nardial.session_manager import SessionManager
-
 """
-=========================
-Demo - Pre-run Setup
-=========================
+Nardial Structured Conversation Demo
+
+This demo shows how to use Nardial to conduct a structured conversation with a user.
+
+The conversation is conducted through a series of dialogs, which are defined in the dialog_configs/structured_conversation_dialogs.json file.
+
 Before running this demo, make sure you have completed the required setup steps.
 This demo depends on external services for speech, language understanding, and LLM responses.
 -------------------------
 1. Install dependencies
 -------------------------
-From the repository root:
-    pip install -e .
+    pip install social-interaction-cloud
     pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt]
 -------------------------
 2. Configure credentials
 -------------------------
 You MUST create the following files:
 
-- Dialogflow / Google credentials: conf/google/google_keyfile.json
+- Dialogflow / Google credentials: conf/google/google-key.json
 - OpenAI API key: conf/openai/.openai_env
 Example `.openai_env` file:
     OPENAI_API_KEY="your key"
@@ -43,6 +34,21 @@ You MUST run these in separate terminals BEFORE starting the demo:
     run-gpt
 =========================
 """
+
+# Import Nardial basics
+from nardial.conversation_agent import ConversationAgent
+from nardial.interaction_orchestrator import InteractionConfig
+from nardial.session_manager import SessionManager
+
+# Import SIC device(s), message(s), and service(s) we will be using
+from sic_framework.devices import Pepper
+from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+from sic_framework.devices.desktop import Desktop
+
+# Import other necessary libraries
+import sys
+from os.path import abspath, dirname, join
+
 
 # Path to your Google credentials (used for speech recognition + TTS if using Google)
 # You can replace this with your own path or environment-based config
@@ -65,7 +71,7 @@ if __name__ == '__main__':
     )
 
     # Uncomment to use Pepper instead:
-    # device = Pepper(ip="10.0.0.148")  # Replace with your robot's IP
+    # device = Pepper(ip="XXX")  # Replace with your robot's IP
 
     # =========================
     # 2. CONFIGURE INTERACTION
