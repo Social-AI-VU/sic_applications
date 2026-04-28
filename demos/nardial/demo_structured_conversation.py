@@ -10,6 +10,7 @@ This demo depends on external services for speech, language understanding, and L
 -------------------------
 1. Install dependencies
 -------------------------
+    pip install nardial
     pip install social-interaction-cloud
     pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt]
 -------------------------
