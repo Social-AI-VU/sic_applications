@@ -30,7 +30,7 @@ class DesktopSpeakersDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
         
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         self.load_env("../../conf/.env")
         self.setup()

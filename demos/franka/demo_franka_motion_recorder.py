@@ -1,8 +1,4 @@
-# Import libraries necessary for the demo
-import csv
-import time
-
-# import core SIC framework components
+# import basic SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 
@@ -17,6 +13,11 @@ from sic_framework.devices.common_franka.franka_motion_recorder import (
     StopRecordingRequest,
     StopTeachingRequest,
 )
+
+# Import demo-specific libraries
+import csv
+import time
+
 
 class FrankaMotionRecorderDemo(SICApplication):
     """
@@ -44,7 +45,7 @@ class FrankaMotionRecorderDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")
