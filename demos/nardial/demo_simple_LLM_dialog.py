@@ -11,9 +11,7 @@ This demo depends on external services for speech, language understanding, and L
 -------------------------
 1. Install dependencies
 -------------------------
-    pip install nardial
-    pip install social-interaction-cloud
-    pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt]
+    pip install "nardial[google-tts,dialogflow,openai]"
 -------------------------
 2. Configure credentials
 -------------------------
@@ -30,26 +28,32 @@ WARNING: Never commit credential files to version control.
 -------------------------
 You MUST run these in separate terminals BEFORE starting the demo:
 
+    (MacOs/Linux)
     redis-server conf/redis/redis.conf
+    OR
+    (Windows)
+    .\conf\redis\redis-server.exe .\conf\redis\redis.conf
     run-dialogflow
     run-google-tts
     run-gpt
 =========================
 """
 
-# Import Nardial basics
+import json
+import sys
+from pathlib import Path
+
+from dotenv import load_dotenv
 from nardial.conversation_agent import ConversationAgent
 from nardial.interaction_orchestrator import InteractionConfig
+from nardial.providers.device.desktop import DesktopAdapter
+from nardial.providers.llm.openai_gpt import OpenAIGPTProvider
+from nardial.providers.nlu.dialogflow import DialogflowNLUProvider
+from nardial.providers.tts.google import GoogleTTSConf, GoogleTTSProvider
 from nardial.session_manager import SessionManager
-
-# Import SIC device(s), message(s), and service(s) we will be using
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
-
-# Import other necessary libraries
-from pathlib import Path
-import sys
-
+from sic_framework.services.dialogflow.dialogflow import DialogflowConf
 
 BASE_DIR = Path(__file__).resolve().parent
 SIC_APPLICATIONS_DIR = BASE_DIR.parents[1]
@@ -58,33 +62,57 @@ DIALOG_CONFIG_PATH = BASE_DIR / "dialog_configs" / "simple_llm_dialogs.json"
 GOOGLE_KEYFILE_PATH = SIC_APPLICATIONS_DIR / "conf" / "google" / "google-key.json"
 ENV_FILE_PATH = SIC_APPLICATIONS_DIR / "conf" / ".env"
 
+load_dotenv(ENV_FILE_PATH)
+
 
 if __name__ == "__main__":
     # =========================
     # 1. SELECT DEVICE
     # =========================
-    device = Desktop(
-        speakers_conf=SpeakersConf(
-            sample_rate=22050
-        )
-    )
+    desktop = Desktop(speakers_conf=SpeakersConf(sample_rate=22050))
+    device = DesktopAdapter(desktop)
+
+    # Uncomment to use Pepper instead:
+    # from nardial.providers.device.pepper import PepperAdapter
+    # from sic_framework.devices import Pepper
+    # device = PepperAdapter(Pepper(ip="XXX"))  # Replace with your robot's IP
 
     # =========================
-    # 2. CONFIGURE INTERACTION
+    # 2. CONFIGURE PROVIDERS
     # =========================
-    # Keep RAG disabled for a simple LLM-only flow.
+
+    # --- TTS ---
+    tts_conf = GoogleTTSConf(
+        # speaking_rate=1.0,                        # speech speed (0.25–4.0)
+        # google_tts_voice_name="en-US-Neural2-C",  # voice selection
+    )
+    tts = GoogleTTSProvider(
+        conf=tts_conf, device=device, keyfile_path=str(GOOGLE_KEYFILE_PATH)
+    )
+
+    # --- NLU ---
+    # device.get_mic() returns the SIC microphone component used by Dialogflow for live audio input.
+    dialogflow_conf = DialogflowConf(keyfile_json=json.load(open(GOOGLE_KEYFILE_PATH)))
+    nlu = DialogflowNLUProvider(conf=dialogflow_conf, mic=device.get_mic())
+
+    # --- LLM ---
+    # Reads OPENAI_API_KEY from the environment (loaded via dotenv above).
+    llm = OpenAIGPTProvider()
+
+    # --- Behavioral config ---
     interaction_config = InteractionConfig(
-        google_keyfile_path=str(GOOGLE_KEYFILE_PATH),
-        env_file_path=str(ENV_FILE_PATH),
-        keyboard_input=True,
-        rag=False,
+        # language="nl",
+        # post_speech_delay=0.5,
     )
 
     # =========================
     # 3. CREATE AGENT
     # =========================
     agent = ConversationAgent(
-        device_manager=device,
+        device=device,
+        tts_provider=tts,
+        nlu_provider=nlu,
+        llm_provider=llm,
         int_config=interaction_config,
     )
 
