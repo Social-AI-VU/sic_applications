@@ -1,11 +1,8 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import numpy as np
-from scipy.spatial.transform import Rotation
+# import basic SIC framework components
 from sic_framework.core import sic_logging
 from sic_framework.core.sic_application import SICApplication
 
-# Import message types and requests
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.common_franka.franka_motion import (
     FrankaGripperGraspRequest,
     FrankaGripperMoveRequest,
@@ -13,9 +10,11 @@ from sic_framework.devices.common_franka.franka_motion import (
     FrankaPoseRequest,
 )
 from sic_framework.devices.desktop import Desktop
-
-# Import the device(s) we will be using
 from sic_framework.devices.franka import Franka
+
+# Import libraries necessary for the demo
+import numpy as np
+from scipy.spatial.transform import Rotation
 
 
 class MouseStateHandler:
@@ -141,8 +140,8 @@ class FrankaSpacemouseDemo(SICApplication):
     IMPORTANT:
     To run this demo, you need to install the correct version of the panda-python dependency.
     A version mismatch will cause problems.
-    See Installation point 3 for instructions:
-    https://socialrobotics.atlassian.net/wiki/spaces/CBSR/pages/2412675074/Getting+started+with+Franka+Emika+Research+3#Installation%3A
+    See getting started guide for instructions:
+    https://social-ai-vu.github.io/social-interaction-cloud/getting_started/getting_started_franka.html
 
     Extra installation:
     pip install scipy pyspacemouse
@@ -161,8 +160,7 @@ class FrankaSpacemouseDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/franka/logs")
-
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

@@ -1,15 +1,8 @@
-# External imports
-import os
-import threading
-import time
-from collections import defaultdict
-
+# import basic SIC framework modules
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
 
-# Import basic preliminaries
-from sic_framework.core.sic_application import SICApplication
-
-# Import the device(s) we will be using
+# import device(s), service(s), and message(s) we will be using
 from sic_framework.devices import Pepper
 from sic_framework.devices.common_naoqi.naoqi_autonomous import (
     NaoRestRequest,
@@ -38,13 +31,16 @@ from sic_framework.devices.common_pepper.pepper_motion_streamer import (
     StopStreaming,
 )
 
+# import demo-specific modules
+from collections import defaultdict
+import threading
+import time
+import os
+
+
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # Configuration
 # ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-# Set Redis password environment variable (when in developer mode)
-os.environ["REDIS_PASSWORD"] = "changemeplease"  # Do NOT actually change it
-# Set Redis IP for robots to connect to your laptop (when in developer mode)
-os.environ["DB_IP"] = "localhost"  # Use local Redis server
 
 # Robot IPs
 PUPPET_IP = "XXX"
@@ -159,8 +155,7 @@ class PepperPuppeteeringDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/pepper/logs")
-
+        # self.set_log_file_path("path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")

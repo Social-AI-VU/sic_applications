@@ -1,26 +1,20 @@
-# Import basic preliminaries
-# Queue for storing images and detection results
-import queue
 
-# Computer vision library for displaying images
-import cv2
+# import basic SIC framework components
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging, utils_cv2
 
-# Import the message type(s) we're using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.core.message_python2 import (
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
-from sic_framework.core.sic_application import SICApplication
-
-# Import the configuration(s) for the components
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
-
-# Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
-
-# Import the service(s) we will be using
 from sic_framework.services.face_detection.face_detection import FaceDetection
+
+# import demo-specific modules
+import queue
+import cv2
 
 
 class FaceDetectionDemo(SICApplication):
@@ -49,8 +43,7 @@ class FaceDetectionDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/path/to/log")
-
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")
@@ -67,7 +60,9 @@ class FaceDetectionDemo(SICApplication):
         Returns:
             None
         """
-        self.imgs_buffer.put(image_message.image)
+        if self.shutdown_event.is_set():
+            return
+        self._put_latest(self.imgs_buffer, image_message.image)
 
     def on_faces(self, message: BoundingBoxesMessage):
         """
@@ -79,7 +74,30 @@ class FaceDetectionDemo(SICApplication):
         Returns:
             None
         """
-        self.faces_buffer.put(message.bboxes)
+        if self.shutdown_event.is_set():
+            return
+        self._put_latest(self.faces_buffer, message.bboxes)
+
+    @staticmethod
+    def _put_latest(q: queue.Queue, item):
+        """
+        Put the newest item in a size-1 queue without blocking callback threads.
+
+        If full, drop the stale item and try once more.
+        """
+        try:
+            q.put_nowait(item)
+        except queue.Full:
+            try:
+                q.get_nowait()
+            except queue.Empty:
+                pass
+            try:
+                q.put_nowait(item)
+            except queue.Full:
+                # Another producer won the race; dropping one item is fine for
+                # this visualization demo.
+                pass
 
     def setup(self):
         """Initialize and configure the desktop camera and face detection service."""

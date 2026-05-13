@@ -1,18 +1,9 @@
-import json
-import os
-import socket
-import threading
-import time
-import urllib.request
-import webbrowser
-from dataclasses import dataclass
-from os.path import abspath, join
-from typing import Dict, Optional
-
-import numpy as np
-from sic_framework.core import sic_logging
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core.utils import is_sic_instance
+from sic_framework.core import sic_logging
+
+# import the device(s), service(s), and message(s) we will be using
 from sic_framework.core.message_python2 import AudioMessage
 from sic_framework.services.dialogflow_cx.dialogflow_cx import (
     DetectIntentRequest,
@@ -26,6 +17,19 @@ from sic_framework.services.webserver.webserver_service import (
     Webserver,
     WebserverConf,
 )
+
+# import demo-specific modules
+from typing import Dict, Optional
+from dataclasses import dataclass
+from os.path import abspath, join
+import urllib.request
+import numpy as np
+import webbrowser
+import threading
+import socket
+import json
+import time
+import os
 
 
 @dataclass
@@ -60,6 +64,9 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self.keyfile_json = None
 
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../../conf/.env")

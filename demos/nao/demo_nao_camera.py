@@ -1,17 +1,15 @@
-# Import basic preliminaries
-# Import libraries necessary for the demo
-import queue
-
-import cv2
-from sic_framework.core import sic_logging
-from sic_framework.core.message_python2 import CompressedImageMessage
+# import basic SIC framework modules
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.core import sic_logging
 
-# Import the device(s) we will be using
+# Import the device(s), service(s), and message(s) we will be using
+from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiCameraConf
+from sic_framework.core.message_python2 import CompressedImageMessage
 from sic_framework.devices import Nao
 
-# Import configuration and message types
-from sic_framework.devices.common_naoqi.naoqi_camera import NaoqiCameraConf
+# Import demo-specific modules
+import queue
+import cv2
 
 
 class NaoCameraDemo(SICApplication):
@@ -32,8 +30,7 @@ class NaoCameraDemo(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
-        # self.set_log_file_path("/Users/apple/Desktop/SAIL/SIC_Development/sic_applications/demos/nao/logs")
-
+        # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
         self.load_env("../../conf/.env")
@@ -61,7 +58,10 @@ class NaoCameraDemo(SICApplication):
         conf = NaoqiCameraConf(vflip=1)
 
         # Initialize the NAO robot
-        self.nao = Nao(ip=self.nao_ip, top_camera_conf=conf)
+        self.nao = Nao(
+            ip=self.nao_ip, 
+            top_camera_conf=conf,
+        )
 
         self.logger.info("Registering callback...")
         self.nao.top_camera.register_callback(self.on_image)

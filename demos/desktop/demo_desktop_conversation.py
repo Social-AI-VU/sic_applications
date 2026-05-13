@@ -1,39 +1,22 @@
-# Import basic preliminaries
-import json
-import queue
-import threading
-from os import environ
-from os.path import abspath, join
-from subprocess import call
-
-# Import libraries necessary for the demo
-from time import sleep
-
-import cv2
-import numpy as np
+# Import basic SIC framework components
+from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging, utils_cv2
 
-# Import the message type(s) we're using
+# Import the device(s), service(s), and message(s) we will be using
 from sic_framework.core.message_python2 import (
     AudioRequest,
     BoundingBoxesMessage,
     CompressedImageMessage,
 )
-from sic_framework.core.sic_application import SICApplication
 
-# Import configuration(s) for the components
 from sic_framework.devices.common_desktop.desktop_camera import DesktopCameraConf
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-
-# Import the device(s) we will be using
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.dialogflow.dialogflow import (
     Dialogflow,
     DialogflowConf,
     GetIntentRequest,
 )
-
-# Import the service(s) we will be using
 from sic_framework.services.face_detection.face_detection import FaceDetection
 from sic_framework.services.google_tts.google_tts import (
     GetSpeechRequest,
@@ -41,6 +24,17 @@ from sic_framework.services.google_tts.google_tts import (
     Text2SpeechConf,
 )
 from sic_framework.services.llm import GPT, GPTConf, GPTRequest
+
+# Import demo-specific modules
+from os.path import abspath, join
+from subprocess import call
+from time import sleep
+from os import environ
+import numpy as np
+import threading
+import queue
+import json
+import cv2
 
 
 class ConversationApp(SICApplication):
@@ -112,7 +106,7 @@ class ConversationApp(SICApplication):
         self.set_log_level(sic_logging.INFO)
 
         # set log file path if needed
-        # self.set_log_file_path("/path/to/logs")
+        # self.set_log_file_path("/path/to/log/directory")
         
         # Load environment variables
         self.load_env("../../conf/.env")

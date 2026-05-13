@@ -1,17 +1,19 @@
+# import basic SIC framework components
+# import demo-specific modules
 import os
 
 from sic_framework.core import sic_logging
+
+# Import devices, messages, and services we will be using
 from sic_framework.core.message_python2 import AudioRequest
 from sic_framework.core.sic_application import SICApplication
-
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
-
 from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
+    ElevenLabsSpeechResult,
     ElevenLabsTTS,
     ElevenLabsTTSConf,
     GetElevenLabsSpeechRequest,
-    ElevenLabsSpeechResult,
 )
 
 
@@ -28,12 +30,19 @@ class ElevenLabsTTSDemo(SICApplication):
     def __init__(self, api_key=None, mode="batch"):
         super(ElevenLabsTTSDemo, self).__init__()
 
+        # Load environment variables
+        self.load_env("../../conf/.env")
+
         self.desktop = None
         self.tts = None
         self.api_key = api_key or os.getenv("ELEVENLABS_API_KEY")
         self.mode = mode
 
         self.set_log_level(sic_logging.INFO)
+
+        # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
+        # self.set_log_file_path("/path/to/log/directory")
+
         self.setup()
 
     def setup(self):
