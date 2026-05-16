@@ -13,16 +13,12 @@ from typing import Any
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 
 from sic_framework.core.sic_application import SICApplication
-from sic_framework.mcp.nao import (
-    print_mcp_sse_connection_help,
-    print_mcp_stdio_spawn_help,
-)
+from sic_framework.mcp.nao import print_mcp_stdio_spawn_help
 
 __all__ = [
     "NaoMcpSICApplication",
     "format_message",
     "print_delta",
-    "print_mcp_sse_connection_help",
     "print_mcp_stdio_spawn_help",
 ]
 
