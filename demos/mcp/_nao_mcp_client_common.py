@@ -13,10 +13,14 @@ from typing import Any
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 
 from sic_framework.core.sic_application import SICApplication
+from sic_framework.mcp.mcp_server import call_tool_text
 from sic_framework.mcp.nao import print_mcp_stdio_spawn_help
+
+READY_ANNOUNCEMENT = "I'm ready when you are!"
 
 __all__ = [
     "NaoMcpSICApplication",
+    "READY_ANNOUNCEMENT",
     "format_message",
     "print_delta",
     "print_mcp_stdio_spawn_help",
@@ -64,6 +68,9 @@ class NaoMcpSICApplication(SICApplication):
         """Do not register handlers that sys.exit during asyncio.run."""
         self._shutdown_handler_registered = True
 
+    def exit_handler(self, signum=None, frame=None) -> None:
+        self.shutdown_event.set()
+
     def _interrupt(self) -> None:
         self._sigint_count += 1
         self.shutdown_event.set()
@@ -74,6 +81,18 @@ class NaoMcpSICApplication(SICApplication):
     def _cleanup(self) -> None:
         self.cleanup_resources(log_shutdown=False)
 
+    async def _announce_ready(self, mcp_session: Any) -> None:
+        try:
+            result = await mcp_session.call_tool(
+                "say_text",
+                arguments={"text": READY_ANNOUNCEMENT, "animated": False},
+            )
+            text = call_tool_text(result)
+            if text.startswith("ERROR:"):
+                self.logger.warning("Ready announcement failed: %s", text)
+        except Exception as exc:
+            self.logger.warning("Ready announcement failed: %r", exc)
+
     async def _run_mcp_agent_session(
         self,
         *,
@@ -81,6 +100,7 @@ class NaoMcpSICApplication(SICApplication):
         mcp_connections: dict[str, dict[str, Any]],
         system_prompt: str,
         thread_id: str,
+        exclude_mcp_tools: frozenset[str] = frozenset(),
     ) -> Any:
         from langchain.agents import create_agent
         from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -108,6 +128,8 @@ class NaoMcpSICApplication(SICApplication):
                     tool_interceptors=mcp.tool_interceptors,
                     tool_name_prefix=mcp.tool_name_prefix,
                 )
+                if exclude_mcp_tools:
+                    tools = [t for t in tools if t.name not in exclude_mcp_tools]
                 agent = create_agent(
                     model,
                     tools,
@@ -115,7 +137,10 @@ class NaoMcpSICApplication(SICApplication):
                     checkpointer=InMemorySaver(),
                 )
                 session_started = True
-                await self._async_mcp_loop(agent, thread_id=thread_id)
+                await self._announce_ready(session)
+                await self._async_mcp_loop(
+                    agent, thread_id=thread_id, mcp_session=session
+                )
         except (KeyboardInterrupt, asyncio.CancelledError):
             self.shutdown_event.set()
             return
@@ -130,7 +155,9 @@ class NaoMcpSICApplication(SICApplication):
     def _handle_mcp_connect_error(self, exc: BaseException) -> None:
         raise NotImplementedError
 
-    async def _async_mcp_loop(self, agent: Any, *, thread_id: str) -> None:
+    async def _async_mcp_loop(
+        self, agent: Any, *, thread_id: str, mcp_session: Any = None
+    ) -> None:
         raise NotImplementedError
 
     def run(self) -> None:

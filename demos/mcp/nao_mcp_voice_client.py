@@ -1,20 +1,11 @@
 """
 NAO microphone -> Google STT -> LangGraph agent -> NAO MCP tools.
 
-Uses Nao + GoogleSpeechToText on the robot mic, then sends each final transcript to a
-LangGraph agent that calls tools on the NAO MCP server (stdio subprocess).
+The client builds a Google STT config dict and passes it to the MCP subprocess
+(``SIC_NAO_STT_CONF``). The server owns ``Nao()``, the mic, and STT; this process
+calls ``listen_for_speech`` each turn.
 
-The MCP subprocess is a second SIC client that also instantiates Nao for robot tools.
-SIC skips restarting remote SIC when the robot is already pingable and reserved for this
-host. Use --mcp-server-stub to test voice without robot tools.
-
-Prerequisites
--------------
-1. pip install -e '.[nao-mcp-agent]' 'social-interaction-cloud[nao-mcp,google-stt]'
-2. Start Google STT service: run-google-stt
-3. sic_applications/conf/.env - at least OPENAI_API_KEY (for the default model).
-4. Google key JSON: default sic_applications/conf/google/google-key.json
-5. Real NAO on the network (microphone runs over SIC to the robot).
+Prerequisites: run-google-stt, OPENAI_API_KEY, robot on the network.
 
 Run from sic_applications::
 
@@ -25,9 +16,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import os
 import sys
+from datetime import timedelta
 from os.path import abspath, join
 from pathlib import Path
 from typing import Any
@@ -35,14 +26,9 @@ from typing import Any
 from langchain_core.messages import HumanMessage
 
 from sic_framework.core import sic_logging
-from sic_framework.devices import Nao
-from sic_framework.services.google_stt.google_stt import (
-    GetStatementRequest,
-    GoogleSpeechToText,
-    GoogleSpeechToTextConf,
-)
-
+from sic_framework.mcp.mcp_server import call_tool_text
 from sic_framework.mcp.nao import (
+    build_google_stt_conf,
     mcp_stdio_connection,
     nao_mcp_session_log_dir,
     resolve_robot_ip,
@@ -53,6 +39,9 @@ from _nao_mcp_client_common import (
     print_delta,
     print_mcp_stdio_spawn_help,
 )
+
+LISTEN_TOOL_NAME = "listen_for_speech"
+LISTEN_MCP_TIMEOUT_S = 35.0
 
 
 def _sic_applications_conf_dotenv_path() -> Path:
@@ -74,127 +63,66 @@ def _load_sic_applications_conf_dotenv() -> Path:
 
 
 class NaoMcpVoiceDemo(NaoMcpSICApplication):
-    """SIC app: NAO mic -> Google STT -> text commands -> MCP-backed LangGraph agent."""
-
-    MIC_SAMPLE_RATE_HZ = 16000
-    LISTEN_STREAM_TIMEOUT_S = 20.0
-    LISTEN_REQUEST_TIMEOUT_S = 28.0
+    """SIC app: MCP listen_for_speech -> LangGraph agent -> NAO MCP action tools."""
 
     def __init__(
         self,
         *,
-        robot_ip: str,
-        google_keyfile_path: str,
         model: str,
         mcp_connections: dict[str, dict[str, Any]],
         thread_id: str,
-        language: str,
         log_dir: str,
     ):
         super().__init__()
-        self.robot_ip = robot_ip
-        self.google_keyfile_path = google_keyfile_path
         self.model = model
         self.mcp_connections = mcp_connections
         self.thread_id = thread_id
-        self.language = language
-
-        self.nao: Nao | None = None
-        self.stt: GoogleSpeechToText | None = None
 
         self.set_log_level(sic_logging.DEBUG)
         self.set_log_file_path(log_dir)
         self.load_env(join("..", "..", "conf", ".env"))
 
-    @staticmethod
-    def _extract_transcript(result_message: Any) -> str | None:
-        if not result_message or not hasattr(result_message, "response"):
-            return None
-        response = result_message.response
-        if isinstance(response, dict):
-            return None
-        if hasattr(response, "alternatives") and response.alternatives:
-            return response.alternatives[0].transcript
-        if hasattr(response, "results") and response.results:
-            first_result = response.results[0]
-            if hasattr(first_result, "alternatives") and first_result.alternatives:
-                return first_result.alternatives[0].transcript
-        return None
-
-    def setup(self) -> None:
-        self.logger.info("Connecting to NAO at %s", self.robot_ip)
-        self.nao = Nao(ip=self.robot_ip)
-
-        with open(self.google_keyfile_path, encoding="utf-8") as f:
-            key_json = json.load(f)
-
-        stt_conf = GoogleSpeechToTextConf(
-            keyfile_json=key_json,
-            sample_rate_hertz=self.MIC_SAMPLE_RATE_HZ,
-            language=self.language,
-            interim_results=False,
-            timeout=self.LISTEN_STREAM_TIMEOUT_S,
-        )
-        self.stt = GoogleSpeechToText(conf=stt_conf, input_source=self.nao.mic)
-        self.logger.info("Google STT bound to NAO microphone (%s Hz).", self.MIC_SAMPLE_RATE_HZ)
-
     def _handle_mcp_connect_error(self, exc: BaseException) -> None:
         print_mcp_stdio_spawn_help(
             exc,
             extra_lines=(
-                "  - run-google-stt running for microphone transcription.\n"
-                "  - Robot reachable via --robot-ip or --mcp-server-stub on MCP only.\n"
+                "  - run-google-stt must be running.\n"
+                "  - Pass --google-keyfile or use the default conf/google/google-key.json.\n"
+                "  - Robot reachable via --robot-ip.\n"
             ),
         )
 
-    def _listen_once_sync(self) -> str | None:
-        assert self.stt is not None
-        self.check_health()
-        return self._extract_transcript(
-            self.stt.request(
-                GetStatementRequest(),
-                timeout=self.LISTEN_REQUEST_TIMEOUT_S,
-            )
+    async def _listen_via_mcp(self, mcp_session: Any) -> str | None:
+        result = await mcp_session.call_tool(
+            LISTEN_TOOL_NAME,
+            arguments={},
+            read_timeout_seconds=timedelta(seconds=LISTEN_MCP_TIMEOUT_S),
         )
-
-    async def _listen_once(self) -> str | None:
-        if self.shutdown_event.is_set():
-            return None
-        try:
-            return await asyncio.to_thread(self._listen_once_sync)
-        except TimeoutError:
-            self.logger.warning(
-                "Listen timed out after %.0fs; retrying.",
-                self.LISTEN_REQUEST_TIMEOUT_S,
-            )
+        text = call_tool_text(result).strip()
+        if text.startswith("ERROR:"):
+            self.logger.error("%s", text)
             await asyncio.sleep(0.3)
             return None
-        except Exception as exc:
-            self.logger.error("Listen failed: %s", exc)
-            await asyncio.sleep(0.3)
-            return None
+        return text or None
 
-    async def _async_mcp_loop(self, agent: Any, *, thread_id: str) -> None:
+    async def _async_mcp_loop(
+        self, agent: Any, *, thread_id: str, mcp_session: Any = None
+    ) -> None:
+        if mcp_session is None:
+            raise RuntimeError("voice demo requires an active MCP session")
+
         thread_config: dict[str, Any] = {"configurable": {"thread_id": thread_id}}
         prior_len = 0
-
         self.logger.info(
-            "MCP stdio subprocess. Listening on the NAO mic (Google STT).\n"
-            "Speak a command (silence up to {:.0f}s ends a listen turn). Ctrl+C to stop.\n".format(
-                self.LISTEN_STREAM_TIMEOUT_S
-            )
+            "Listening on the NAO mic (via MCP). Speak a command; Ctrl+C to stop.\n"
         )
-        listen_task = asyncio.create_task(self._listen_once())
         while not self.shutdown_event.is_set():
-            assert listen_task is not None
-            transcript = await listen_task
-            listen_task = None
+            transcript = await self._listen_via_mcp(mcp_session)
             if self.shutdown_event.is_set():
                 break
             if not (transcript and transcript.strip()):
-                listen_task = asyncio.create_task(self._listen_once())
                 continue
-            self.logger.info(f"\n[heard] {transcript.strip()}")
+            self.logger.info("\n[heard] %s", transcript.strip())
             result = await agent.ainvoke(
                 {"messages": [HumanMessage(content=transcript.strip())]},
                 thread_config,
@@ -202,12 +130,8 @@ class NaoMcpVoiceDemo(NaoMcpSICApplication):
             messages = result.get("messages", [])
             print_delta(messages, prior_len)
             prior_len = len(messages)
-            listen_task = asyncio.create_task(self._listen_once())
 
     async def _async_run(self) -> None:
-        self.logger.info("Connecting to NAO and Google STT...")
-        self.setup()
-        self.logger.info("Starting MCP agent session...")
         system_prompt = (
             "You control a SoftBank NAO via MCP tools. "
             "The user's message is speech transcribed from the robot's microphone; "
@@ -219,6 +143,7 @@ class NaoMcpVoiceDemo(NaoMcpSICApplication):
             mcp_connections=self.mcp_connections,
             system_prompt=system_prompt,
             thread_id=self.thread_id,
+            exclude_mcp_tools=frozenset({LISTEN_TOOL_NAME}),
         )
 
 
@@ -226,101 +151,68 @@ def main() -> None:
     env_file = _load_sic_applications_conf_dotenv()
 
     parser = argparse.ArgumentParser(
-        description="NAO mic + Google STT + LangGraph agent calling NAO MCP tools (stdio)."
+        description="NAO mic + Google STT (MCP server) + LangGraph agent."
     )
-    parser.add_argument(
-        "--robot-ip",
-        type=str,
-        default=resolve_robot_ip(),
-        help="NAO IP (default: ROBOT_IP or NAO_IP from the environment / .env).",
-    )
+    parser.add_argument("--robot-ip", type=str, default=resolve_robot_ip())
     parser.add_argument(
         "--google-keyfile",
         type=str,
         default=abspath(join("..", "..", "conf", "google", "google-key.json")),
-        help="Path to Google service account JSON for Speech-to-Text.",
     )
-    parser.add_argument(
-        "--mcp-server-stub",
-        action="store_true",
-        help="Pass --stub to the spawned mcp_nao_server.",
-    )
+    parser.add_argument("--mcp-server-stub", action="store_true")
     parser.add_argument(
         "--mcp-server-arg",
         action="append",
         default=[],
         dest="mcp_server_args",
         metavar="ARG",
-        help="Extra argv for the spawned MCP server. Repeatable.",
     )
     parser.add_argument(
         "--model",
         type=str,
         default=os.environ.get("NAO_MCP_AGENT_MODEL", "openai:gpt-4o-mini"),
     )
-    parser.add_argument(
-        "--thread-id",
-        type=str,
-        default="nao-mcp-voice",
-        help="LangGraph checkpointer thread id.",
-    )
-    parser.add_argument(
-        "--language",
-        type=str,
-        default="en-US",
-        help="Google STT language code.",
-    )
-    parser.add_argument(
-        "--log-dir",
-        type=str,
-        default=None,
-        help=(
-            "Directory for SIC file logs (client and stdio MCP server). "
-            "Default: sic_applications/logs/mcp."
-        ),
-    )
+    parser.add_argument("--thread-id", type=str, default="nao-mcp-voice")
+    parser.add_argument("--language", type=str, default="en-US")
+    parser.add_argument("--log-dir", type=str, default=None)
     args = parser.parse_args()
 
     log_dir = (args.log_dir or "").strip() or nao_mcp_session_log_dir(caller_file=__file__)
 
     if not args.robot_ip or not str(args.robot_ip).strip():
-        print(
-            "Missing NAO IP. Pass --robot-ip or set ROBOT_IP / NAO_IP in the environment "
-            f"or in {env_file}.",
-            file=sys.stderr,
-        )
+        print("Missing NAO IP (--robot-ip or ROBOT_IP / NAO_IP).", file=sys.stderr)
         raise SystemExit(1)
 
     robot_ip = args.robot_ip.strip()
+    google_keyfile = abspath(args.google_keyfile)
+    stt_conf = None
+    if not args.mcp_server_stub:
+        if not os.path.isfile(google_keyfile):
+            print(f"Google key file not found: {google_keyfile}", file=sys.stderr)
+            raise SystemExit(1)
+        stt_conf = build_google_stt_conf(
+            google_keyfile=google_keyfile,
+            language=args.language,
+        )
 
     mcp_connections = mcp_stdio_connection(
         robot_ip=robot_ip,
         server_stub=bool(args.mcp_server_stub),
         extra_server_args=list(args.mcp_server_args),
         log_dir=log_dir,
+        stt_conf=stt_conf,
     )
 
     if args.model.startswith("openai:") and not os.environ.get("OPENAI_API_KEY"):
-        print(
-            "OPENAI_API_KEY is not set after loading:\n"
-            f"  {env_file}\n"
-            "Add it for the default OpenAI model, or pass --model for another provider.",
-            file=sys.stderr,
-        )
-        if not env_file.is_file():
-            print(f"\nFile does not exist yet: {env_file}\n", file=sys.stderr)
+        print(f"OPENAI_API_KEY not set after loading {env_file}", file=sys.stderr)
         raise SystemExit(1)
 
-    demo = NaoMcpVoiceDemo(
-        robot_ip=robot_ip,
-        google_keyfile_path=args.google_keyfile,
+    NaoMcpVoiceDemo(
         model=args.model,
         mcp_connections=mcp_connections,
         thread_id=args.thread_id,
-        language=args.language,
         log_dir=log_dir,
-    )
-    demo.run()
+    ).run()
 
 
 if __name__ == "__main__":

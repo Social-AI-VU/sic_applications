@@ -89,7 +89,9 @@ class NaoMcpChatDemo(NaoMcpSICApplication):
     def _handle_mcp_connect_error(self, exc: BaseException) -> None:
         print_mcp_stdio_spawn_help(exc)
 
-    async def _async_mcp_loop(self, agent: Any, *, thread_id: str) -> None:
+    async def _async_mcp_loop(
+        self, agent: Any, *, thread_id: str, mcp_session: Any = None
+    ) -> None:
         thread_config: dict[str, Any] = {"configurable": {"thread_id": thread_id}}
         prior_len = 0
 
