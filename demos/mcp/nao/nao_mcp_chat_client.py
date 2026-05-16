@@ -44,7 +44,7 @@ from _nao_mcp_client_common import (
 
 
 def _sic_applications_conf_dotenv_path() -> Path:
-    return Path(__file__).resolve().parent.parent.parent / "conf" / ".env"
+    return Path(__file__).resolve().parent.parent.parent.parent / "conf" / ".env"
 
 
 def _load_sic_applications_conf_dotenv() -> Path:
@@ -85,7 +85,7 @@ class NaoMcpChatDemo(NaoMcpSICApplication):
 
         self.set_log_level(sic_logging.INFO)
         self.set_log_file_path(log_dir)
-        self.load_env(join("..", "..", "conf", ".env"))
+        self.load_env(join("..", "..", "..", "conf", ".env"))
 
     def _handle_mcp_connect_error(self, exc: BaseException) -> None:
         print_mcp_stdio_spawn_help(exc)

@@ -45,7 +45,7 @@ LISTEN_TOOL_NAME = "listen_for_speech"
 LISTEN_MCP_TIMEOUT_S = 30.0
 
 def _sic_applications_conf_dotenv_path() -> Path:
-    return Path(__file__).resolve().parent.parent.parent / "conf" / ".env"
+    return Path(__file__).resolve().parent.parent.parent.parent / "conf" / ".env"
 
 
 def _load_sic_applications_conf_dotenv() -> Path:
@@ -80,7 +80,7 @@ class NaoMcpVoiceDemo(NaoMcpSICApplication):
 
         self.set_log_level(sic_logging.DEBUG)
         self.set_log_file_path(log_dir)
-        self.load_env(join("..", "..", "conf", ".env"))
+        self.load_env(join("..", "..", "..", "conf", ".env"))
 
     def _handle_mcp_connect_error(self, exc: BaseException) -> None:
         print_mcp_stdio_spawn_help(
@@ -160,7 +160,7 @@ def main() -> None:
     parser.add_argument(
         "--google-keyfile",
         type=str,
-        default=abspath(join("..", "..", "conf", "google", "google-key.json")),
+        default=abspath(join("..", "..", "..", "conf", "google", "google-key.json")),
     )
     parser.add_argument("--mcp-server-stub", action="store_true")
     parser.add_argument(
