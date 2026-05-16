@@ -1,6 +1,7 @@
 # import basic SIC framework components
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
+from sic_framework.core.utils import extract_google_stt_transcript
 
 # Import the device(s), service(s), and message(s) we will be using
 from sic_framework.devices.common_franka.franka_motion_recorder import (
@@ -73,32 +74,6 @@ class FrankaVoiceControlDemo(SICApplication):
         
         self.setup()
 
-    @staticmethod
-    def _extract_transcript(result_message):
-        """
-        Extract a transcript string from a Google STT RecognitionResult message.
-        """
-        if not result_message or not hasattr(result_message, "response"):
-            return None
-
-        response = result_message.response
-
-        # Google STT service may return an empty dict when no final result is available.
-        if isinstance(response, dict):
-            return None
-
-        # Common case for this demo: response is a StreamingRecognitionResult with alternatives.
-        if hasattr(response, "alternatives") and response.alternatives:
-            return response.alternatives[0].transcript
-
-        # Fallback for full StreamingRecognizeResponse objects (if returned by configuration changes).
-        if hasattr(response, "results") and response.results:
-            first_result = response.results[0]
-            if hasattr(first_result, "alternatives") and first_result.alternatives:
-                return first_result.alternatives[0].transcript
-
-        return None
-
     def on_stt(self, result):
         """
         Callback function for speech recognition results.
@@ -109,7 +84,7 @@ class FrankaVoiceControlDemo(SICApplication):
         Returns:
             None
         """
-        transcript = self._extract_transcript(result)
+        transcript = extract_google_stt_transcript(result)
         if transcript:
             self.logger.info("Transcript: {}".format(transcript))
 
@@ -155,7 +130,7 @@ class FrankaVoiceControlDemo(SICApplication):
             for i in range(self.num_turns):
                 self.logger.info(" ----- Conversation turn {}".format(i))
                 reply = self.stt.request(GetStatementRequest())
-                query_text = self._extract_transcript(reply)
+                query_text = extract_google_stt_transcript(reply)
                 if not query_text:
                     self.logger.info("No transcript received")
                     time.sleep(0.1)

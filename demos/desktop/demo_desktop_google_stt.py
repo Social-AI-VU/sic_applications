@@ -1,6 +1,7 @@
 # import basic SIC framework components
 from sic_framework.core.sic_application import SICApplication
 from sic_framework.core import sic_logging
+from sic_framework.core.utils import extract_google_stt_transcript
 
 # Import devices, messages, and services we will be using
 from sic_framework.devices.desktop import Desktop
@@ -53,32 +54,6 @@ class GoogleSTTDemo(SICApplication):
         
         self.setup()
 
-    @staticmethod
-    def _extract_transcript(result_message):
-        """
-        Extract a transcript string from a Google STT RecognitionResult message.
-        """
-        if not result_message or not hasattr(result_message, "response"):
-            return None
-
-        response = result_message.response
-
-        # Google STT service may return an empty dict when no final result is available.
-        if isinstance(response, dict):
-            return None
-
-        # Common case for this demo: response is a StreamingRecognitionResult with alternatives.
-        if hasattr(response, "alternatives") and response.alternatives:
-            return response.alternatives[0].transcript
-
-        # Fallback for full StreamingRecognizeResponse objects.
-        if hasattr(response, "results") and response.results:
-            first_result = response.results[0]
-            if hasattr(first_result, "alternatives") and first_result.alternatives:
-                return first_result.alternatives[0].transcript
-
-        return None
-
     def on_stt(self, result):
         """
         Callback function for interim speech-to-text results.
@@ -89,7 +64,7 @@ class GoogleSTTDemo(SICApplication):
         Returns:
             None
         """
-        transcript = self._extract_transcript(result)
+        transcript = extract_google_stt_transcript(result)
         if transcript:
             print("Interim result:\n", transcript)
 
@@ -127,7 +102,7 @@ class GoogleSTTDemo(SICApplication):
                 # For more info on what is returned, see Google's documentation on the response object:
                 # https://cloud.google.com/php/docs/reference/cloud-speech/latest/V2.StreamingRecognizeResponse
                 result = self.stt.request(GetStatementRequest())
-                transcript = self._extract_transcript(result)
+                transcript = extract_google_stt_transcript(result)
                 if not transcript:
                     print("No transcript received")
                     time.sleep(0.1)
