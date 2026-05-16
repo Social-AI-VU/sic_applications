@@ -14,13 +14,5 @@ setup(
             "black==24.10.0",
             "yamllint==1.35.1",
         ],
-        "mcp": [
-            "langchain-mcp-adapters>=0.1.0",
-            "langchain>=0.3",
-            "langchain-openai>=0.2",
-            "langgraph>=1.0",
-            "mcp>=1.0",
-            "python-dotenv>=1.0.0",
-        ],
     },
 )

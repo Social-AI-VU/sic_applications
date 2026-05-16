@@ -41,8 +41,8 @@ from _nao_mcp_client_common import (
 )
 
 LISTEN_TOOL_NAME = "listen_for_speech"
-LISTEN_MCP_TIMEOUT_S = 35.0
-
+# Must exceed the server's STT/listen timeout so MCP does not cut off a slow utterance.
+LISTEN_MCP_TIMEOUT_S = 30.0
 
 def _sic_applications_conf_dotenv_path() -> Path:
     return Path(__file__).resolve().parent.parent.parent / "conf" / ".env"
@@ -93,6 +93,7 @@ class NaoMcpVoiceDemo(NaoMcpSICApplication):
         )
 
     async def _listen_via_mcp(self, mcp_session: Any) -> str | None:
+        # Blocking listen runs in the MCP server process where NAO mic + Google STT live.
         result = await mcp_session.call_tool(
             LISTEN_TOOL_NAME,
             arguments={},
@@ -121,6 +122,7 @@ class NaoMcpVoiceDemo(NaoMcpSICApplication):
             if self.shutdown_event.is_set():
                 break
             if not (transcript and transcript.strip()):
+                # Timeout or silence: poll again without waking the agent.
                 continue
             self.logger.info("\n[heard] %s", transcript.strip())
             result = await agent.ainvoke(
@@ -138,6 +140,7 @@ class NaoMcpVoiceDemo(NaoMcpSICApplication):
             "interpret it as a short command and use tools to fulfill it. "
             "Use only the provided tools."
         )
+        # Agent gets TTS/LED/motion tools only; this loop owns the microphone.
         await self._run_mcp_agent_session(
             model=self.model,
             mcp_connections=self.mcp_connections,
@@ -187,6 +190,7 @@ def main() -> None:
     google_keyfile = abspath(args.google_keyfile)
     stt_conf = None
     if not args.mcp_server_stub:
+        # STT credentials are serialized into SIC_NAO_STT_CONF for the spawned MCP server.
         if not os.path.isfile(google_keyfile):
             print(f"Google key file not found: {google_keyfile}", file=sys.stderr)
             raise SystemExit(1)

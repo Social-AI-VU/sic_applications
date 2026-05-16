@@ -62,6 +62,7 @@ def _load_sic_applications_conf_dotenv() -> Path:
 
 
 async def _read_line(prompt: str) -> str:
+    # input() blocks the thread pool so the asyncio event loop can still handle Ctrl+C.
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, lambda: input(prompt))
 
@@ -92,6 +93,7 @@ class NaoMcpChatDemo(NaoMcpSICApplication):
     async def _async_mcp_loop(
         self, agent: Any, *, thread_id: str, mcp_session: Any = None
     ) -> None:
+        # InMemorySaver keys conversation turns by thread_id across REPL lines.
         thread_config: dict[str, Any] = {"configurable": {"thread_id": thread_id}}
         prior_len = 0
 
@@ -124,6 +126,7 @@ class NaoMcpChatDemo(NaoMcpSICApplication):
             "The user types commands in a chat session; interpret each message as an "
             "instruction and use tools to fulfill it. Use only the provided tools."
         )
+        # No exclude_mcp_tools: chat has no separate listen loop.
         await self._run_mcp_agent_session(
             model=self.model,
             mcp_connections=self.mcp_connections,
@@ -185,6 +188,7 @@ def main() -> None:
     log_dir = (args.log_dir or "").strip() or nao_mcp_session_log_dir(caller_file=__file__)
 
     robot_ip = (args.robot_ip or "").strip() or None
+    # Spawns sic_framework.mcp.nao.nao_mcp_server; no STT env (keyboard input only).
     mcp_connections = mcp_stdio_connection(
         robot_ip=robot_ip,
         server_stub=bool(args.mcp_server_stub),
