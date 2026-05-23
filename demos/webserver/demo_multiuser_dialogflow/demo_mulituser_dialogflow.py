@@ -48,6 +48,10 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
 
     Each browser socket that connects gets its own Dialogflow CX session ID.
     The frontend receives only the transcript/response labels for its own socket ID.
+
+    Steps to run demo:
+    - run-dialogflow-cx
+    - run-webserver
     """
 
     def __init__(self):
@@ -59,8 +63,8 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self._users_lock = threading.Lock()
         self._users: Dict[str, UserSessionState] = {}
 
-        self.agent_id = "XXX"  # Replace if needed
-        self.location = "XXX"  # Replace if needed
+        self.agent_id = "27cdbb58-604e-4da9-bb34-91bb7bc62883"  # Replace if needed
+        self.location = "europe-west4"  # Replace if needed
         self.keyfile_json = None
 
         self.set_log_level(sic_logging.INFO)

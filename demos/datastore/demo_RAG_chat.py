@@ -37,18 +37,24 @@ class RAGChatDemo(SICApplication):
 
     Prerequisites:
     1. Install dependencies: pip install social-interaction-cloud[openai-gpt]
-    2. Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
-    3. Set OPENAI_API_KEY in conf/.env
-    4. Start the GPT service: run-gpt
+    2. Set OPENAI_API_KEY in conf/.env
+    3. Install Docker Desktop (services start automatically via docker-compose.yml)
+
+    Manual alternative (without Docker auto-start):
+    - Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
+    - Start the GPT service: run-gpt
     """
 
     def __init__(self):
-        super(RAGChatDemo, self).__init__()
+        super(RAGChatDemo, self).__init__(
+            services_compose="docker-compose.yml",
+            services_compose_project="sic-rag-chat-demo",
+        )
         self.datastore = None
         self.gpt = None
         self.conversation = []
         
-        self.set_log_level(sic_logging.INFO)
+        self.set_log_level(sic_logging.DEBUG)
 
         # set log file path if needed (otherwise no logs will be written to file)
         # self.set_log_file_path("/path/to/log/directory")

@@ -1,0 +1,64 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_ARGS: "--requirepass changemeplease --appendonly yes"
+    volumes:
+      - rag_chat_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "changemeplease", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
+
+  datastore:
+    build:
+      context: ../../../
+      dockerfile: sic_applications/docker/services/datastore/Dockerfile
+    environment:
+      SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
+      DB_IP: redis
+      DB_PORT: "6379"
+      DB_PASS: changemeplease
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import redis; redis.Redis(host=''redis'', port=6379, password=''changemeplease'').ping()"',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  gpt:
+    build:
+      context: ../../../
+      dockerfile: sic_applications/docker/services/gpt/Dockerfile
+    environment:
+      SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
+      DB_IP: redis
+      DB_PORT: "6379"
+      DB_PASS: changemeplease
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import redis; redis.Redis(host=''redis'', port=6379, password=''changemeplease'').ping()"',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  rag_chat_redis_data:
