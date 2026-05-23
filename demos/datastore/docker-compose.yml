@@ -5,8 +5,11 @@ services:
     profiles: ["build"]
     image: sic-base:local
     build:
-      context: ../../../
-      dockerfile: sic_applications/docker/sic-base/Dockerfile
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/sic-base/Dockerfile
+      target: ${SIC_BUILD_TARGET}
+      args:
+        SIC_VERSION: ${SIC_VERSION}
 
   redis:
     image: redis/redis-stack:latest
@@ -25,8 +28,8 @@ services:
 
   datastore:
     build:
-      context: ../../../
-      dockerfile: sic_applications/docker/services/datastore/Dockerfile
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/services/datastore/Dockerfile
     environment:
       SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
       DB_IP: redis
@@ -50,8 +53,9 @@ services:
 
   gpt:
     build:
-      context: ../../../
-      dockerfile: sic_applications/docker/services/gpt/Dockerfile
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/services/gpt/Dockerfile
+      target: ${SIC_BUILD_TARGET}
     environment:
       SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
       DB_IP: redis
