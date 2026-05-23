@@ -52,7 +52,6 @@ class RAGChatDemo(SICApplication):
     def __init__(self):
         super(RAGChatDemo, self).__init__(
             services_compose="docker-compose.yml",
-            services_compose_project="sic-rag-chat-demo",
         )
         self.datastore = None
         self.gpt = None

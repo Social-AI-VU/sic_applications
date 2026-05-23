@@ -1,3 +1,5 @@
+name: sic-rag-chat-demo
+
 services:
   sic-base:
     profiles: ["build"]
