@@ -20,6 +20,10 @@ from pathlib import Path
 import os
 
 
+# Path inside the datastore container (see docker-compose.yml volume mount).
+DOCKER_VECTOR_DOCS_PATH = "/ingest/vector_docs"
+
+
 class RAGChatDemo(SICApplication):
     """
     RAG Chat Demo: Conversational AI with Document Search
@@ -125,9 +129,14 @@ class RAGChatDemo(SICApplication):
             return False
         
         try:
+            ingest_path = (
+                DOCKER_VECTOR_DOCS_PATH
+                if self._services_compose_started
+                else str(docs_dir)
+            )
             result = self.datastore.request(
                 IngestVectorDocsRequest(
-                    input_path=str(docs_dir),
+                    input_path=ingest_path,
                     openai_api_key=self.openai_api_key,
                     index_name="rag_chat_demo_docs",
                     partition="demo",
@@ -137,7 +146,8 @@ class RAGChatDemo(SICApplication):
                     embedding_model="text-embedding-3-large",
                     override_existing=True,
                     force_recreate_index=True
-                )
+                ),
+                timeout=60.0,
             )
             
             if isinstance(result, VectorDBResultsMessage) and result.payload.get('ok'):
@@ -310,6 +320,6 @@ Cite your sources when using information from the context."""
 
 
 if __name__ == "__main__":
-    print(__doc__)
+    print(RAGChatDemo.__doc__)
     demo = RAGChatDemo()
     demo.run()

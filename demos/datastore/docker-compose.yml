@@ -23,6 +23,8 @@ services:
       DB_IP: redis
       DB_PORT: "6379"
       DB_PASS: changemeplease
+    volumes:
+      - ./vector_docs:/ingest/vector_docs:ro
     depends_on:
       redis:
         condition: service_healthy

@@ -10,7 +10,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY social-interaction-cloud /tmp/social-interaction-cloud
-RUN pip install --no-cache-dir "/tmp/social-interaction-cloud[openai-gpt]" \
+RUN pip install --no-cache-dir "/tmp/social-interaction-cloud[openai-gpt]" pypdf \
     && rm -rf /tmp/social-interaction-cloud
 
 WORKDIR /app
