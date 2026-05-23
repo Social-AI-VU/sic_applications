@@ -1,4 +1,11 @@
 services:
+  sic-base:
+    profiles: ["build"]
+    image: sic-base:local
+    build:
+      context: ../../../
+      dockerfile: sic_applications/docker/sic-base/Dockerfile
+
   redis:
     image: redis/redis-stack:latest
     ports:
