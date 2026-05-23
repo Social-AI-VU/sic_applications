@@ -9,7 +9,7 @@ services:
       dockerfile: ${SIC_DOCKER_ROOT}/docker/sic-base/Dockerfile
       target: ${SIC_BUILD_TARGET}
       args:
-        SIC_VERSION: ${SIC_VERSION}
+        SIC_VERSION: ${SIC_VERSION:?Set SIC_VERSION or run via SICApplication}
 
   redis:
     image: redis/redis-stack:latest
@@ -56,6 +56,8 @@ services:
       context: ${SIC_BUILD_CONTEXT}
       dockerfile: ${SIC_DOCKER_ROOT}/docker/services/gpt/Dockerfile
       target: ${SIC_BUILD_TARGET}
+      args:
+        SIC_VERSION: ${SIC_VERSION:?Set SIC_VERSION or run via SICApplication}
     environment:
       SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
       DB_IP: redis
