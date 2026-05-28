@@ -45,7 +45,7 @@ class RAGChatDemo(SICApplication):
     3. Install Docker Desktop (services start automatically via docker-compose.yml)
 
     Manual alternative (without Docker auto-start):
-    - Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE> --redis-conf <PATH/TO/redis.conf>
+    - Start Redis Datastore: run-redis --data-dir <PATH/TO/STORAGE>
     - Start the GPT service: run-gpt
     """
 
@@ -62,7 +62,7 @@ class RAGChatDemo(SICApplication):
         # set log file path if needed (otherwise no logs will be written to file)
         # self.set_log_file_path("/path/to/log/directory")
 
-        self.load_env("../../conf/.env")
+        self.load_env("../../../conf/.env")
 
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if not self.openai_api_key:

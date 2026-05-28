@@ -30,6 +30,9 @@ import time
 import os
 
 
+DOCKER_WEBFILES_PATH = "/webfiles"
+
+
 class DialogflowCXWebDemo(SICApplication):
     """
     Dialogflow CX (Conversational Agents) demo application using Desktop microphone for intent detection.
@@ -43,16 +46,19 @@ class DialogflowCXWebDemo(SICApplication):
        - Your agent ID (found in agent settings)
        - Your agent location (e.g., "global" or "us-central1")
 
-    3. The Conversational Agents service needs to be running:
-       - pip install social-interaction-cloud[dialogflow-cx]
+    3. Install Docker Desktop (services start automatically via docker-compose.yml)
+
+    Manual alternative (without Docker auto-start):
        - run-dialogflow-cx
+       - run-webserver
 
     Note: This uses the newer Dialogflow CX API (v3), which is different from the older Dialogflow ES (v2).
     """
 
     def __init__(self):
-        # Call parent constructor (handles singleton initialization)
-        super(DialogflowCXWebDemo, self).__init__()
+        super(DialogflowCXWebDemo, self).__init__(
+            services_compose="docker-compose.yml",
+        )
 
         # Demo-specific initialization
         self.conversational_agent = None
@@ -81,7 +87,11 @@ class DialogflowCXWebDemo(SICApplication):
 
         # Webserver setup (serves local demo UI + receives events)
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        webfiles_dir = os.path.join(current_dir, "webfiles")
+        webfiles_dir = (
+            DOCKER_WEBFILES_PATH
+            if self._services_compose_started
+            else os.path.join(current_dir, "webfiles")
+        )
         web_conf = WebserverConf(
             host="0.0.0.0",
             port=self.web_port,

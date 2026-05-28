@@ -1,0 +1,133 @@
+name: sic-nardial-rag-llm-demo
+
+services:
+  sic-base:
+    profiles: ["build"]
+    image: sic-base:local
+    build:
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/sic-base/Dockerfile
+      target: ${SIC_BUILD_TARGET}
+      args:
+        SIC_VERSION: ${SIC_VERSION:?Set SIC_VERSION or run via SICApplication}
+
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_ARGS: "--requirepass changemeplease --appendonly yes"
+    volumes:
+      - nardial_rag_llm_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "changemeplease", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
+
+  datastore:
+    build:
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/services/datastore/Dockerfile
+    environment:
+      SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
+      DB_IP: redis
+      DB_PORT: "6379"
+      DB_PASS: changemeplease
+    volumes:
+      - ./RAG_example_docs:/ingest/rag_docs:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import redis; redis.Redis(host=''redis'', port=6379, password=''changemeplease'').ping()"',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  dialogflow:
+    build:
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/services/dialogflow/Dockerfile
+      target: ${SIC_BUILD_TARGET}
+      args:
+        SIC_VERSION: ${SIC_VERSION:?Set SIC_VERSION or run via SICApplication}
+    environment:
+      SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
+      DB_IP: redis
+      DB_PORT: "6379"
+      DB_PASS: changemeplease
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import redis; redis.Redis(host=''redis'', port=6379, password=''changemeplease'').ping()"',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  google-tts:
+    build:
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/services/google-tts/Dockerfile
+      target: ${SIC_BUILD_TARGET}
+      args:
+        SIC_VERSION: ${SIC_VERSION:?Set SIC_VERSION or run via SICApplication}
+    environment:
+      SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
+      DB_IP: redis
+      DB_PORT: "6379"
+      DB_PASS: changemeplease
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import redis; redis.Redis(host=''redis'', port=6379, password=''changemeplease'').ping()"',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  gpt:
+    build:
+      context: ${SIC_BUILD_CONTEXT}
+      dockerfile: ${SIC_DOCKER_ROOT}/docker/services/gpt/Dockerfile
+      target: ${SIC_BUILD_TARGET}
+      args:
+        SIC_VERSION: ${SIC_VERSION:?Set SIC_VERSION or run via SICApplication}
+    environment:
+      SIC_IP: ${SIC_HOST_IP:?Set SIC_HOST_IP when running compose manually}
+      DB_IP: redis
+      DB_PORT: "6379"
+      DB_PASS: changemeplease
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import redis; redis.Redis(host=''redis'', port=6379, password=''changemeplease'').ping()"',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  nardial_rag_llm_redis_data:
