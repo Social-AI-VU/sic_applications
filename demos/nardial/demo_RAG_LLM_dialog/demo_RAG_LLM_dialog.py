@@ -29,13 +29,13 @@ WARNING: Never commit credential files to version control.
 -------------------------
 3. Start required services
 -------------------------
-Install Docker Desktop (services start automatically via docker-compose.yml).
-
-Manual alternative (without Docker auto-start):
+You MUST run these in separate terminals BEFORE starting the demo:
     run-redis --data-dir <path to where you want to save vector database>
     run-dialogflow
     run-google-tts
     run-gpt
+
+NOTE: you need to have Docker installed to be able to use the RedisStack image (includes the Vector Search module) when you run 'run-redis'.
 =========================
 """
 
@@ -45,7 +45,6 @@ from nardial.interaction_orchestrator import InteractionConfig
 from nardial.session_manager import SessionManager
 
 # Import SIC device(s), message(s), and service(s) we will be using
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
 
@@ -53,9 +52,6 @@ from sic_framework.devices.desktop import Desktop
 from pathlib import Path
 import sys
 
-
-# Path inside the datastore container (see docker-compose.yml volume mount).
-DOCKER_RAG_DOCS_PATH = "/ingest/rag_docs"
 
 BASE_DIR = Path(__file__).resolve().parent
 SIC_APPLICATIONS_DIR = BASE_DIR.parents[2]
@@ -70,14 +66,6 @@ INGEST_DOCS = True
 
 
 if __name__ == "__main__":
-    app = SICApplication(services_compose="docker-compose.yml")
-
-    ingest_path = (
-        DOCKER_RAG_DOCS_PATH
-        if app._services_compose_started
-        else str(DOCS_DIR)
-    )
-
     # =========================
     # 1. SELECT DEVICE
     # =========================
@@ -96,7 +84,7 @@ if __name__ == "__main__":
         keyboard_input=True,
         rag=True,
         ingest_docs=INGEST_DOCS,
-        input_path=ingest_path,
+        input_path=str(DOCS_DIR),
         index_name=INDEX_NAME,
         embedding_model="text-embedding-3-large",
         chunk_chars=900,
@@ -138,5 +126,4 @@ if __name__ == "__main__":
     # =========================
     # 6. CLEAN EXIT
     # =========================
-    app.cleanup_resources(log_shutdown=True)
     sys.exit()

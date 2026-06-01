@@ -174,6 +174,8 @@ class AlphaminiDialogflowDemo(SICApplication):
 
 
 if __name__ == "__main__":
+    print(AlphaminiDialogflowDemo.__doc__)
+
     # Create and run the demo
     demo = AlphaminiDialogflowDemo()
     demo.run()

@@ -51,7 +51,7 @@ class ConversationApp(SICApplication):
     See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide
 
     If you want to run kiosk demo, your dialogflow agent needs to have the correct intents and entities. After you
-    created your dialogflow agent in the Google Cloud environment you can import Dialogflow_agent_for_SIC_demo.zip
+    created your dialogflow agent in the Google Cloud environment you can import dialogflow_agents/Dialogflow_agent_for_SIC_demo.zip
     to import the required intents and entities.
 
     (Optionally) if you want to use a local TTS (set local_tts=True) instead of Google TTS, you need to have espeak installed.
@@ -292,6 +292,8 @@ class ConversationApp(SICApplication):
 
 
 if __name__ == "__main__":
+    print(ConversationApp.__doc__)
+
     # Create and run the demo
     # This will be the single SICApplication instance for the process
     conversation_app = ConversationApp(

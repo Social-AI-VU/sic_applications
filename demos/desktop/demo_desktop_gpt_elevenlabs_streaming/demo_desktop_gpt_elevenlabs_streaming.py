@@ -206,5 +206,7 @@ class GPTElevenLabsStreamingDemo(SICApplication):
 
 
 if __name__ == "__main__":
+    print(GPTElevenLabsStreamingDemo.__doc__)
+
     demo = GPTElevenLabsStreamingDemo()
     demo.run()

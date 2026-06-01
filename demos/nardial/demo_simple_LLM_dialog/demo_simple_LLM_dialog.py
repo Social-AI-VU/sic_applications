@@ -28,9 +28,7 @@ WARNING: Never commit credential files to version control.
 -------------------------
 3. Start required services
 -------------------------
-Install Docker Desktop (services start automatically via docker-compose.yml).
-
-Manual alternative (without Docker auto-start):
+You MUST run these in separate terminals BEFORE starting the demo:
     run-dialogflow
     run-google-tts
     run-gpt
@@ -43,7 +41,6 @@ from nardial.interaction_orchestrator import InteractionConfig
 from nardial.session_manager import SessionManager
 
 # Import SIC device(s), message(s), and service(s) we will be using
-from sic_framework.core.sic_application import SICApplication
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
 
@@ -61,8 +58,6 @@ ENV_FILE_PATH = SIC_APPLICATIONS_DIR / "conf" / ".env"
 
 
 if __name__ == "__main__":
-    app = SICApplication(services_compose="docker-compose.yml")
-
     # =========================
     # 1. SELECT DEVICE
     # =========================
@@ -113,5 +108,4 @@ if __name__ == "__main__":
     # =========================
     # 6. CLEAN EXIT
     # =========================
-    app.cleanup_resources(log_shutdown=True)
     sys.exit()
