@@ -41,20 +41,21 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-from sic_framework.devices.desktop import Desktop
-
 from nardial.conversation_agent import ConversationAgent
 from nardial.interaction_orchestrator import InteractionConfig
 from nardial.providers.device.desktop import DesktopAdapter
 from nardial.providers.nlu.written_keyword import WrittenKeywordNLUProvider
 from nardial.providers.tts.elevenlabs import ElevenLabsTTSConf, ElevenLabsTTSProvider
 from nardial.session_manager import SessionManager
+from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+from sic_framework.devices.desktop import Desktop
 
 BASE_DIR = Path(__file__).resolve().parent
 SIC_APPLICATIONS_DIR = BASE_DIR.parents[1]
 
-DIALOG_CONFIG_PATH = BASE_DIR / "dialog_configs" / "dialog_with_characters_elevenlabs.json"
+DIALOG_CONFIG_PATH = (
+    BASE_DIR / "dialog_configs" / "dialog_with_characters_elevenlabs.json"
+)
 ENV_FILE_PATH = SIC_APPLICATIONS_DIR / "conf" / ".env"
 
 load_dotenv(ENV_FILE_PATH)
@@ -90,7 +91,9 @@ if __name__ == "__main__":
     nlu = WrittenKeywordNLUProvider()
 
     # --- Behavioral config ---
-    interaction_config = InteractionConfig(post_speech_delay=0, signal_listening_behavior=False)
+    interaction_config = InteractionConfig(
+        post_speech_delay=0, signal_listening_behavior=False
+    )
 
     # =========================
     # 3. CREATE AGENT

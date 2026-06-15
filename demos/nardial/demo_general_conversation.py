@@ -37,15 +37,14 @@ You MUST run these in separate terminals BEFORE starting the demo:
 import sys
 from pathlib import Path
 
-from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
-from sic_framework.devices.desktop import Desktop
-
 from nardial.conversation_agent import ConversationAgent
 from nardial.interaction_orchestrator import InteractionConfig
 from nardial.providers.device.desktop import DesktopAdapter
 from nardial.providers.nlu.written_keyword import WrittenKeywordNLUProvider
 from nardial.providers.tts.google import GoogleTTSConf, GoogleTTSProvider
 from nardial.session_manager import SessionManager
+from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
+from sic_framework.devices.desktop import Desktop
 
 BASE_DIR = Path(__file__).resolve().parent
 SIC_APPLICATIONS_DIR = BASE_DIR.parents[1]
@@ -74,14 +73,18 @@ if __name__ == "__main__":
         # speaking_rate=1.0,                        # speech speed (0.25–4.0)
         # google_tts_voice_name="en-US-Neural2-C",  # voice selection
     )
-    tts = GoogleTTSProvider(conf=tts_conf, device=device, keyfile_path=str(GOOGLE_KEYFILE_PATH))
+    tts = GoogleTTSProvider(
+        conf=tts_conf, device=device, keyfile_path=str(GOOGLE_KEYFILE_PATH)
+    )
 
     # --- NLU ---
     # Type your replies in the terminal when prompted.
     nlu = WrittenKeywordNLUProvider()
 
     # --- Behavioral config ---
-    interaction_config = InteractionConfig(post_speech_delay=0, signal_listening_behavior=False)
+    interaction_config = InteractionConfig(
+        post_speech_delay=0, signal_listening_behavior=False
+    )
 
     # =========================
     # 3. CREATE AGENT
