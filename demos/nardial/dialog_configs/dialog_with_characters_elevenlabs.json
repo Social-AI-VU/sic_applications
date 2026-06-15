@@ -1,0 +1,28 @@
+{
+  "id": "scene_intro_elevenlabs",
+  "type": "functional",
+  "functional_type": "greeting",
+  "characters": {
+    "narrator": {
+      "voice_settings": {
+        "voice_id": "KTPVrSVAEUSJRClDzBw7"
+      }
+    },
+    "guide": {
+      "voice_settings": {
+        "voice_id": "yO6w2xlECAQRFP6pX7Hw"
+      }
+    },
+    "friend": {
+      "voice_settings": {
+        "voice_id": "EXAVITQu4vr4xnSDxMaL"
+      }
+    }
+  },
+  "moves": [
+    { "type": "say", "text": "It was a windy evening in the city.", "character": "narrator" },
+    { "type": "say", "text": "Welcome! I can guide you through this story.", "character": "guide" },
+    { "type": "say", "text": "Hey there, I am happy to join this adventure.", "character": "friend" },
+    { "type": "say", "text": "This final line uses the dialog default ElevenLabs voice." }
+  ]
+}

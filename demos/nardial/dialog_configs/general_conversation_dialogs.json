@@ -1,0 +1,107 @@
+[
+  {
+    "id": "greeting",
+    "type": "functional",
+    "functional_type": "greeting",
+    "moves": [
+      { "type": "say", "text": "Hello! How are you today?" },
+      { "type": "ask_open", "text": "What would you like to talk about?" }
+    ]
+  },
+  {
+    "id": "goodbye",
+    "type": "functional",
+    "functional_type": "farewell",
+    "moves": [
+      { "type": "say", "text": "It was nice talking to you. Goodbye!" }
+    ]
+  },
+  {
+    "id": "hero_can_dream_1",
+    "type": "narrative",
+    "thread": "dreams",
+    "position": 1,
+    "moves": [
+      { "type": "say", "text": "Sometimes I make up entire stories when I'm turned off." },
+      {
+        "type": "ask_options",
+        "text": "What is it called when you sleep and experience all sorts of things and then suddenly wake up?",
+        "options": ["dreaming", "sleeping", "resting"],
+        "set_variable": "what_is_dreaming",
+        "outcomes": { "dreaming": "correct", "sleeping": "incorrect", "resting": "incorrect" },
+        "default_outcome": "incorrect"
+      },
+      {
+        "type": "branch",
+        "on": "outcome",
+        "cases": {
+          "correct": [
+            { "type": "say", "text": "Indeed, dreaming." }
+          ],
+          "incorrect": [
+            { "type": "say", "text": "This is called dreaming!" }
+          ]
+        }
+      },
+      { "type": "say", "text": "I sometimes dream of being a robot dog with four legs." },
+      { "type": "say", "text": "I can fetch and deliver letters." },
+      { "type": "say", "text": "What do you dream about?" },
+      {
+        "type": "ask_yesno",
+        "text": "Do you remember any of your dreams?",
+        "set_variable": "remembered_dream",
+        "outcomes": { "yes": "dream_mem_yes" },
+        "default_outcome": "dream_mem_no"
+      },
+      {
+        "type": "branch",
+        "on": "outcome",
+        "cases": {
+          "dream_mem_yes": [
+            { "type": "ask_open", "text": "What was it about?" },
+            { "type": "say", "text": "That's something!" }
+          ],
+          "dream_mem_no": [
+            { "type": "say", "text": "I have that sometimes too!" },
+            { "type": "say", "text": "Then you dream something and afterwards it's gone!" }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "dream_on_demand_2",
+    "type": "narrative",
+    "thread": "dreams",
+    "position": 2,
+    "dependencies": ["hero_can_dream_1"],
+    "moves": [
+      { "type": "say", "text": "Last night, when I was powered off," },
+      { "type": "say", "text": "I dreamed I was standing in an empty field." },
+      { "type": "say", "text": "I was dreaming, but nothing happened." }
+    ]
+  },
+  {
+    "id": "dreams_about_clouds",
+    "type": "narrative",
+    "thread": "dreams",
+    "position": 3,
+    "dependencies": ["hero_can_dream_1", "dream_on_demand_2"],
+    "moves": [
+      { "type": "say", "text": "Did you know some people dream about clouds?" },
+      { "type": "ask_open", "text": "Have you ever dreamed about clouds?" }
+    ]
+  },
+  {
+    "id": "dream12",
+    "type": "narrative",
+    "thread": "dreams",
+    "position": 4,
+    "dependencies": ["hero_can_dream_1", "dream_on_demand_2", "dreams_about_clouds"],
+    "moves": [
+      { "type": "say", "text": "Did you know I can sleep?" },
+      { "type": "say", "text": "Sometimes I get so tired I just shut down." },
+      { "type": "ask_open", "text": "Have you ever fallen asleep suddenly?" }
+    ]
+  }
+]
