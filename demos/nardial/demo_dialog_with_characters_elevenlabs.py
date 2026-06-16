@@ -1,4 +1,4 @@
-"""
+r"""
 Nardial Dialog with Characters Demo (ElevenLabs TTS)
 
 This demo shows how to assign per-character voice settings in a dialog using ElevenLabs TTS.

@@ -1,4 +1,4 @@
-"""
+r"""
 Nardial RAG + LLM Conversation Demo
 
 This demo shows how to run a Nardial conversation that uses retrieval-augmented
@@ -28,22 +28,21 @@ WARNING: Never commit credential files to version control.
 3. Start required services
 -------------------------
 You MUST run these in separate terminals BEFORE starting the demo:
-
     run-redis --data-dir <path to where you want to save vector database>
     run-dialogflow
     run-google-tts
     run-gpt
 
-NOTE: you need to have Docker installed to be able to use the RedisStack image
-(includes the Vector Search module) when you run 'run-redis'.
+NOTE: you need to have Docker installed to be able to use the RedisStack image (includes the Vector Search module) when you run 'run-redis'.
 =========================
 """
 
-import json
 import sys
+
+# import other libraries
 from pathlib import Path
 
-from dotenv import load_dotenv
+# Import Nardial basics
 from nardial.conversation_agent import ConversationAgent
 from nardial.interaction_orchestrator import InteractionConfig
 from nardial.providers.device.desktop import DesktopAdapter
@@ -52,12 +51,14 @@ from nardial.providers.nlu.dialogflow import DialogflowNLUProvider
 from nardial.providers.tts.google import GoogleTTSConf, GoogleTTSProvider
 from nardial.providers.vector_store.redis_store import RedisVectorStoreProvider
 from nardial.session_manager import SessionManager
+
+# Import SIC device(s), message(s), and service(s) we will be using
 from sic_framework.devices.common_desktop.desktop_speakers import SpeakersConf
 from sic_framework.devices.desktop import Desktop
 from sic_framework.services.dialogflow.dialogflow import DialogflowConf
 
 BASE_DIR = Path(__file__).resolve().parent
-SIC_APPLICATIONS_DIR = BASE_DIR.parents[1]
+SIC_APPLICATIONS_DIR = BASE_DIR.parents[2]
 
 DOCS_DIR = BASE_DIR / "RAG_example_docs"
 DIALOG_CONFIG_PATH = BASE_DIR / "dialog_configs" / "rag_llm_dialogs.json"
@@ -67,8 +68,6 @@ ENV_FILE_PATH = SIC_APPLICATIONS_DIR / "conf" / ".env"
 INDEX_NAME = "nardial_pip_lantern_docs"
 # Set to True on first run (or whenever your docs change) to re-index the RAG documents.
 INGEST_DOCS = True
-
-load_dotenv(ENV_FILE_PATH)
 
 
 if __name__ == "__main__":
@@ -142,7 +141,6 @@ if __name__ == "__main__":
     # =========================
     # 4. SESSION MANAGER
     # =========================
-    # Run a mixed sequence of non-RAG and RAG llm_based blocks.
     session_manager = SessionManager(
         session_agenda=[
             "rag_llm_welcome",

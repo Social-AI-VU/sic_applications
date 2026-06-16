@@ -1,4 +1,4 @@
-"""
+r"""
 Nardial General Conversation Demo
 
 A minimal conversational demo using Google TTS and keyboard input (no Dialogflow required).

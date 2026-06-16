@@ -33,15 +33,17 @@ class AlphaminiDialogflowDemo(SICApplication):
        Place it at: conf/google/google-key.json
        → How to get a key: https://social-ai-vu.github.io/social-interaction-cloud/tutorials/6_google_cloud.html
 
-    2. Ensure Dialogflow and Google Text-to-Speech services are running:
-       $ pip install social-interaction-cloud[alphamini,dialogflow,google-tts]
+    2. Install Docker Desktop (services start automatically via docker-compose.yml)
+
+    Manual alternative (without Docker auto-start):
        $ run-dialogflow
-       $ run-google-tts (in another terminal)
+       $ run-google-tts
     """
 
     def __init__(self):
-        # Call parent constructor (handles singleton initialization)
-        super(AlphaminiDialogflowDemo, self).__init__()
+        super(AlphaminiDialogflowDemo, self).__init__(
+            services_compose="docker-compose.yml",
+        )
 
         # Demo-specific initialization
         self.mini_ip = "XXX"
@@ -49,7 +51,7 @@ class AlphaminiDialogflowDemo(SICApplication):
         self.mini_password = "XXX"
         self.redis_ip = "XXX"
         self.google_keyfile_path = abspath(
-            join("..", "..", "conf", "google", "google-key.json")
+            join("..", "..", "..", "conf", "google", "google-key.json")
         )
         self.num_turns = 25
         self.mini = None
@@ -63,7 +65,7 @@ class AlphaminiDialogflowDemo(SICApplication):
         # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
-        self.load_env("../../conf/.env")
+        self.load_env("../../../conf/.env")
         
         self.setup()
 
@@ -172,6 +174,8 @@ class AlphaminiDialogflowDemo(SICApplication):
 
 
 if __name__ == "__main__":
+    print(AlphaminiDialogflowDemo.__doc__)
+
     # Create and run the demo
     demo = AlphaminiDialogflowDemo()
     demo.run()

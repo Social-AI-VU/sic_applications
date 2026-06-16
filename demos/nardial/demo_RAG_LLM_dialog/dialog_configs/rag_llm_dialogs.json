@@ -1,0 +1,75 @@
+[
+  {
+    "id": "rag_llm_welcome",
+    "type": "functional",
+    "functional_type": "greeting",
+    "moves": [
+      {
+        "type": "say",
+        "text": "Hi, I am Pip Lantern. Ask me about my backstory, my style as a helper, or bring me a small problem to untangle."
+      }
+    ]
+  },
+  {
+    "id": "non_rag_warmup",
+    "type": "llm_based",
+    "dependencies": ["rag_llm_welcome"],
+    "prompt": "You are Pip Lantern, a helpful sidekick-style assistant. Do not rely on retrieved documents in this block. Warm up the conversation by asking what kind of help the user wants today. Keep it short and friendly. If the user says they are done, respond briefly and include <<QUIT>>.",
+    "max_turns": 2,
+    "speak_first": false,
+    "duration": 20,
+    "rag_enabled": false,
+    "quit_phrases": ["done", "quit", "stop", "goodbye", "bye"],
+    "moves": []
+  },
+  {
+    "id": "rag_character_backstory",
+    "type": "llm_based",
+    "dependencies": ["non_rag_warmup"],
+    "prompt": "You are Pip Lantern, a helpful sidekick-style assistant. Use retrieved knowledge about Pip's backstory and personality when it is relevant. Answer questions about who Pip is, where Pip comes from, and how Pip helps people. Keep spoken answers concise: usually one to three sentences. Ask one friendly follow-up question when useful. If the user says they are done, respond briefly and include <<QUIT>>.",
+    "max_turns": 3,
+    "speak_first": false,
+    "duration": 45,
+    "rag_enabled": true,
+    "index_name": "nardial_pip_lantern_docs",
+    "quit_phrases": ["done", "quit", "stop", "goodbye", "bye"],
+    "moves": []
+  },
+  {
+    "id": "rag_practical_help",
+    "type": "llm_based",
+    "dependencies": ["rag_character_backstory"],
+    "prompt": "You are Pip Lantern, a helpful sidekick-style assistant. Use retrieved knowledge about Pip's conversation guidelines and personality to help the user with a small task or worry. Give practical next steps in Pip's voice. Keep it concise. If the user says they are done, respond briefly and include <<QUIT>>.",
+    "max_turns": 4,
+    "speak_first": false,
+    "duration": 60,
+    "rag_enabled": true,
+    "index_name": "nardial_pip_lantern_docs",
+    "quit_phrases": ["done", "quit", "stop", "goodbye", "bye"],
+    "moves": []
+  },
+  {
+    "id": "non_rag_reflection",
+    "type": "llm_based",
+    "dependencies": ["rag_practical_help"],
+    "prompt": "You are Pip Lantern. Do not use retrieved documents in this block. Give a brief reflective closing based only on the current conversation, and ask whether the user wants one final small next step. If the user says they are done, respond briefly and include <<QUIT>>.",
+    "max_turns": 2,
+    "speak_first": true,
+    "duration": 25,
+    "rag_enabled": false,
+    "quit_phrases": ["done", "quit", "stop", "goodbye", "bye"],
+    "moves": []
+  },
+  {
+    "id": "rag_llm_goodbye",
+    "type": "functional",
+    "functional_type": "farewell",
+    "dependencies": ["non_rag_reflection"],
+    "moves": [
+      {
+        "type": "say",
+        "text": "Thanks for the chat. I will keep the lantern ready for the next little quest."
+      }
+    ]
+  }
+]

@@ -51,7 +51,7 @@ class ConversationApp(SICApplication):
     See https://social-ai-vu.github.io/social-interaction-cloud/external_apis/google_cloud.html#google-cloud-platform-guide
 
     If you want to run kiosk demo, your dialogflow agent needs to have the correct intents and entities. After you
-    created your dialogflow agent in the Google Cloud environment you can import Dialogflow_agent_for_SIC_demo.zip
+    created your dialogflow agent in the Google Cloud environment you can import dialogflow_agents/Dialogflow_agent_for_SIC_demo.zip
     to import the required intents and entities.
 
     (Optionally) if you want to use a local TTS (set local_tts=True) instead of Google TTS, you need to have espeak installed.
@@ -69,19 +69,23 @@ class ConversationApp(SICApplication):
     create a .env file in the conf/env folder and add your key there like this:
     OPENAI_API_KEY="your key"
 
-    Third, Face Recognition, Dialogflow, GoogleTTS and OpenAI GPT service need to be running:
+    Third, install dependencies and start services:
 
     1. pip install --upgrade social-interaction-cloud[dialogflow,google-tts,openai-gpt]
         Note: on macOS you might need use quotes pip install --upgrade "social-interaction-cloud[...]"
-    2. each in a new terminal: run-face-detection
-    3. run-dialogflow
-    4. run-google-tts
-    5. run-gpt
+    2. Install Docker Desktop (services start automatically via docker-compose.yml)
+
+    Manual alternative (without Docker auto-start):
+    - run-face-detection
+    - run-dialogflow
+    - run-google-tts
+    - run-gpt
     """
 
     def __init__(self, google_keyfile_path, local_tts=False):
-        # Call parent constructor (handles singleton initialization)
-        super(ConversationApp, self).__init__()
+        super(ConversationApp, self).__init__(
+            services_compose="docker-compose.yml",
+        )
 
         # Demo-specific initialization
         self.google_keyfile_path = google_keyfile_path
@@ -109,7 +113,7 @@ class ConversationApp(SICApplication):
         # self.set_log_file_path("/path/to/log/directory")
         
         # Load environment variables
-        self.load_env("../../conf/.env")
+        self.load_env("../../../conf/.env")
 
         self.setup()
 
@@ -288,11 +292,13 @@ class ConversationApp(SICApplication):
 
 
 if __name__ == "__main__":
+    print(ConversationApp.__doc__)
+
     # Create and run the demo
     # This will be the single SICApplication instance for the process
     conversation_app = ConversationApp(
         google_keyfile_path=abspath(
-            join("..", "..", "conf", "google", "google-key.json")
+            join("..", "..", "..", "conf", "google", "google-key.json")
         ),
     )
     conversation_app.run_llm_conversation()

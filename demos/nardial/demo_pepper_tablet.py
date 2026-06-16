@@ -1,4 +1,4 @@
-"""
+r"""
 Nardial Pepper Tablet Screen Demo
 
 Demonstrates the NarDialPy screen provider on a Pepper robot's built-in tablet.

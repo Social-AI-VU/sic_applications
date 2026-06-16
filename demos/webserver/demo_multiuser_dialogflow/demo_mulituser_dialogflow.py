@@ -32,6 +32,9 @@ import time
 import os
 
 
+DOCKER_WEBFILES_PATH = "/webfiles"
+
+
 @dataclass
 class UserSessionState:
     socket_id: str
@@ -48,10 +51,19 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
 
     Each browser socket that connects gets its own Dialogflow CX session ID.
     The frontend receives only the transcript/response labels for its own socket ID.
+
+    Steps to run demo:
+    - Install Docker Desktop (services start automatically via docker-compose.yml)
+
+    Manual alternative (without Docker auto-start):
+    - run-dialogflow-cx
+    - run-webserver
     """
 
     def __init__(self):
-        super(DialogflowCXMultiUserWebDemo, self).__init__()
+        super(DialogflowCXMultiUserWebDemo, self).__init__(
+            services_compose="docker-compose.yml",
+        )
 
         self.webserver = None
         self.web_port = 8080
@@ -59,8 +71,8 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         self._users_lock = threading.Lock()
         self._users: Dict[str, UserSessionState] = {}
 
-        self.agent_id = "XXX"  # Replace if needed
-        self.location = "XXX"  # Replace if needed
+        self.agent_id = "27cdbb58-604e-4da9-bb34-91bb7bc62883"  # Replace if needed
+        self.location = "europe-west4"  # Replace if needed
         self.keyfile_json = None
 
         self.set_log_level(sic_logging.INFO)
@@ -81,7 +93,11 @@ class DialogflowCXMultiUserWebDemo(SICApplication):
         browser socket when we receive a 'register_user' event from the frontend.
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        webfiles_dir = os.path.join(current_dir, "webfiles")
+        webfiles_dir = (
+            DOCKER_WEBFILES_PATH
+            if self._services_compose_started
+            else os.path.join(current_dir, "webfiles")
+        )
 
         web_conf = WebserverConf(
             host="0.0.0.0",

@@ -14,7 +14,6 @@ from sic_framework.services.elevenlabs_tts.elevenlabs_tts import (
 from sic_framework.services.llm import GPT, GPTConf, GPTRequest
 
 # import demo-specific modules
-from os.path import abspath, dirname, join
 from dotenv import load_dotenv
 from os import environ
 import threading
@@ -37,13 +36,19 @@ class GPTElevenLabsStreamingDemo(SICApplication):
     GPT has finished generating the full response.
 
     Requirements:
-    1. ElevenLabs TTS service must be installed and running
-    2. OpenAI GPT service must be running: run-gpt
-    3. OPENAI_API_KEY and ELEVENLABS_API_KEY must be set (env or .env file)
+    1. pip install social-interaction-cloud[openai-gpt,elevenlabs-tts]
+    2. OPENAI_API_KEY and ELEVENLABS_API_KEY in conf/.env
+    3. Install Docker Desktop (services start automatically via docker-compose.yml)
+
+    Manual alternative (without Docker auto-start):
+    - run-gpt
+    - run-elevenlabs-tts
     """
 
     def __init__(self, api_key=None, env_path=None):
-        super(GPTElevenLabsStreamingDemo, self).__init__()
+        super(GPTElevenLabsStreamingDemo, self).__init__(
+            services_compose="docker-compose.yml",
+        )
 
         self.env_path = env_path
         self._provided_api_key = api_key
@@ -62,7 +67,7 @@ class GPTElevenLabsStreamingDemo(SICApplication):
         # self.set_log_file_path("/path/to/log/directory")
 
         # Load environment variables
-        self.load_env("../../conf/.env")
+        self.load_env("../../../conf/.env")
 
         self.setup()
 
@@ -201,7 +206,7 @@ class GPTElevenLabsStreamingDemo(SICApplication):
 
 
 if __name__ == "__main__":
-    demo = GPTElevenLabsStreamingDemo(
-        env_path=abspath(join(dirname(__file__), "..", "..", "conf", ".env"))
-    )
+    print(GPTElevenLabsStreamingDemo.__doc__)
+
+    demo = GPTElevenLabsStreamingDemo()
     demo.run()
