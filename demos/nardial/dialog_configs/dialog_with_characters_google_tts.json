@@ -1,0 +1,18 @@
+{
+  "id": "scene_intro",
+  "type": "functional",
+  "functional_type": "greeting",
+  "characters": {
+    "narrator": {
+      "voice_settings": {
+        "voice_name": "en-US-Standard-D",
+        "gender": "MALE",
+        "speaking_rate": 0.85
+      }
+    }
+  },
+  "moves": [
+    { "type": "say", "text": "It was a cold night.",  "character": "narrator"},
+    { "type": "say", "text": "This line uses the default voice settings."}
+  ]
+}

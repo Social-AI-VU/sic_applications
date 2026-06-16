@@ -40,8 +40,8 @@ conf/.env
 conf/google/*.json
 
 # NarDial files
-demos/nardial/participants/*
-demos/nardial/tts_cache/*
+**/participants/
+**/tts_cache/
 
 # Ignore local_test_sync_folder
 demos/desktop/local_test_sync_folder
