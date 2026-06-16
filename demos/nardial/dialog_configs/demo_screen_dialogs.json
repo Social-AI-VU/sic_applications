@@ -1,0 +1,60 @@
+[
+  {
+    "id": "screen_demo",
+    "type": "functional",
+    "functional_type": "greeting",
+    "moves": [
+      { "type": "black_screen" },
+      { "type": "say", "text": "Welcome to the NarDialPy screen provider demo." },
+      {
+        "type": "show_html",
+        "html": "<div style='display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif'><div style='text-align:center'><h1 style='color:white;font-size:4em;margin:0 0 0.5em'>NarDialPy</h1><p style='color:rgba(255,255,255,0.7);font-size:1.5em;margin:0'>Screen Provider Demo</p></div></div>"
+      },
+      { "type": "timed_wait", "duration_seconds": 3.0 },
+      { "type": "say", "text": "I can display images and rich content on screen." },
+      {
+        "type": "show_html",
+        "html": "<div style='display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;background:#111'><div style='text-align:center'><div style='font-size:8em'>&#129302;</div><p style='color:rgba(255,255,255,0.8);font-size:1.5em;margin:0.5em 0 0'>Hello, I am a NarDialPy robot!</p></div></div>"
+      },
+      { "type": "timed_wait", "duration_seconds": 4.0 },
+      { "type": "say", "text": "I can also embed external web pages." },
+      {
+        "type": "show_iframe",
+        "url": "https://www.openstreetmap.org/export/embed.html?bbox=-0.004017%2C51.47612%2C0.00491%2C51.48312&layer=mapnik"
+      },
+      { "type": "timed_wait", "duration_seconds": 5.0 },
+      { "type": "say", "text": "Now let me show you interactive buttons. Please click one on the screen." },
+      {
+        "type": "wait_for_web_input",
+        "prompt": "How did you like the demo?",
+        "options": ["It was great!", "Tell me more"],
+        "timeout": 30.0,
+        "outcomes": {
+          "It was great!": "liked",
+          "Tell me more": "more"
+        },
+        "default_outcome": "timeout"
+      },
+      {
+        "type": "branch",
+        "on": "outcome",
+        "cases": {
+          "liked": [
+            { "type": "say", "text": "Wonderful! I am glad you enjoyed the demo." }
+          ],
+          "more": [
+            {
+              "type": "say",
+              "text": "Check the README for the full list of screen moves and how to wire up a real device."
+            }
+          ],
+          "timeout": [
+            { "type": "say", "text": "No selection was made — that is alright." }
+          ]
+        }
+      },
+      { "type": "black_screen" },
+      { "type": "say", "text": "Thanks for watching. Goodbye!" }
+    ]
+  }
+]
