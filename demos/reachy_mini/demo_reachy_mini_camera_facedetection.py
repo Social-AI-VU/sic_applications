@@ -32,6 +32,7 @@ class ReachyMiniFaceDetectionDemo(SICApplication):
         self.imgs_buffer = queue.Queue(maxsize=1)
         self.faces_buffer = queue.Queue(maxsize=1)
         self.mini = None
+        self.mini_ip = "XXX"
         self.face_det = None
 
         self.set_log_level(sic_logging.INFO)
@@ -54,7 +55,7 @@ class ReachyMiniFaceDetectionDemo(SICApplication):
         """Initialize the Reachy Mini device and face detection pipeline."""
         self.logger.info("Creating pipeline...")
 
-        self.mini = ReachyMiniDevice(mode="sim")
+        self.mini = ReachyMiniDevice(mode="wireless", robot_ip=self.mini_ip)
 
         self.logger.info("Setting up face detection service")
         self.face_det = FaceDetection(input_source=self.mini.camera)
