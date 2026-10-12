@@ -70,5 +70,3 @@ class ReachyMiniMotionDemo(SICApplication):
 if __name__ == "__main__":
     demo = ReachyMiniMotionDemo()
     demo.run()
-
-#10.0.0.133
