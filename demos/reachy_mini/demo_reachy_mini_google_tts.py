@@ -39,6 +39,7 @@ class ReachyMiniGoogleTTSDemo(SICApplication):
 
         self.google_keyfile_path = google_keyfile_path
         self.mini = None
+        self.mini_ip = "XXX"
         self.tts = None
 
         self.set_log_level(sic_logging.INFO)
@@ -73,7 +74,8 @@ class ReachyMiniGoogleTTSDemo(SICApplication):
 
             # Initialize device with matching sample rate
             self.mini = ReachyMiniDevice(
-                mode="sim",
+                mode="wireless",
+                robot_ip=self.mini_ip,
                 speakers_conf=ReachyMiniSpeakersConf(sample_rate=reply.sample_rate)
             )
 

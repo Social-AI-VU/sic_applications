@@ -23,6 +23,7 @@ class ReachyMiniCameraDemo(SICApplication):
 
         self.imgs = queue.Queue(maxsize=1)
         self.mini = None
+        self.mini_ip = "XXX"
 
         self.set_log_level(sic_logging.INFO)
 
@@ -48,7 +49,7 @@ class ReachyMiniCameraDemo(SICApplication):
     def setup(self):
         """Initialize the Reachy Mini device and subscribe to the camera."""
         self.logger.info("Initializing Reachy Mini for camera demo...")
-        self.mini = ReachyMiniDevice(mode="sim")
+        self.mini = ReachyMiniDevice(mode="wireless", robot_ip=self.mini_ip)
         self.mini.camera.register_callback(callback=self.on_image)
 
     def run(self):

@@ -14,6 +14,12 @@ from sic_framework.services.streaming_sortformer import (
 
 
 class STMSortformerDemo(SICApplication):
+    """
+    Sortformer needs to be installed and running:
+        pip install "nemo_toolkit[asr] @ git+https://github.com/NVIDIA/NeMo.git@main"
+        run-sortformer
+    """
+
     def __init__(self):
         super(STMSortformerDemo, self).__init__()
 

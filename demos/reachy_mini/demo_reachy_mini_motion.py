@@ -22,6 +22,7 @@ class ReachyMiniMotionDemo(SICApplication):
         super(ReachyMiniMotionDemo, self).__init__()
 
         self.mini = None
+        self.mini_ip = "10.0.0.240"
 
         self.set_log_level(sic_logging.INFO)
 
@@ -36,7 +37,7 @@ class ReachyMiniMotionDemo(SICApplication):
     def setup(self):
         """Initialize the Reachy Mini device."""
         self.logger.info("Initializing Reachy Mini for motion demo...")
-        self.mini = ReachyMiniDevice(mode="sim")
+        self.mini = ReachyMiniDevice(mode="wireless",robot_ip=self.mini_ip)
 
     def run(self):
         """Main application logic."""

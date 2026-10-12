@@ -32,6 +32,7 @@ class ReachyMiniWhisperDemo(SICApplication):
         super(ReachyMiniWhisperDemo, self).__init__()
 
         self.mini = None
+        self.mini_ip = "XXX"
         self.whisper = None
         
         self.set_log_level(sic_logging.INFO)
@@ -51,7 +52,7 @@ class ReachyMiniWhisperDemo(SICApplication):
         """Initialize the Reachy Mini device and Whisper service."""
         self.logger.info("Setting up Whisper speech-to-text...")
 
-        self.mini = ReachyMiniDevice(mode="sim")
+        self.mini = ReachyMiniDevice(mode="wireless", robot_ip=self.mini_ip)
 
         whisper_conf = WhisperConf(openai_key=environ["OPENAI_API_KEY"])
         self.whisper = SICWhisper(input_source=self.mini.mic, conf=whisper_conf)

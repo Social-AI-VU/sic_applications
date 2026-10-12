@@ -43,7 +43,7 @@ class DialogflowDemo(SICApplication):
 
         self.set_log_level(sic_logging.INFO)
 
-        # Random session ID is necceessary for Dialogflow
+        # Random session ID is necessary for Dialogflow
         self.session_id = np.random.randint(10000)
 
         # Log files will only be written if set_log_file is called. Must be a valid full path to a directory.
