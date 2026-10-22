@@ -13,6 +13,10 @@ import wave
 
 
 class DesktopMicRecordingDemo(SICApplication):
+    """
+   This demo records five seconds of audio using the desktop microphone and saves it to your computer.
+   """
+
     def __init__(self):
         super(DesktopMicRecordingDemo, self).__init__()
         self.record_seconds = 5

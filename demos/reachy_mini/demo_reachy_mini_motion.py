@@ -22,7 +22,7 @@ class ReachyMiniMotionDemo(SICApplication):
         super(ReachyMiniMotionDemo, self).__init__()
 
         self.mini = None
-        self.mini_ip = "10.0.0.240"
+        self.mini_ip = "XXX"
 
         self.set_log_level(sic_logging.INFO)
 
@@ -70,5 +70,3 @@ class ReachyMiniMotionDemo(SICApplication):
 if __name__ == "__main__":
     demo = ReachyMiniMotionDemo()
     demo.run()
-
-#10.0.0.133
