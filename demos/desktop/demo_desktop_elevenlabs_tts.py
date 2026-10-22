@@ -22,8 +22,10 @@ class ElevenLabsTTSDemo(SICApplication):
     ElevenLabs Text-to-Speech demo application.
 
     Requirements:
-    1. ElevenLabs TTS service must be installed and running
-    2. ELEVENLABS_API_KEY must be set in the environment,
+    1. ElevenLabs TTS service must be installed and running:
+            pip install social-interaction-cloud[elevenlabs-tts]
+            run-elevenlabs-tts
+    2. ELEVENLABS_API_KEY must be set in the environment (conf/.env),
        or passed directly in ElevenLabsTTSConf
     """
 
