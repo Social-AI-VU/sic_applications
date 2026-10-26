@@ -22,7 +22,7 @@ class ReachyMiniSettings(SICApplication):
         super(ReachyMiniSettings, self).__init__()
 
         self.mini = None
-        self.mini_ip = "10.0.0.105"
+        self.mini_ip = "XXX"
 
         self.set_log_level(sic_logging.INFO)
 
